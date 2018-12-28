@@ -10,7 +10,7 @@ log = "0.4"
 pretty_env_logger = "0.2"
 rand = "0.5"
 libc = "0.2"
-wait-timeout = "0.1"
+wait-timeout = "0.2"
 ctrlc = { version = "3.1", features = ["termination"] }
 byteorder = "1.2"
 chrono = "0.4"
