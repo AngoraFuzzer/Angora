@@ -1,6 +1,6 @@
 const VEC_CAP: usize = (1 << 16);
 const LABEL_WITDH: u32 = 22;
-const MAX_LB: usize = (1 << LABEL_WITDH);
+const MAX_LB: usize = (1 << LABEL_WITDH) - 1;
 const ROOT: usize = 0;
 
 use angora_common::tag::TagSeg;

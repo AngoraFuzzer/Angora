@@ -92,6 +92,7 @@ export ANGORA_TAINT_RULE_LIST=/path-to/zlib_abilist.txt
 ```
 
 - use custom rules
+Example: how to custom `crc32` function in `zlib` library. (see `llvm_mode/external_lib` directory)
 
 ```
 # rename only certain functions to be custom after: 
@@ -121,3 +122,6 @@ CC=~/angora/bin/angora-clang CXX=~/angora/bin/angora-clang++ cmake -G Ninja ../l
 USE_DFSAN=1 ninja cxx cxxabi
 # move them to llvm_mode/libcxx_dfsan
 ```
+
+### Add taints in input functions
+Angora models most input functions in `llvm_mode/io-func.c`. But it doesn't support some input functions like `scanf` or other input function in external libraries. You can add taints by yourself by the approach described in *Model an external library*. For example, program `who` use `getutxent` to read input, and we add taints in `__dfsw_getutxent` in `io-func.c` file.
