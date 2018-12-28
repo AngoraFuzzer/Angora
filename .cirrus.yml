@@ -1,0 +1,9 @@
+angora_build_task:
+    container:
+        image: rustlang/rust:nightly
+    cargo_cache:
+        folder: $CARGO_HOME/registry
+        #    fingerprint_script: cat Cargo.lock
+    build_script: ./build/build.sh
+    test_script: cargo test
+    before_cache_script: rm -rf $CARGO_HOME/registry/index

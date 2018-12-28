@@ -1,0 +1,16 @@
+[package]
+name = "runtime_fast"
+version = "0.1.0"
+authors = ["sp1npx <spinpx@gmail.com>"]
+edition = "2018"
+
+[lib]
+name="runtime_fast"
+crate-type = ["staticlib"] # "cdfylib"
+
+[dependencies]
+libc = "0.2"
+lazy_static = "1.1"
+byteorder = "1.2"
+angora_common = { path = "../common" }
+

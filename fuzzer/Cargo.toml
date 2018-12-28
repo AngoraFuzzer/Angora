@@ -1,0 +1,29 @@
+[package]
+name = "angora"
+version = "1.0.0"
+authors = ["spinpx <spinpx@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+clap = "2.32"
+log = "0.4"
+pretty_env_logger = "0.2"
+rand = "0.5"
+libc = "0.2"
+wait-timeout = "0.1"
+ctrlc = { version = "3.1", features = ["termination"] }
+byteorder = "1.2"
+chrono = "0.4"
+priority-queue = "0.5"
+num_cpus = "1.0"
+derive_more = "0.11"
+colored = "1.6"
+serde="1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+# lazy_static = "1.1"
+
+angora_common = {path = "../common" }
+runtime = {path = "../runtime" }
+
+[dev-dependencies]

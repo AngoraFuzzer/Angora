@@ -1,0 +1,11 @@
+# https://github.com/rust-lang/rustfmt/blob/master/Configurations.md
+tab_spaces = 4
+indent_style = "Block"
+use_small_heuristics = "Default"
+combine_control_expr = false
+brace_style = "SameLineWhere"
+control_brace_style = "AlwaysSameLine"
+fn_args_density = "Tall"
+merge_imports = true
+match_block_trailing_comma = true
+# normalize_comments = true

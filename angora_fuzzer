@@ -1,0 +1,18 @@
+#!/bin/sh
+
+BIN_PATH=$(readlink -f "$0")
+FUZZ_DIR=$(dirname $BIN_PATH)
+
+BUILD_TYPE=${BUILD_TYPE:-release}
+
+if [ -z ${LOG_TYPE} ]
+then LOG_TYPE="info"
+fi
+
+envs="RUST_BACKTRACE=1 RUST_LOG=${LOG_TYPE}"
+fuzzer="${FUZZ_DIR}/target/${BUILD_TYPE}/fuzzer"
+
+cmd="$envs $fuzzer $*"
+
+# echo $cmd
+eval $cmd

@@ -1,0 +1,7 @@
+[workspace]
+members = [
+        "common",
+        "fuzzer",
+        "runtime_fast",
+        "runtime",
+]
