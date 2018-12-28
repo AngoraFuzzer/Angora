@@ -21,7 +21,7 @@ and precise input generation which significantly increases input coverage.
 
 ## Directory Structure
 
-- `build`: Scripts for building Angora componenets.
+- `build`: Scripts for building Angora components.
 - `common`: Common constants and data structures.
 - `fuzzer`: Contains the source code for the fuzzer. The fuzzer runs the target program and repeatedly mutates the input attempting to increase its code coverage statistics.
   - `src/bin`: Source files for the executable binaries.
