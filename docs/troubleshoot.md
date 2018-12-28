@@ -15,5 +15,5 @@ ln -s /usr/include/locale.h /usr/include/xlocale.h
 ## Runtime errors
 
 - Failed to find any branches during dry run: Ensure the binary is instrumented and the input 
-directory is populated. Otherwise no branches can found.
+directory is populated. Otherwise no branches can be found.
 
