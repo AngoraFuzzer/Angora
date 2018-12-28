@@ -12,7 +12,7 @@ ENV PATH=/clang+llvm/bin:/usr/local/cargo/bin:/angora/bin/:$PATH \
 #ENV RUSTUP_DIST_SERVER="https://mirrors.ustc.edu.cn/rust-static"
 #ENV RUSTUP_UPDATE_ROOT="https://mirrors.ustc.edu.cn/rust-static/rustup"
 
-RUN ./build/build.sh
+RUN ./build/docker_build.sh
 
 VOLUME ["/data"]
 WORKDIR /data
