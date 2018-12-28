@@ -56,7 +56,7 @@ find . -type f -name "*.h" -exec sed -i 's/#define\s*HAVE_DECL_GETC_UNLOCKED\s*[
 ```
 
 ## who
-- seeds: we crate a minimal seed by:
+- seeds: we create a minimal seed by:
 ``` c
 #include <utmp.h>
 #include <stdio.h>
@@ -97,7 +97,7 @@ unsigned int lava_get(unsigned int bug_num) {
 - command
 ``` sh
 # -M 0 to set unlimited memory since who has "memory exhausted" warning.
-~/angora/angora_fuzzer  -i ./input -o ./output -M 0-j 1 -t ./who.tt -- ./who.fast @@
+~/angora/angora_fuzzer  -i ./input -o ./output -M 0 -j 1 -t ./who.tt -- ./who.fast @@
 ```
 
 - Angora can find 1400~1700 bugs (including unlisted bugs).
