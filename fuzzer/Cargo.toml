@@ -4,6 +4,9 @@ version = "1.0.0"
 authors = ["spinpx <spinpx@gmail.com>"]
 edition = "2018"
 
+[features]
+unstable = []
+
 [dependencies]
 clap = "2.32"
 log = "0.4"

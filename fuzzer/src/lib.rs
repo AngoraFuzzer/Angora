@@ -1,4 +1,4 @@
-#![feature(core_intrinsics)]
+#![cfg_attr(feature = "unstable", feature(core_intrinsics))]
 
 #[macro_use]
 extern crate log;
