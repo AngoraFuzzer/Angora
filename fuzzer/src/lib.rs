@@ -1,4 +1,3 @@
-#![feature(asm)]
 #![feature(core_intrinsics)]
 
 #[macro_use]

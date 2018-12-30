@@ -11,7 +11,8 @@ use std::{
     collections::HashMap,
     path::Path,
     process::{Command, Stdio},
-    sync::{Arc, RwLock},
+    sync::{atomic::{compiler_fence, Ordering},
+        Arc, RwLock},
     time,
 };
 use wait_timeout::ChildExt;
@@ -188,10 +189,10 @@ impl Executor {
         if self.cmd.is_stdin {
             self.fd.rewind();
         }
-        unsafe { asm!("" ::: "memory" : "volatile") };
+        compiler_fence(Ordering::SeqCst);
         let unmem_status =
             self.run_target(&self.cmd.main, config::MEM_LIMIT_TRACK, self.cmd.time_limit);
-        unsafe { asm!("" ::: "memory" : "volatile") };
+        compiler_fence(Ordering::SeqCst);
 
         // find difference
         if unmem_status != StatusType::Normal {
@@ -292,13 +293,13 @@ impl Executor {
 
         self.branches.clear_trace();
 
-        unsafe { asm!("" ::: "memory" : "volatile") };
+        compiler_fence(Ordering::SeqCst);
         let ret_status = if let Some(ref mut fs) = self.forksrv {
             fs.run()
         } else {
             self.run_target(&self.cmd.main, self.cmd.mem_limit, self.cmd.time_limit)
         };
-        unsafe { asm!("" ::: "memory" : "volatile") };
+        compiler_fence(Ordering::SeqCst);
 
         ret_status
     }
@@ -334,13 +335,13 @@ impl Executor {
 
         self.write_test(buf);
 
-        unsafe { asm!("" ::: "memory" : "volatile") };
+        compiler_fence(Ordering::SeqCst);
         let ret_status = self.run_target(
             &self.cmd.track,
             config::MEM_LIMIT_TRACK,
             self.cmd.time_limit * config::TIME_LIMIT_TRACK,
         );
-        unsafe { asm!("" ::: "memory" : "volatile") };
+        compiler_fence(Ordering::SeqCst);
 
         if ret_status != StatusType::Normal {
             error!(
