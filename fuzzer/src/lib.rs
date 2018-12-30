@@ -1,4 +1,3 @@
-#![feature(nll)]
 #![feature(asm)]
 #![feature(core_intrinsics)]
 #![feature(duration_float)]

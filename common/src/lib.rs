@@ -1,5 +1,3 @@
-#![feature(nll)]
-
 pub mod cond_stmt_base;
 pub mod config;
 pub mod defs;

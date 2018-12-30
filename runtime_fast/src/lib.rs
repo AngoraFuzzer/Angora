@@ -1,4 +1,3 @@
-#![feature(nll)]
 #![feature(thread_local)]
 
 pub mod fast;
