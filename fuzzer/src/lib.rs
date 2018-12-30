@@ -1,6 +1,5 @@
 #![feature(asm)]
 #![feature(core_intrinsics)]
-#![feature(duration_float)]
 
 #[macro_use]
 extern crate log;
