@@ -136,7 +136,7 @@ impl MutInput {
     }
 
     pub fn write_to_input(&self, offsets: &Vec<TagSeg>, input: &mut Vec<u8>) {
-        assert_eq!(self.len(), offsets.len());
+        //assert_eq!(self.len(), offsets.len());
         if offsets.len() > 0 {
             let ext_len = offsets.last().unwrap().end as usize;
             let orig_len = input.len();

@@ -25,11 +25,11 @@ cd tests
 ./test.sh <test_name>
 ```
 
-## Run Alongside AFL
+## Run alongside AFL
 
-If you are running AFL and its output directoriy is `output`, run
+If you are running AFL and its output directory is `output`, run
 ```
 ./angora_fuzzer -i input -o output -t path-to-taint-program --sync_afl -- program args(..)
 ```
 
-Since the implementation of AFL search approach in Angora is too simple, the best practice is run it with AFL, and use `-A` to disable Angora's AFL approach.
+Since the implementation of AFL mutation approach in Angora is too simple, the best practice is run it together with AFL, and use `-A` to disable Angora's AFL approach.

@@ -81,7 +81,7 @@ echo "Hello World" > seeds/seed.txt
  ~/angora-open-source/angora_fuzzer -i seeds -o output -t ./track/install/bin/file -- ./fast/install/bin/file -m ./fast/install/share/misc/magic.mgc @@   
 ```
 
-## Run Alongside AFL
+## Run alongside AFL
 Angora has implemented some AFL like random mutation approaches, but they are too simple. You can disable it and run Angora alongside AFL.
 ### Build with AFL
 ```
