@@ -397,11 +397,10 @@ impl Executor {
         let timeout = time::Duration::from_secs(time_limit);
         let ret = match child.wait_timeout(timeout).unwrap() {
             Some(status) => {
-                if status.unix_signal().is_some() {
-                    debug!("Crash code: {:?}", status);
-                    StatusType::Crash
-                } else {
+                if status.code().is_some() {
                     StatusType::Normal
+                } else {
+                    StatusType::Crash
                 }
             },
             None => {
