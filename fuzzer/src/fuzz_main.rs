@@ -180,6 +180,13 @@ fn init_cpus_and_run_fuzzing_threads(
     let mut handlers = vec![];
     let free_cpus = bind_cpu::find_free_cpus(num_jobs);
     let free_cpus_len = free_cpus.len();
+    let bind_cpus = if free_cpus_len < num_jobs {
+        warn!("The number of free cpus is less than the number of jobs. Will not bind any thread to any cpu.");
+        false
+    }
+    else {
+        true
+    };
     for thread_id in 0..num_jobs {
         let c = child_count.clone();
         let r = running.clone();
@@ -187,10 +194,14 @@ fn init_cpus_and_run_fuzzing_threads(
         let d = depot.clone();
         let b = global_branches.clone();
         let s = stats.clone();
-        let cid = free_cpus[thread_id];
+        let cid = if bind_cpus {
+            free_cpus[thread_id]
+        } else {
+            0
+        };
         let handler = thread::spawn(move || {
             c.fetch_add(1, Ordering::SeqCst);
-            if free_cpus_len > thread_id {
+            if bind_cpus {
                 bind_cpu::bind_thread_to_cpu_core(cid);
             }
             fuzz_loop::fuzz_loop(r, cmd, d, b, s);
