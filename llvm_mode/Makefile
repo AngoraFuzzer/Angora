@@ -24,10 +24,10 @@ ${PREFIX}angora-clang: angora-clang.c
 	ln -sf angora-clang ${PREFIX}angora-clang++
 
 ${PREFIX}angora-llvm-pass.so: angora-llvm-pass.so.cc abilist.h config.h
-	$(CXX) $(CLANG_CFL) -shared $< -o $@ $(CLANG_LFL)
+	$(CXX) $(CLANG_CFL) -shared $< -o $@ $(CLANG_LFL) `$(LLVM_CONFIG) --libs`
 
 ${PREFIX}unfold-branch-pass.so: unfold-branch-pass.so.cc config.h
-	$(CXX) $(CLANG_CFL) -shared $< -o $@ $(CLANG_LFL)
+	$(CXX) $(CLANG_CFL) -shared $< -o $@ $(CLANG_LFL) `$(LLVM_CONFIG) --libs`
 
 ${PREFIX}angora-llvm-rt.o: angora-llvm-rt.o.c config.h
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
