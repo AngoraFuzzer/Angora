@@ -5,9 +5,6 @@ use lazy_static::lazy_static;
 use libc;
 use std::{cmp, slice, sync::Mutex};
 
-#[no_mangle]
-pub extern "C" fn __unfold_branch_fn(_x: i32) {}
-
 // use shm_conds;
 lazy_static! {
     static ref LC: Mutex<Option<Logger>> = Mutex::new(Some(Logger::new()));

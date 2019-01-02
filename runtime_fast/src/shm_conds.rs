@@ -7,16 +7,21 @@ use std::{env, ops::DerefMut, sync::Mutex};
 use lazy_static::lazy_static;
 
 extern "C" {
-    static mut __angora_cond_cmpid: u32;
-    static mut __angora_prev_loc: u32;
-    static mut __angora_context: u32;
-    // static __angora_tid: u32;
-    static mut __angora_level: u32;
+    fn __angora_get_context() -> u32;
+    fn __angora_set_cmpid(cid: u32);
+    fn __angora_reset_globals();
 }
 
 #[inline(always)]
-pub fn get_context() -> u32 {
-    unsafe { __angora_context }
+fn get_context() -> u32 {
+    unsafe { __angora_get_context() }
+}
+
+#[inline(always)]
+fn set_cmpid(cid: u32) {
+    unsafe {
+        __angora_set_cmpid(cid);
+    }
 }
 
 pub struct ShmConds {
@@ -37,7 +42,7 @@ impl ShmConds {
                 let shm_id = val.parse::<i32>().expect("Could not parse i32 value.");
                 let cond = shm::SHM::<CondStmtBase>::from_id(shm_id);
                 Some(Self { cond, rt_order: 0 })
-            },
+            }
             Err(_) => None,
         }
     }
@@ -62,9 +67,7 @@ impl ShmConds {
         self.cond.arg2 = arg2;
         self.rt_order = 0x8000;
         self.mark_reachable(condition);
-        unsafe {
-            __angora_cond_cmpid = 0;
-        }
+        set_cmpid(0);
         condition
     }
 
@@ -72,17 +75,13 @@ impl ShmConds {
         self.cond.arg1 = condition;
         self.rt_order = 0x8000;
         self.mark_reachable((condition == self.cond.arg2) as u32);
-        unsafe {
-            __angora_cond_cmpid = 0;
-        }
+        set_cmpid(0);
         condition
     }
 
     pub fn reset(&mut self) {
         self.rt_order = 0;
-        unsafe {
-            __angora_cond_cmpid = self.cond.cmpid;
-        }
+        set_cmpid(self.cond.cmpid);
     }
 }
 
@@ -95,13 +94,11 @@ pub fn reset_shm_conds() {
     match conds.deref_mut() {
         &mut Some(ref mut c) => {
             c.reset();
-        },
-        _ => {},
+        }
+        _ => {}
     }
 
     unsafe {
-        __angora_prev_loc = 0;
-        __angora_context = 0;
-        __angora_level = 0;
+        __angora_reset_globals();
     }
 }

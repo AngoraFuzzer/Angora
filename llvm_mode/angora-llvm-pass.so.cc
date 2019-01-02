@@ -235,20 +235,17 @@ void AngoraLLVMPass::initVariables(Module &M) {
       new GlobalVariable(M, PointerType::get(Int8Ty, 0), false,
                          GlobalValue::ExternalLinkage, 0, "__angora_area_ptr");
   AngoraCondId =
-      new GlobalVariable(M, Int32Ty, false, GlobalValue::CommonLinkage,
-                         ConstantInt::get(Int32Ty, 0), "__angora_cond_cmpid");
-  AngoraPrevLoc =
-      new GlobalVariable(M, Int32Ty, false, GlobalValue::CommonLinkage,
-                         ConstantInt::get(Int32Ty, 0), "__angora_prev_loc", 0,
-                         GlobalVariable::GeneralDynamicTLSModel, 0, false);
-  AngoraContext =
-      new GlobalVariable(M, Int32Ty, false, GlobalValue::CommonLinkage,
-                         ConstantInt::get(Int32Ty, 0), "__angora_context", 0,
-                         GlobalVariable::GeneralDynamicTLSModel, 0, false);
-  AngoraLevel =
-      new GlobalVariable(M, Int32Ty, false, GlobalValue::CommonLinkage,
-                         ConstantInt::get(Int32Ty, 0), "__angora_level", 0,
-                         GlobalVariable::GeneralDynamicTLSModel, 0, false);
+      new GlobalVariable(M, Int32Ty, false, GlobalValue::ExternalLinkage, 0,
+                         "__angora_cond_cmpid");
+  AngoraPrevLoc = new GlobalVariable(
+      M, Int32Ty, false, GlobalValue::ExternalLinkage, 0, "__angora_prev_loc",
+      0, GlobalVariable::GeneralDynamicTLSModel, 0, false);
+  AngoraContext = new GlobalVariable(
+      M, Int32Ty, false, GlobalValue::ExternalLinkage, 0, "__angora_context", 0,
+      GlobalVariable::GeneralDynamicTLSModel, 0, false);
+  AngoraLevel = new GlobalVariable(
+      M, Int32Ty, false, GlobalValue::ExternalLinkage, 0, "__angora_level", 0,
+      GlobalVariable::GeneralDynamicTLSModel, 0, false);
 
   if (CompileType == CLANG_FAST_TYPE) {
     TraceCmp = M.getOrInsertFunction("__angora_trace_cmp", Int32Ty, Int32Ty,
