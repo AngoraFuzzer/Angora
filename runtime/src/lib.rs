@@ -1,6 +1,3 @@
-#![feature(nll)]
-#![feature(thread_local)]
-
 pub mod ffds;
 pub mod len_label;
 pub mod logger;
@@ -15,7 +12,6 @@ pub type DfsanLabel = u32;
 extern "C" {
     fn dfsan_read_label(addr: *const i8, size: usize) -> DfsanLabel;
     static mut __angora_cond_cmpid: u32;
-    #[thread_local]
     static mut __angora_context: u32;
 // static __angora_tid: u32;
 }

@@ -8,13 +8,9 @@ use lazy_static::lazy_static;
 
 extern "C" {
     static mut __angora_cond_cmpid: u32;
-    #[thread_local]
     static mut __angora_prev_loc: u32;
-    #[thread_local]
     static mut __angora_context: u32;
-    // #[thread_local]
     // static __angora_tid: u32;
-    #[thread_local]
     static mut __angora_level: u32;
 }
 
