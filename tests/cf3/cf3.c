@@ -1,6 +1,6 @@
 /*
   Test:
-  implict data flow due to the value computed by if in loop.
+  implicit data flow due to the value computed by if in loop.
   The arr should contain three '3'.
 */
 

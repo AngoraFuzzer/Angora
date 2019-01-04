@@ -288,7 +288,7 @@ const char *GetPwd();
 char *FindPathToBinary(const char *name);
 bool IsPathSeparator(const char c);
 bool IsAbsolutePath(const char *path);
-// Starts a subprocess and returs its pid.
+// Starts a subprocess and returns its pid.
 // If *_fd parameters are not kInvalidFd their corresponding input/output
 // streams will be redirect to the file. The files will always be closed
 // in parent process even in case of an error.
@@ -345,11 +345,11 @@ void NORETURN ReportMmapFailureAndDie(uptr size, const char *mem_type,
                                       const char *mmap_type, error_t err,
                                       bool raw_report = false);
 
-// Set the name of the current thread to 'name', return true on succees.
+// Set the name of the current thread to 'name', return true on success.
 // The name may be truncated to a system-dependent limit.
 bool SanitizerSetThreadName(const char *name);
 // Get the name of the current thread (no more than max_len bytes),
-// return true on succees. name should have space for at least max_len+1 bytes.
+// return true on success. name should have space for at least max_len+1 bytes.
 bool SanitizerGetThreadName(char *name, int max_len);
 
 // Specific tools may override behavior of "Die" and "CheckFailed" functions

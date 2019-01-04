@@ -1,6 +1,6 @@
 /*
   Test:
-  test taints and condtional statment tracking works well for return value.
+  test taints and conditional statement tracking works well for return value.
  */
 
 #include "stdio.h"

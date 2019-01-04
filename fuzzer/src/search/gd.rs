@@ -235,7 +235,7 @@ impl<'a> GdSearch<'a> {
     }
 
     fn cal_gradient(&mut self, input: &MutInput, f0: u64, grad: &mut Grad) {
-        debug!("start calulate gradient.. input {:?}, f0 {:?}", input, f0);
+        debug!("start calculate gradient.. input {:?}, f0 {:?}", input, f0);
         // let mut grad = Grad::new(input.len());
         // grad.mul(config::GD_MOMENTUM_BETA);
         let mut max = 0_u64;

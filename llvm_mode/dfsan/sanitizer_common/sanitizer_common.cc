@@ -239,7 +239,7 @@ void RemoveANSIEscapeSequencesFromString(char *str) {
       continue;
     }
     // 's' now points at a character we want to keep. Copy over the buffer
-    // content if the escape sequence has been perviously skipped andadvance
+    // content if the escape sequence has been previously skipped andadvance
     // both pointers.
     if (s != z)
       *z = *s;

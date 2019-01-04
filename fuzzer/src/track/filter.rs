@@ -91,7 +91,7 @@ pub fn filter_cond_list(cond_list: &mut Vec<CondStmt>) {
         {
             cond.is_desirable = false;
         } else if cond.base.is_exploitable() {
-            // We try to (maximize or random mutate) the vlaues in the exploitable offsets.
+            // We try to (maximize or random mutate) the values in the exploitable offsets.
             // So we can simply de-dup them by their taint labels.
             if exploitable_labels.contains(&cond.base.lb1) {
                 cond.is_desirable = false;

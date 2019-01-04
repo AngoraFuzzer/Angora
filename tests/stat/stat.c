@@ -1,7 +1,7 @@
 /*
   Test:
-  the st_size field of stat struct in the conditional statment.
-  if the conditional statment is failed, it tells us we should resize the input.
+  the st_size field of stat struct in the conditional statement.
+  if the conditional statement is failed, it tells us we should resize the input.
 */
 #include "stdio.h"
 #include "stdint.h"
