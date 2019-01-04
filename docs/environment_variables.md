@@ -1,4 +1,4 @@
-# Environment variables in compiling
+# Environment variables for compiling
 
 - `USE_FAST=1`: use fast mode to compile the program. It includes branch counting, getting the feedback of the fuzzing constraint (the output of its function).
 - `USE_TRACK=1`: use taint tracking and collect all constraints.
@@ -8,3 +8,9 @@
 - `ANGORA_OUTPUT_COND_LOC=1` : (Debug option) Output the location of each predicate during compiling.
 - `ANGORA_TAINT_CUSTOM_RULE=/path/to/object` : object contains those proxy function (how to propagate taints), e.g. `ANGORA_TAINT_CUSTOM_RULE=~/angora/bin/zlib-func.o` . You should add it as custom type in the file passed by `ANGORA_TAINT_RULE_LIST` first.
 - `ANGORA_TAINT_RULE_LIST=/path/to/list` : DataFlowSanitizer’s [ABI list](https://clang.llvm.org/docs/DataFlowSanitizer.html), e.g. `ANGORA_TAINT_RULE_LIST=~/angora/bin/extra_list.txt`.
+
+# Environment variables for running
+
+- `RUST_LOG=trace`: enable tracing output
+- `RUST_LOG=debug`: enable debugging output
+

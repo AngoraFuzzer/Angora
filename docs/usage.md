@@ -1,0 +1,28 @@
+# Angora usage
+```
+angora-fuzzer 1.0.0
+fuzz some program
+
+USAGE:
+    fuzzer [FLAGS] [OPTIONS] --input <DIR> --output <DIR> [--] <pargs>...
+
+FLAGS:
+    -A, --disable_afl_mutation    Disable the fuzzer to mutate inputs using AFL's mutation strategies
+    -E, --disable_exploitation    Disable the fuzzer to mutate sensitive bytes to exploit bugs
+    -h, --help                    Prints help information
+    -S, --sync_afl                Sync the seeds with AFL. Output directory should be in AFL's directory structure.
+    -V, --version                 Prints version information
+
+OPTIONS:
+    -i, --input <DIR>                     Sets the directory of input seeds, use "-" to restart with existing output directory
+    -M, --memory_limit <MEM>              Memory limit for programs, default is 200(MB)
+    -o, --output <DIR>                    Sets the directory of outputs
+    -r, --search_method <SearchMethod>    Which search method to run the program in? [possible values: gd, random, mb]
+    -j, --jobs <JOB>                      Sets the number of thread jobs, default is 1
+    -T, --time_limit <TIME>               time limit for programs, default is 1(s), the tracking timeout is 12 * TIME
+    -t, --track <PROM>                    Sets the target for tracking, including taints, cmps.  Only set in LLVM mode.
+
+ARGS:
+    <pargs>...    Targeted program and arguments
+```
+
