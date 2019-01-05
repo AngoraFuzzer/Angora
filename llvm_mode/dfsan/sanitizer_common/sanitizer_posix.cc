@@ -146,7 +146,7 @@ void UnmapOrDie(void *addr, uptr size) {
 }
 
 // We want to map a chunk of address space aligned to 'alignment'.
-// We do it by maping a bit more and then unmaping redundant pieces.
+// We do it by mapping a bit more and then unmapping redundant pieces.
 // We probably can do it with fewer syscalls in some OS-dependent way.
 void *MmapAlignedOrDie(uptr size, uptr alignment, const char *mem_type) {
   CHECK(IsPowerOfTwo(size));

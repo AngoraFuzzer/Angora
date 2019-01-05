@@ -59,7 +59,7 @@ typedef __sanitizer::OFF64_T OFF64_T;
 //           INTERCEPTOR(int, foo, const char *bar, double baz) {...}
 //           but instead you'll have to add
 //           DECLARE_REAL(int, foo, const char *bar, double baz) in your
-//           source file (to define a pointer to overriden function).
+//           source file (to define a pointer to overridden function).
 //        3. Some Mac functions have symbol variants discriminated by
 //           additional suffixes, e.g. _$UNIX2003 (see
 //           https://developer.apple.com/library/mac/#releasenotes/Darwin/SymbolVariantsRelNotes/index.html

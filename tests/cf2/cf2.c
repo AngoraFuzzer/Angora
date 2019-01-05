@@ -1,6 +1,6 @@
 /*
   Test:
-  implict data flow due to the length of loop.
+  implicit data flow due to the length of loop.
   m should be 33
 */
 

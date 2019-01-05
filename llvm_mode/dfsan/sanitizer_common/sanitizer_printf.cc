@@ -207,7 +207,7 @@ void SetPrintfAndReportCallback(void (*callback)(const char *)) {
   PrintfAndReportCallback = callback;
 }
 
-// Can be overriden in frontend.
+// Can be overridden in frontend.
 #if SANITIZER_SUPPORTS_WEAK_HOOKS
 SANITIZER_INTERFACE_ATTRIBUTE SANITIZER_WEAK_ATTRIBUTE
 void OnPrint(const char *str) {

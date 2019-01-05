@@ -2,7 +2,7 @@ use std::{fs::File, io::prelude::*, path::Path};
 
 static CHECK_CRASH_MSG: &str = r#"
 If your system is configured to send core dump, there will be an
-extened delay after the program crash, which might makes crash to
+extended delay after the program crash, which might makes crash to
 misinterpreted as timeouts.
 You can modify /proc/sys/kernel/core_pattern to disable it by:
 # echo core | sudo tee /proc/sys/kernel/core_pattern
@@ -22,7 +22,7 @@ fn check_crash_handling() {
 fn check_target_binary(target: &str) {
     let program_path = Path::new(target);
     if !program_path.exists() || !program_path.is_file() {
-        panic!("Invaild executable file! {:?}", target);
+        panic!("Invalid executable file! {:?}", target);
     }
 }
 

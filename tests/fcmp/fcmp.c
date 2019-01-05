@@ -1,6 +1,6 @@
 /*
   Test:
-  comparasion for float.
+  comparison for float.
  */
 #include "stdio.h"
 #include "stdint.h"

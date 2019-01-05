@@ -35,7 +35,7 @@ template<class SizeClassAllocator> struct SizeClassAllocator32LocalCache;
 // UserChunk1 .. UserChunkN <gap> MetaChunkN .. MetaChunk1
 //
 // In order to avoid false sharing the objects of this class should be
-// chache-line aligned.
+// cache-line aligned.
 template <const uptr kSpaceBeg, const u64 kSpaceSize,
           const uptr kMetadataSize, class SizeClassMap,
           const uptr kRegionSizeLog,

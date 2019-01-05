@@ -1,6 +1,6 @@
 /*
   Test:
-  return argument is comparision.
+  return argument is comparison.
 
  */
 #include "stdio.h"

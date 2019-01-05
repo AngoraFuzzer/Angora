@@ -1,6 +1,6 @@
 /*
   Test:
-  comparasion for pointer.
+  comparison for pointer.
  */
 #include "stdio.h"
 #include "stdint.h"

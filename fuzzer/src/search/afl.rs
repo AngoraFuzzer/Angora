@@ -167,7 +167,7 @@ impl<'a> AFLFuzz<'a> {
                     buf[byte_idx as usize] = val;
                 },
                 6 => {
-                    // delte bytes
+                    // delete bytes
                     let remove_len: u32 = rng.gen_range(1, 5);
                     if byte_len > remove_len {
                         byte_len -= remove_len;
