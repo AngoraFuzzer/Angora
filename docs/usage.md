@@ -20,9 +20,9 @@ OPTIONS:
     -r, --search_method <SearchMethod>    Which search method to run the program in? [possible values: gd, random, mb]
     -j, --jobs <JOB>                      Sets the number of thread jobs, default is 1
     -T, --time_limit <TIME>               time limit for programs, default is 1(s), the tracking timeout is 12 * TIME
-    -t, --track <PROM>                    Sets the target for tracking, including taints, cmps.  Only set in LLVM mode.
+    -t, --track <PROM>                    Sets the target (USE_TRACK) for tracking, including taints, cmps. Only set in LLVM mode.
 
 ARGS:
-    <pargs>...    Targeted program and arguments
+    <pargs>...    Targeted program (USE_FAST) and arguments. Any "@@" will be substituted with the input filename from Angora.
 ```
 
