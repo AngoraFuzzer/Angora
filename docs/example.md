@@ -97,7 +97,7 @@ make install
 ```
 ~/afl/afl-fuzz  -i seeds -o output -S afl_s -- ./afl/install/bin/file @@
 
-# --sync-afl to allow sync seeds with AFL
+# --sync_afl to allow sync seeds with AFL
 # -A to disable AFL's random mutation in Angora.
 ~/angora-open-source/angora_fuzzer --sync_afl -A -i seeds -o output -t ./track/install/bin/file -- ./fast/install/bin/file -m ./fast/install/share/misc/magic.mgc @@   
 ```
