@@ -1,6 +1,6 @@
 /*
   Test:
-  Simple `if` conditional statment.
+  Simple `if` conditional statement.
   its both side are variable influenced by the input.
 */
 #include "stdio.h"

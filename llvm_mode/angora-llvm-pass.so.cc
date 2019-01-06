@@ -63,7 +63,7 @@ public:
   unsigned long int RandSeed = 1;
   bool is_bc;
 
-  // Const Varibales
+  // Const Variables
   DenseSet<u32> UniqCidSet;
 
   // Configurations

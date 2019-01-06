@@ -56,7 +56,7 @@ static void *RawInternalAlloc(uptr size, InternalAllocatorCache *cache,
   // Windows does not provide __libc_memalign/posix_memalign. It provides
   // __aligned_malloc, but the allocated blocks can't be passed to free,
   // they need to be passed to __aligned_free. InternalAlloc interface does
-  // not account for such requirement. Alignemnt does not seem to be used
+  // not account for such requirement. Alignment does not seem to be used
   // anywhere in runtime, so just call __libc_malloc for now.
   DCHECK_EQ(alignment, 0);
   return __libc_malloc(size);

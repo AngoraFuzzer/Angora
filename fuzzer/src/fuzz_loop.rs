@@ -112,7 +112,7 @@ pub fn fuzz_loop(
                     FnFuzz::new(handler).run();
                 },
                 FuzzType::OtherFuzz => {
-                    warn!("Unknow fuzz type!!");
+                    warn!("Unknown fuzz type!!");
                 },
             }
         }

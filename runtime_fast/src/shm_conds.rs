@@ -33,7 +33,7 @@ pub struct ShmConds {
 unsafe impl Send for ShmConds {}
 
 // Drop in common/shm.rs:
-// Though SHM<T> implement "drop" fucntion, but it won't call (as we want) since ShmConds is in lazy_static!
+// Though SHM<T> implement "drop" function, but it won't call (as we want) since ShmConds is in lazy_static!
 impl ShmConds {
     pub fn get_from_env_id() -> Option<Self> {
         let id_val = env::var(defs::COND_STMT_ENV_VAR);

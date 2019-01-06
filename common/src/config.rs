@@ -1,4 +1,4 @@
-// ************ Switchs **************
+// ************ Switches **************
 // length
 pub const ENABLE_INPUT_LEN_EXPLORATION: bool = true;
 pub const ENABLE_RANDOM_LEN: bool = false;

@@ -20,7 +20,7 @@
 //
 // On 64-bit architecture, there is no direct 64-bit jump instruction. To allow
 // arbitrary branching on the whole memory space, the notion of trampoline
-// region is used. A trampoline region is a memory space withing 2G boundary
+// region is used. A trampoline region is a memory space within 2G boundary
 // where it is safe to add custom assembly code to build 64-bit jumps.
 //
 // Hooking techniques
@@ -57,7 +57,7 @@
 //                                      tramp:  jmp QWORD [addr]
 //                                       addr:  .bytes <hook>
 //
-//    Note: <real> is equilavent to <label>.
+//    Note: <real> is equivalent to <label>.
 //
 // 3) HotPatch
 //
@@ -892,12 +892,12 @@ uptr InternalGetProcAddress(void *module, const char *func_name) {
         // format: "<module> . <function_name>" that is stored into the
         // exported directory.
         char function_name[256];
-        size_t funtion_name_length = _strlen(func);
-        if (funtion_name_length >= sizeof(function_name) - 1)
+        size_t function_name_length = _strlen(func);
+        if (function_name_length >= sizeof(function_name) - 1)
           InterceptionFailed();
 
-        _memcpy(function_name, func, funtion_name_length);
-        function_name[funtion_name_length] = '\0';
+        _memcpy(function_name, func, function_name_length);
+        function_name[function_name_length] = '\0';
         char* separator = _strchr(function_name, '.');
         if (!separator)
           InterceptionFailed();

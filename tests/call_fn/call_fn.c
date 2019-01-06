@@ -1,7 +1,7 @@
 /*
   Test:
   nested function calls.
-  test that the taints are tranfered coreectly.
+  test that the taints are transferred coreectly.
  */
 #include "stdio.h"
 #include "stdint.h"

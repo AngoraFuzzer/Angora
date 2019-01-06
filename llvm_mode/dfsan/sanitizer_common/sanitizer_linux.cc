@@ -980,7 +980,7 @@ uptr internal_clone(int (*fn)(void *), void *child_stack, int flags, void *arg,
   ((unsigned long long *)child_stack)[1] = (uptr)arg;
   register void *a3 __asm__("$7") = newtls;
   register int *a4 __asm__("$8") = child_tidptr;
-  // We don't have proper CFI directives here because it requires alot of code
+  // We don't have proper CFI directives here because it requires a lot of code
   // for very marginal benefits.
   __asm__ __volatile__(
                        /* $v0 = syscall($v0 = __NR_clone,

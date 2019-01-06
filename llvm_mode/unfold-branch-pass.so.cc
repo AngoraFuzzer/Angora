@@ -75,7 +75,7 @@ bool UnfoldBranch::doFinalization(Module &M) {
 
 bool UnfoldBranch::runOnFunction(Function &F) {
 
-  // if the function is delcaration, igonore
+  // if the function is declaration, ignore
   if (F.isDeclaration()) return false;
 #ifndef ENABLE_UNFOLD_BRANCH
   return false;

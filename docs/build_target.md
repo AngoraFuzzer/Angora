@@ -77,7 +77,7 @@ Here, we use zlib as example.
 
 ###  Model an external library
 View it as a blackbox, and define models for them. See rules in https://clang.llvm.org/docs/DataFlowSanitizer.html.
-- ignore this libary
+- ignore this library
 
 ```
 ./angora/tools/gen_library_abilist.sh /usr/lib/x86_64-linux-gnu/libz.so  discard > zlib_abilist.txt

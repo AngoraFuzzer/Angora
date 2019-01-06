@@ -1,6 +1,6 @@
 /*
   Test:
-  implict data flow due to simple if.
+  implicit data flow due to simple if.
   The easiest case.
  */
 #include "stdio.h"
