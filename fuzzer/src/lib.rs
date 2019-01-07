@@ -1,7 +1,4 @@
-#![feature(nll)]
-#![feature(asm)]
-#![feature(core_intrinsics)]
-#![feature(duration_float)]
+#![cfg_attr(feature = "unstable", feature(core_intrinsics))]
 
 #[macro_use]
 extern crate log;

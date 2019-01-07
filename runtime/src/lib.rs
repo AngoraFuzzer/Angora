@@ -1,6 +1,3 @@
-#![feature(nll)]
-#![feature(thread_local)]
-
 pub mod ffds;
 pub mod len_label;
 pub mod logger;
@@ -14,13 +11,10 @@ pub use crate::{logger::get_log_data, tag_set::TagSet};
 pub type DfsanLabel = u32;
 extern "C" {
     fn dfsan_read_label(addr: *const i8, size: usize) -> DfsanLabel;
-    static mut __angora_cond_cmpid: u32;
-    #[thread_local]
-    static mut __angora_context: u32;
-// static __angora_tid: u32;
+    fn __angora_get_context() -> u32;
 }
 
 #[inline(always)]
-pub fn get_context() -> u32 {
-    unsafe { __angora_context }
+fn get_context() -> u32 {
+    unsafe { __angora_get_context() }
 }

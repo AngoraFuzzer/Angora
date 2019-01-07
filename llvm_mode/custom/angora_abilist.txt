@@ -210,3 +210,5 @@ fun:pthread_cond_init=discard
 fun:getrandom=uninstrumented
 fun:getrandom=discard
 
+fun:fcntl64=uninstrumented
+fun:fcntl64=discard

@@ -1,6 +1,6 @@
 angora_build_task:
     container:
-        image: rustlang/rust:nightly
+        image: rust:latest
     cargo_cache:
         folder: $CARGO_HOME/registry
         #    fingerprint_script: cat Cargo.lock
