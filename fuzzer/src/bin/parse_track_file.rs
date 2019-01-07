@@ -40,7 +40,7 @@ fn main() {
                     cond.base.context,
                     cond.base.arg1,
                     cond.base.arg2,
-                    cond.base.condition - 1
+                    cond.base.condition
                 );
             }
         }

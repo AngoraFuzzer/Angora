@@ -78,7 +78,7 @@ echo "Hello World" > seeds/seed.txt
 ## Run Angora
 
 ```
- ~/angora-open-source/angora_fuzzer -i seeds -o output -t ./track/install/bin/file -- ./fast/install/bin/file -m ./fast/install/share/misc/magic.mgc @@   
+ ~/angora/angora_fuzzer -i seeds -o output -t ./track/install/bin/file -- ./fast/install/bin/file -m ./fast/install/share/misc/magic.mgc @@   
 ```
 
 ## Run alongside AFL
@@ -99,5 +99,10 @@ make install
 
 # --sync_afl to allow sync seeds with AFL
 # -A to disable AFL's random mutation in Angora.
-~/angora-open-source/angora_fuzzer --sync_afl -A -i seeds -o output -t ./track/install/bin/file -- ./fast/install/bin/file -m ./fast/install/share/misc/magic.mgc @@   
+~/angora/angora_fuzzer --sync_afl -A -i seeds -o output -t ./track/install/bin/file -- ./fast/install/bin/file -m ./fast/install/share/misc/magic.mgc @@   
+```
+### Re-run
+```
+# Termination with ^C
+~/angora/angora_fuzzer -i - -o output -t ./track/install/bin/file -- ./fast/install/bin/file -m ./fast/install/share/misc/magic.mgc @@
 ```
