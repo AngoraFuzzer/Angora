@@ -67,7 +67,7 @@ fn main() {
              .help("Sync the seeds with AFL. Output directory should be in AFL's directory structure."))
        .arg(Arg::with_name("disable_afl_mutation")
              .short("A")
-             .long("disable_afl_mutaion")
+             .long("disable_afl_mutation")
              .help("Disable the fuzzer to mutate inputs using AFL's mutation strategies"))
         .arg(Arg::with_name("disable_exploitation")
              .short("E")
