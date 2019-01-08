@@ -293,6 +293,10 @@ void AngoraLLVMPass::initVariables(Module &M) {
     errs() << "disable context\n";
   }
 
+  if (direct_fn_ctx) {
+    errs() << "use direct function call context\n";
+  }
+
   if (gen_id_random) {
     errs() << "generate id randomly\n";
   }
@@ -432,8 +436,13 @@ void AngoraLLVMPass::visitCallInst(Instruction *Inst) {
     // by `xor` with the same value.
     LoadInst *CtxVal = IRB.CreateLoad(AngoraContext);
     setInsNonSan(CtxVal);
-    Value *UpdatedCtx = IRB.CreateXor(CtxVal, SelectRet);
-    setValueNonSan(UpdatedCtx);
+    Value *UpdatedCtx = CtxVal;
+    if (!direct_fn_ctx) {
+      // There are another implementation of function context in:
+      // https://github.com/vanhauser-thc/afl-patches/blob/master/afl-fuzz-context_sensitive.diff
+      UpdatedCtx = IRB.CreateXor(CtxVal, SelectRet);
+      setValueNonSan(UpdatedCtx);
+    }
     StoreInst *SaveCtx = IRB.CreateStore(UpdatedCtx, AngoraContext);
     setInsNonSan(SaveCtx);
     StoreInst *StoreCtx = new StoreInst(CtxVal, AngoraContext);
