@@ -65,7 +65,7 @@ impl ChartStats {
             Err(poisoned) => {
                 warn!("Lock poisoned. Results can be incorrect! Continuing...");
                 poisoned.into_inner()
-            },
+            }
         };
         self.search = Default::default();
         self.state = Default::default();
@@ -115,6 +115,18 @@ impl ChartStats {
 
 impl fmt::Display for ChartStats {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.density.0 > 10.0 {
+            warn!("Density is too large (> 10%). Please increase `MAP_SIZE_POW2` in `llvm_mode/config.h` and `MAP_LENGTH` in `common/src/config.rs`. Or disable function-call context by compiling with `ANGORA_DISABLE_CONTEXT=1` or `ANGORA_DIRECT_FN_CONTEXT` environment variable.");
+        }
+
+        if self.search.multiple_inconsist() {
+            warn!("Multiple inconsistent warnings. It caused by the fast and track programs has different behaviors. If most constraints are inconsistent, ensure they are compiled with the same environment. Otherwise, please report us.");
+        }
+
+        if self.fuzz.may_be_model_failure() {
+            warn!("Find small number constraints, please make sure you have modeled the read functions.")
+        }
+
         write!(
             f,
             r#"

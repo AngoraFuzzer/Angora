@@ -70,6 +70,7 @@ public:
   bool enable_ctx;
   bool gen_id_random;
   bool output_cond_loc;
+  bool direct_fn_ctx;
 
   MDNode *ColdCallWeights;
 
@@ -284,6 +285,7 @@ void AngoraLLVMPass::initVariables(Module &M) {
   ExploitList.set(SpecialCaseList::createOrDie(AllExploitListFiles));
 
   enable_ctx = !getenv(DISABLE_CTX_VAR);
+  direct_fn_ctx = getenv(DIRECT_FN_CTX);
   gen_id_random = !!getenv(GEN_ID_RANDOM_VAR);
   output_cond_loc = !!getenv(OUTPUT_COND_LOC_VAR);
 

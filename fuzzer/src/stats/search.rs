@@ -86,6 +86,10 @@ impl SearchStats {
             self.onebyte_sch.find(cond);
         }
     }
+
+    pub fn multiple_inconsist(&self) -> bool {
+        self.inconsistent_sch.all.num_cmp.0 * 2 > self.sch.all.num_cmp.0
+    }
 }
 
 impl fmt::Display for SearchStats {
