@@ -438,7 +438,7 @@ void AngoraLLVMPass::visitCallInst(Instruction *Inst) {
     setInsNonSan(CtxVal);
     Value *UpdatedCtx = CtxVal;
     if (!direct_fn_ctx) {
-      // There are another implementation of function context in:
+      // Implementation of function context for AFL by heiko eissfeldt:
       // https://github.com/vanhauser-thc/afl-patches/blob/master/afl-fuzz-context_sensitive.diff
       UpdatedCtx = IRB.CreateXor(CtxVal, SelectRet);
       setValueNonSan(UpdatedCtx);
