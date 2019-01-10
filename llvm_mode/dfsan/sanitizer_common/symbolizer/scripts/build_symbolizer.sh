@@ -1,7 +1,7 @@
 #!/bin/bash -eu
 #
 # Run as: CLANG=bin/clang ZLIB_SRC=src/zlib \
-#             build_symbolizer.sh runtime_build/lib/clang/4.0.0/lib/linux/
+#             build_symbolizer.sh runtime_build/lib/clang/6.0.0/lib/linux/
 # zlib can be downloaded from from http://www.zlib.net.
 #
 # Script compiles self-contained object file with symbolization code and injects

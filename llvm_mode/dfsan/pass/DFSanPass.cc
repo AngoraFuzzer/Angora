@@ -561,17 +561,14 @@ DataFlowSanitizer::buildWrapperFunction(Function *F, StringRef NewFName,
   Function *NewF = Function::Create(NewFT, NewFLink, NewFName, F->getParent());
   NewF->copyAttributesFrom(F);
   NewF->removeAttributes(
-      AttributeSet::ReturnIndex,
-      AttributeSet::get(
-          F->getContext(), AttributeSet::ReturnIndex,
-          AttributeFuncs::typeIncompatible(NewFT->getReturnType())));
+      AttributeList::ReturnIndex,
+      AttributeFuncs::typeIncompatible(NewFT->getReturnType()));
 
   BasicBlock *BB = BasicBlock::Create(*Ctx, "entry", NewF);
   if (F->isVarArg() && getWrapperKind(F) != WK_Discard) {
     NewF->removeAttributes(
-        AttributeSet::FunctionIndex,
-        AttributeSet().addAttribute(*Ctx, AttributeSet::FunctionIndex,
-                                    "split-stack"));
+        AttributeList::FunctionIndex,
+        AttrBuilder().addAttribute("split-stack"));
     CallInst::Create(DFSanVarargWrapperFn,
                      IRBuilder<>(BB).CreateGlobalStringPtr(F->getName()), "",
                      BB);
@@ -605,7 +602,7 @@ Constant *DataFlowSanitizer::getOrBuildTrampolineFunction(FunctionType *FT,
     for (unsigned N = FT->getNumParams(); N != 0; ++AI, --N)
       Args.push_back(&*AI);
     CallInst *CI =
-        CallInst::Create(&F->getArgumentList().front(), Args, "", BB);
+        CallInst::Create(F->arg_begin(), Args, "", BB);
     ReturnInst *RI;
     if (FT->getReturnType()->isVoidTy())
       RI = ReturnInst::Create(*Ctx, BB);
@@ -620,7 +617,7 @@ Constant *DataFlowSanitizer::getOrBuildTrampolineFunction(FunctionType *FT,
     DFSanVisitor(DFSF).visitCallInst(*CI);
     if (!FT->getReturnType()->isVoidTy())
       new StoreInst(DFSF.getShadow(RI->getReturnValue()),
-                    &F->getArgumentList().back(), RI);
+                    F->arg_end(), RI);
   }
 
   return C;
@@ -649,9 +646,9 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
   DFSanMarkSignedFn =
       Mod->getOrInsertFunction("dfsan_mark_signed", DFSanUnionFnTy);
   if (Function *F = dyn_cast<Function>(DFSanMarkSignedFn)) {
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
-    F->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
+    F->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
     F->addAttribute(1, Attribute::ZExt);
     F->addAttribute(2, Attribute::ZExt);
   }
@@ -660,26 +657,26 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
   DFSanCombineAndFn = Mod->getOrInsertFunction("dfsan_combine_and_ins",
                                                ShadowTy, ShadowTy, nullptr);
   if (Function *F = dyn_cast<Function>(DFSanCombineAndFn)) {
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
-    F->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
+    F->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
     F->addAttribute(1, Attribute::ZExt);
   }
 
   DFSanUnionFn = Mod->getOrInsertFunction("__dfsan_union", DFSanUnionFnTy);
   if (Function *F = dyn_cast<Function>(DFSanUnionFn)) {
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
-    F->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
+    F->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
     F->addAttribute(1, Attribute::ZExt);
     F->addAttribute(2, Attribute::ZExt);
   }
 
   DFSanCheckedUnionFn = Mod->getOrInsertFunction("dfsan_union", DFSanUnionFnTy);
   if (Function *F = dyn_cast<Function>(DFSanCheckedUnionFn)) {
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
-    F->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
+    F->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
     F->addAttribute(1, Attribute::ZExt);
     F->addAttribute(2, Attribute::ZExt);
   }
@@ -687,9 +684,9 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
   DFSanUnionLoadFn =
       Mod->getOrInsertFunction("__dfsan_union_load", DFSanUnionLoadFnTy);
   if (Function *F = dyn_cast<Function>(DFSanUnionLoadFn)) {
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadOnly);
-    F->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadOnly);
+    F->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
   }
   DFSanUnimplementedFn =
       Mod->getOrInsertFunction("__dfsan_unimplemented", DFSanUnimplementedFnTy);
@@ -738,9 +735,8 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
     }
   }
 
-  AttrBuilder B;
-  B.addAttribute(Attribute::ReadOnly).addAttribute(Attribute::ReadNone);
-  ReadOnlyNoneAttrs = AttributeSet::get(*Ctx, AttributeSet::FunctionIndex, B);
+   AttrBuilder ReadOnlyNoneAttrs;
+   ReadOnlyNoneAttrs.addAttribute(Attribute::ReadOnly).addAttribute(Attribute::ReadNone);
 
   // First, change the ABI of every function in the module.  ABI-listed
   // functions keep their original ABI and get a wrapper function.
@@ -762,10 +758,8 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
         Function *NewF = Function::Create(NewFT, F.getLinkage(), "", &M);
         NewF->copyAttributesFrom(&F);
         NewF->removeAttributes(
-            AttributeSet::ReturnIndex,
-            AttributeSet::get(
-                NewF->getContext(), AttributeSet::ReturnIndex,
-                AttributeFuncs::typeIncompatible(NewFT->getReturnType())));
+            AttributeList::ReturnIndex,
+            AttributeFuncs::typeIncompatible(NewFT->getReturnType()));
         for (Function::arg_iterator FArg = F.arg_begin(),
                                     NewFArg = NewF->arg_begin(),
                                     FArgEnd = F.arg_end();
@@ -803,7 +797,7 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
           &F, std::string("dfsw$") + std::string(F.getName()),
           GlobalValue::LinkOnceODRLinkage, NewFT);
       if (getInstrumentedABI() == IA_TLS)
-        NewF->removeAttributes(AttributeSet::FunctionIndex, ReadOnlyNoneAttrs);
+        NewF->removeAttributes(AttributeList::FunctionIndex, ReadOnlyNoneAttrs);
 
       Value *WrappedFnCst =
           ConstantExpr::getBitCast(NewF, PointerType::getUnqual(FT));
@@ -971,7 +965,7 @@ Value *DFSanFunction::getShadow(Value *V) {
         break;
       }
       case DataFlowSanitizer::IA_Args: {
-        unsigned ArgIdx = A->getArgNo() + F->getArgumentList().size() / 2;
+        unsigned ArgIdx = A->getArgNo() + F->arg_size() / 2;
         Function::arg_iterator i = F->arg_begin();
         while (ArgIdx--)
           ++i;
@@ -1032,12 +1026,12 @@ Value *DFSanFunction::combineShadows(Value *V1, Value *V2, Instruction *Pos) {
         IRBuilder<> IRB(Pos);
         if (V1 == DFS.ZeroShadow && V2 != DFS.ZeroShadow) { // Constant
           CallInst *Call = IRB.CreateCall(DFS.DFSanCombineAndFn, {V2});
-          Call->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+          Call->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
           Call->addAttribute(1, Attribute::ZExt);
           return Call;
         } else if (V2 == DFS.ZeroShadow && V1 != DFS.ZeroShadow) {
           CallInst *Call = IRB.CreateCall(DFS.DFSanCombineAndFn, {V1});
-          Call->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+          Call->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
           Call->addAttribute(1, Attribute::ZExt);
           return Call;
         }
@@ -1065,7 +1059,7 @@ Value *DFSanFunction::combineShadows(Value *V1, Value *V2, Instruction *Pos) {
   if (is_signed) {
     IRBuilder<> IRB(Pos);
     CallInst *Call = IRB.CreateCall(DFS.DFSanMarkSignedFn, {V1, V2});
-    Call->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+    Call->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
     Call->addAttribute(1, Attribute::ZExt);
     Call->addAttribute(2, Attribute::ZExt);
   }
@@ -1109,7 +1103,7 @@ Value *DFSanFunction::combineShadows(Value *V1, Value *V2, Instruction *Pos) {
   IRBuilder<> IRB(Pos);
   if (AvoidNewBlocks) {
     CallInst *Call = IRB.CreateCall(DFS.DFSanCheckedUnionFn, {V1, V2});
-    Call->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+    Call->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
     Call->addAttribute(1, Attribute::ZExt);
     Call->addAttribute(2, Attribute::ZExt);
 
@@ -1122,7 +1116,7 @@ Value *DFSanFunction::combineShadows(Value *V1, Value *V2, Instruction *Pos) {
         Ne, Pos, /*Unreachable=*/false, DFS.ColdCallWeights, &DT));
     IRBuilder<> ThenIRB(BI);
     CallInst *Call = ThenIRB.CreateCall(DFS.DFSanUnionFn, {V1, V2});
-    Call->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+    Call->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
     Call->addAttribute(1, Attribute::ZExt);
     Call->addAttribute(2, Attribute::ZExt);
 
@@ -1162,7 +1156,7 @@ Value *DFSanFunction::combineOperandShadows(Instruction *Inst) {
     IRBuilder<> IRB(Inst);
     CallInst *Call =
         IRB.CreateCall(DFS.DFSanMarkSignedFn, {Shadow, DFS.ZeroShadow});
-    Call->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+    Call->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
     Call->addAttribute(1, Attribute::ZExt);
     Call->addAttribute(2, Attribute::ZExt);
   }
@@ -1234,7 +1228,7 @@ Value *DFSanFunction::loadShadow(Value *Addr, uint64_t Size, uint64_t Align,
     CallInst *FallbackCall = FallbackIRB.CreateCall(
         DFS.DFSanUnionLoadFn,
         {ShadowAddr, ConstantInt::get(DFS.IntptrTy, Size)});
-    FallbackCall->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+    FallbackCall->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
 
     // Compare each of the shadows stored in the loaded 64 bits to each other,
     // by computing (WideShadow rotl ShadowWidth) == WideShadow.
@@ -1291,7 +1285,7 @@ Value *DFSanFunction::loadShadow(Value *Addr, uint64_t Size, uint64_t Align,
   IRBuilder<> IRB(Pos);
   CallInst *FallbackCall = IRB.CreateCall(
       DFS.DFSanUnionLoadFn, {ShadowAddr, ConstantInt::get(DFS.IntptrTy, Size)});
-  FallbackCall->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+  FallbackCall->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
   return FallbackCall;
 }
 
@@ -1584,7 +1578,7 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
 
           // Custom functions returning non-void will write to the return label.
           if (!FT->getReturnType()->isVoidTy()) {
-            CustomFn->removeAttributes(AttributeSet::FunctionIndex,
+            CustomFn->removeAttributes(AttributeList::FunctionIndex,
                                        DFSF.DFS.ReadOnlyNoneAttrs);
           }
         }
@@ -1619,7 +1613,10 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
           auto *LabelVATy = ArrayType::get(DFSF.DFS.ShadowTy,
                                            CS.arg_size() - FT->getNumParams());
           auto *LabelVAAlloca = new AllocaInst(
-              LabelVATy, "labelva", &DFSF.F->getEntryBlock().front());
+              LabelVATy,
+              DFSF.F->getParent()->getDataLayout().getAllocaAddrSpace(),
+              "labelva",
+              &DFSF.F->getEntryBlock().front());
 
           for (unsigned n = 0; i != CS.arg_end(); ++i, ++n) {
             auto LabelVAPtr = IRB.CreateStructGEP(LabelVATy, LabelVAAlloca, n);
@@ -1632,7 +1629,9 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
         if (!FT->getReturnType()->isVoidTy()) {
           if (!DFSF.LabelReturnAlloca) {
             DFSF.LabelReturnAlloca =
-                new AllocaInst(DFSF.DFS.ShadowTy, "labelreturn",
+                new AllocaInst(DFSF.DFS.ShadowTy,
+                               DFSF.F->getParent()->getDataLayout().getAllocaAddrSpace(),
+                               "labelreturn",
                                &DFSF.F->getEntryBlock().front());
           }
           Args.push_back(DFSF.LabelReturnAlloca);
@@ -1712,7 +1711,10 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
       unsigned VarArgSize = CS.arg_size() - FT->getNumParams();
       ArrayType *VarArgArrayTy = ArrayType::get(DFSF.DFS.ShadowTy, VarArgSize);
       AllocaInst *VarArgShadow =
-          new AllocaInst(VarArgArrayTy, "", &DFSF.F->getEntryBlock().front());
+          new AllocaInst(VarArgArrayTy,
+                         DFSF.F->getParent()->getDataLayout().getAllocaAddrSpace(),
+                         "",
+                         &DFSF.F->getEntryBlock().front());
       Args.push_back(IRB.CreateConstGEP2_32(VarArgArrayTy, VarArgShadow, 0, 0));
       for (unsigned n = 0; i != e; ++i, ++n) {
         IRB.CreateStore(
@@ -1731,7 +1733,7 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
     }
     NewCS.setCallingConv(CS.getCallingConv());
     NewCS.setAttributes(CS.getAttributes().removeAttributes(
-        *DFSF.DFS.Ctx, AttributeSet::ReturnIndex,
+        *DFSF.DFS.Ctx, AttributeList::ReturnIndex,
         AttributeFuncs::typeIncompatible(NewCS.getInstruction()->getType())));
 
     if (Next) {
