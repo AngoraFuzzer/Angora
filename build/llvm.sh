@@ -1,8 +1,8 @@
 #!/bin/bash
 set -eux
-LLVM_DEP_URL=${LLVM_DEP_URL:-http://releases.llvm.org/6.0.0}
+LLVM_DEP_URL=${LLVM_DEP_URL:-http://releases.llvm.org/7.0.0}
 PREFIX=${PREFIX:-${HOME}}
-TAR_NAME=clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04
+TAR_NAME=clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04
 wget -q ${LLVM_DEP_URL}/${TAR_NAME}.tar.xz
 tar -C ${PREFIX} -xf ${TAR_NAME}.tar.xz
 rm ${TAR_NAME}.tar.xz

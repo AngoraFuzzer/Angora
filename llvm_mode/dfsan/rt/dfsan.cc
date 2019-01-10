@@ -29,8 +29,6 @@
 
 using namespace __dfsan;
 
-// #include "../../../tag_set/tag_set.h"
-// TagSet* __dfsan_tag_set;
 #include "../../../runtime/include/tag_set.h"
 
 Flags __dfsan::flags_data;
@@ -40,16 +38,11 @@ SANITIZER_INTERFACE_ATTRIBUTE THREADLOCAL dfsan_label __dfsan_arg_tls[64];
 
 SANITIZER_INTERFACE_ATTRIBUTE uptr __dfsan_shadow_ptr_mask;
 
-//typedef dfsan_label dfsan_union_table_t[1<<16][1<<16];
 
 #ifdef DFSAN_RUNTIME_VMA
 // Runtime detected VMA size.
 int __dfsan::vmaSize;
 #endif
-
-// static dfsan_label* union_table(dfsan_label l1, dfsan_label l2) {
-//   return &(*(dfsan_union_table_t *) UnionTableAddr())[l1][l2];
-// }
 
 static uptr UnusedAddr() {
   // return MappingArchImpl<MAPPING_UNION_TABLE_ADDR>() + sizeof(dfsan_union_table_t);
@@ -60,49 +53,28 @@ static uptr UnusedAddr() {
 // this function (the instrumentation pass inlines the equality test).
 extern "C" SANITIZER_INTERFACE_ATTRIBUTE
 dfsan_label __dfsan_union(dfsan_label l1, dfsan_label l2) {
+  // DCHECK_NE(l1, l2);
+
   if (l1 == 0)
     return l2;
   if (l2 == 0)
     return l1;
-  // if (l1 >= TT_SP_LABEL) return l1;
-  // if (l2 >= TT_SP_LABEL) return l2;
-  // dfsan_label* cached_lb = union_table(l1, l2);
-  // if (*cached_lb > 0) return *cached_lb;
-  // dfsan_label l3 = __dfsan_tag_set->combine(l1, l2, size);
+
   dfsan_label l3 = __angora_tag_set_combine(l1, l2);
-  //*cached_lb = l3;
   return l3;
 }
 
 extern "C" SANITIZER_INTERFACE_ATTRIBUTE
 dfsan_label __dfsan_union_load(const dfsan_label *ls, uptr n) {
-
-  if (!ls) return 0;
-  // for (int i = 0; i < n; i++) {
-  //   if (ls[i] >= TT_SP_LABEL) return ls[i];
-  // }
-
-  return __angora_tag_set_combine_n(ls, (uint32_t)n);
-
-  // dfsan_label last_lb = ls[0];
-  // if (last_lb >= TT_SP_LABEL) return last_lb;
-  // last_lb = tag_set_combine(last_lb, next_lb, i + 1);
-
-  // for (int i = 1; i < n; i++) {
-  //   dfsan_label next_lb = ls[i];
-  //   if (next_lb > 0) {
-  //     if (next_lb >= TT_SP_LABEL) return next_lb;
-  //     // last_lb = __dfsan_tag_set->combine(last_lb, next_lb, i + 1);
-  //     last_lb = tag_set_combine(last_lb, next_lb, i + 1);
-  //   }
-  // }
-  // return last_lb;
+    if (!ls) return 0;
+      return __angora_tag_set_combine_n(ls, (uint32_t)n);
 }
 
 extern "C" SANITIZER_INTERFACE_ATTRIBUTE
 void __dfsan_unimplemented(char *fname) {
   if (flags().warn_unimplemented)
-    Report("WARNING: DataFlowSanitizer: call to uninstrumented function %s\n", fname);
+    Report("WARNING: DataFlowSanitizer: call to uninstrumented function %s\n",
+           fname);
 }
 
 // Use '-mllvm -dfsan-debug-nonzero-labels' and break on this function
@@ -195,11 +167,6 @@ dfsan_read_label(const void *addr, uptr size) {
     return 0;
   return __dfsan_union_load(shadow_for(addr), size);
 }
-
-// const std::vector<struct tag_seg> dfsan_get_label_offsets(dfsan_label l) {
-//   return  __dfsan_tag_set->find(l);
-// }
-
 void Flags::SetDefaults() {
 #define DFSAN_FLAG(Type, Name, DefaultValue, Description) Name = DefaultValue;
 #include "dfsan_flags.inc"
@@ -242,21 +209,7 @@ static void InitializePlatformEarly() {
 #endif
 }
 
-void dfsan_clear_label_manually () {
-  // let it free automatically
-  // Modoern OS will do it, you know
-  // if (__dfsan_tag_set) {
-  // delete __dfsan_tag_set;
-  //__dfsan_tag_set = NULL;``
-  // }
-}
-
 static void dfsan_fini() {
-  dfsan_clear_label_manually();
-}
-
-static void dfsan_fini_wrap() {
-  dfsan_fini();
 }
 
 static void dfsan_init(int argc, char **argv, char **envp) {
@@ -264,7 +217,8 @@ static void dfsan_init(int argc, char **argv, char **envp) {
 
   InitializePlatformEarly();
 
-  MmapFixedNoReserve(ShadowAddr(), UnusedAddr() - ShadowAddr());
+  if (!MmapFixedNoReserve(ShadowAddr(), UnusedAddr() - ShadowAddr()))
+    Die();
 
   // Protect the region of memory we don't use, to preserve the one-to-one
   // mapping from application to shadow memory. But if ASLR is disabled, Linux
@@ -279,11 +233,9 @@ static void dfsan_init(int argc, char **argv, char **envp) {
 
   // Register the fini callback to run when the program terminates successfully
   // or it is killed by the runtime.
-
-  Atexit(dfsan_fini_wrap);
+  Atexit(dfsan_fini);
   AddDieCallback(dfsan_fini);
 
-  //__dfsan_tag_set = new TagSet();
 }
 
 #if SANITIZER_CAN_USE_PREINIT_ARRAY

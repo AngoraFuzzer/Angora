@@ -16,16 +16,14 @@
 #define DFSAN_PLATFORM_H
 
 #include "../../config.h"
-
 namespace __dfsan {
 
 #if defined(__x86_64__)
 struct Mapping {
   static const uptr kShadowAddr = 0x10000;
-  // #ifdef LARGE_DFSAN_LABEL
   // static const uptr kUnionTableAddr = 0x200000000000;
   static const uptr kUnionTableAddr = 0x400000000000;
-  static const uptr kAppAddr =     0x700000008000;
+  static const uptr kAppAddr = 0x700000008000;
   static const uptr kShadowMask = ~0x700000000000;
 };
 #elif defined(__mips64)
@@ -79,6 +77,7 @@ uptr MappingImpl(void) {
     case MAPPING_SHADOW_MASK: return Mapping::kShadowMask;
   }
 }
+
 template<int Type>
 uptr MappingArchImpl(void) {
 #ifdef __aarch64__

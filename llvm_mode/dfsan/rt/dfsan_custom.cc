@@ -52,7 +52,7 @@ using namespace __dfsan;
 SANITIZER_INTERFACE_ATTRIBUTE SANITIZER_WEAK_ATTRIBUTE void f(__VA_ARGS__);
 
 extern "C" {
-  /*
+/*
 SANITIZER_INTERFACE_ATTRIBUTE int
 __dfsw_stat(const char *path, struct stat *buf, dfsan_label path_label,
             dfsan_label buf_label, dfsan_label *ret_label) {
@@ -73,7 +73,7 @@ SANITIZER_INTERFACE_ATTRIBUTE int __dfsw_fstat(int fd, struct stat *buf,
   *ret_label = 0;
   return ret;
 }
-  */
+*/
 
 SANITIZER_INTERFACE_ATTRIBUTE char *__dfsw_strchr(const char *s, int c,
                                                   dfsan_label s_label,
@@ -244,13 +244,13 @@ __dfsw_strlen(const char *s, dfsan_label s_label, dfsan_label *ret_label) {
   return ret;
 }
 
+
 static void *dfsan_memcpy(void *dest, const void *src, size_t n) {
   dfsan_label *sdest = shadow_for(dest);
   const dfsan_label *ssrc = shadow_for(src);
   internal_memcpy((void *)sdest, (const void *)ssrc, n * sizeof(dfsan_label));
   return internal_memcpy(dest, src, n);
 }
-
 
 static void dfsan_memset(void *s, int c, dfsan_label c_label, size_t n) {
   internal_memset(s, c, n);
@@ -284,7 +284,6 @@ void *__dfsw_memset(void *s, int c, size_t n,
   *ret_label = s_label;
   return s;
 }
-
   SANITIZER_INTERFACE_ATTRIBUTE
   char *__dfsw_strcat(char *dest, const char *src, dfsan_label d_label,
                dfsan_label s_label, dfsan_label *ret_label) {
@@ -303,8 +302,7 @@ __dfsw_strdup(const char *s, dfsan_label s_label, dfsan_label *ret_label) {
   *ret_label = 0;
   return static_cast<char *>(p);
 }
-
-  SANITIZER_INTERFACE_ATTRIBUTE char *
+ SANITIZER_INTERFACE_ATTRIBUTE char *
   __dfsw___strdup(const char *s, dfsan_label s_label, dfsan_label *ret_label) {
     size_t len = strlen(s);
     void *p = malloc(len+1);
@@ -325,7 +323,6 @@ __dfsw_strdup(const char *s, dfsan_label s_label, dfsan_label *ret_label) {
     return static_cast<char *>(p);
   }
 
-
 SANITIZER_INTERFACE_ATTRIBUTE char *
 __dfsw_strncpy(char *s1, const char *s2, size_t n, dfsan_label s1_label,
                dfsan_label s2_label, dfsan_label n_label,
@@ -341,7 +338,7 @@ __dfsw_strncpy(char *s1, const char *s2, size_t n, dfsan_label s1_label,
   *ret_label = s1_label;
   return s1;
 }
- 
+
 SANITIZER_INTERFACE_ATTRIBUTE int __dfsw_clock_gettime(clockid_t clk_id,
                                                        struct timespec *tp,
                                                        dfsan_label clk_id_label,
@@ -452,7 +449,7 @@ char *__dfsw_ctime_r(const time_t *timep, char *buf, dfsan_label timep_label,
   }
   return ret;
 }
-  /*
+
 SANITIZER_INTERFACE_ATTRIBUTE
 char *__dfsw_fgets(char *s, int size, FILE *stream, dfsan_label s_label,
                    dfsan_label size_label, dfsan_label stream_label,
@@ -466,7 +463,6 @@ char *__dfsw_fgets(char *s, int size, FILE *stream, dfsan_label s_label,
   }
   return ret;
 }
-  */
 
 SANITIZER_INTERFACE_ATTRIBUTE
 char *__dfsw_getcwd(char *buf, size_t size, dfsan_label buf_label,
@@ -554,7 +550,6 @@ long int __dfsw_strtol(const char *nptr, char **endptr, int base,
   } else {
     *ret_label = 0;
   }
-
   return ret;
 }
 
@@ -927,7 +922,6 @@ struct Formatter {
       retval = snprintf(str + str_off, str_off < size ? size - str_off : 0,
                         tmp_fmt, width, arg);
     } else {
-      fflush(stdout);
       retval = snprintf(str + str_off, str_off < size ? size - str_off : 0,
                         tmp_fmt, arg);
     }
@@ -1076,7 +1070,6 @@ static int format_buffer(char *str, size_t size, const char *fmt,
 
         case 's': {
           char *arg = va_arg(ap, char *);
-          fflush(stdout);
           retval = formatter.format(arg);
           va_labels++;
           internal_memcpy(shadow_for(formatter.str_cur()), shadow_for(arg),
@@ -1133,36 +1126,6 @@ static int format_buffer(char *str, size_t size, const char *fmt,
   // Number of bytes written in total.
   return formatter.str_off;
 }
-/*
-int vasprintf(char **strp, const char *fmt, va_list ap)
-{
-  int r = -1, size;
-
-  va_list ap2;
-  va_copy(ap2, ap);
-
-  size = vsnprintf(0, 0, fmt, ap2);
-
-  if ((size >= 0) && (size < INT_MAX))
-    {
-      *strp = (char *)malloc(size+1); //+1 for null
-      if (*strp)
-        {
-          r = vsnprintf(*strp, size+1, fmt, ap);  //+1 for null
-          if ((r < 0) || (r > size))
-            {
-              insane_free(*strp);
-              r = -1;
-            }
-        }
-    }
-  else { *strp = 0; }
-
-  va_end(ap2);
-
-  return(r);
-}
-*/
 
 extern "C" {
 SANITIZER_INTERFACE_ATTRIBUTE
@@ -1187,41 +1150,28 @@ int __dfsw_snprintf(char *str, size_t size, const char *format,
   va_end(ap);
   return ret;
 }
-  /*
-#include <limits.h>
-  SANITIZER_INTERFACE_ATTRIBUTE
-  int __dfsw_asprintf(char **strp, const char *format, dfsan_label str_label,
-                     dfsan_label format_label, dfsan_label *va_labels,
-                     dfsan_label *ret_label, ...) {
-    va_list ap;
-    va_start(ap, ret_label);
-    int r = -1, size;
-    va_list ap2;
-    va_copy(ap2, ap);
 
-    size = format_buffer(0, 0, format, va_labels, ret_label, ap2);
+// Default empty implementations (weak). Users should redefine them.
+/*
+SANITIZER_INTERFACE_WEAK_DEF(void, __sanitizer_cov_trace_pc_guard, u32 *) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __sanitizer_cov_trace_pc_guard_init, u32 *,
+                             u32 *) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __sanitizer_cov_pcs_init, void) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __sanitizer_cov_trace_pc_indir, void) {}
 
-    if ((size >= 0) && (size < INT_MAX))
-      {
-        *strp = (char *)malloc(size+1); //+1 for null
-        if (*strp)
-          {
-            r = format_buffer(*strp, size+1, format, va_labels, ret_label, ap);
-            if ((r < 0) || (r > size))
-              {
-                free(*strp);
-                *strp = 0;
-                r = -1;
-              }
-          }
-      }
-    else { *strp = 0; }
-
-    va_end(ap2);
-    va_end(ap);
-
-    *ret_label = 0;
-    return r;
-  }
-  */
-} // extern "C"
+SANITIZER_INTERFACE_WEAK_DEF(void, __dfsw___sanitizer_cov_trace_cmp, void) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __dfsw___sanitizer_cov_trace_cmp1, void) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __dfsw___sanitizer_cov_trace_cmp2, void) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __dfsw___sanitizer_cov_trace_cmp4, void) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __dfsw___sanitizer_cov_trace_cmp8, void) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __dfsw___sanitizer_cov_trace_const_cmp1,
+                             void) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __dfsw___sanitizer_cov_trace_const_cmp2,
+                             void) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __dfsw___sanitizer_cov_trace_const_cmp4,
+                             void) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __dfsw___sanitizer_cov_trace_const_cmp8,
+                             void) {}
+SANITIZER_INTERFACE_WEAK_DEF(void, __dfsw___sanitizer_cov_trace_switch, void) {}
+*/
+}  // extern "C"
