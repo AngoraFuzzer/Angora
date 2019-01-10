@@ -45,7 +45,7 @@ ifeq "$(origin CC)" "default"
   CXX        = clang++
 endif
 
-CHCEK_VERSION="4.0"
+CHCEK_VERSION="6.0"
 
 test_deps:
 	if [ ! -d ${PREFIX} ]; then mkdir -p ${PREFIX}; fi;
