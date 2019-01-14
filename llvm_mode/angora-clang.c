@@ -126,7 +126,7 @@ static void add_angora_runtime() {
     cc_params[cc_par_cnt++] = alloc_printf("%s/libruntime_fast.a", obj_path);
   }
 
-//  cc_params[cc_par_cnt++] = "-I${HOME}/clang+llvm/include";
+  // cc_params[cc_par_cnt++] = "-I/home/angora/clang+llvm6/include";
 
   if (clang_type == CLANG_TRACK_TYPE || clang_type == CLANG_DFSAN_TYPE) {
     if (is_cxx && clang_type == CLANG_TRACK_TYPE) {
@@ -410,7 +410,7 @@ int main(int argc, char **argv) {
       printf("%s ", cc_params[i]);
     }
     printf("\n");
-   */
+  */
   execvp(cc_params[0], (char **)cc_params);
 
   FATAL("Oops, failed to execute '%s' - check your PATH", cc_params[0]);

@@ -101,3 +101,6 @@ For more information, please refer to the documentation under the
 - [Environment variables in compiling](./docs/environment_variables.md)
 - [UI Terminology](./docs/ui.md)
 - [Troubleshoot](./docs/troubleshoot.md)
+
+--------
+Angora is maintained by [ByteDance AI Lab](https://ailab.bytedance.com/) now.

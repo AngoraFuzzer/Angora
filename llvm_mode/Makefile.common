@@ -45,10 +45,13 @@ ifeq "$(origin CC)" "default"
   CXX        = clang++
 endif
 
+CHCEK_VERSION="4.0"
+
 test_deps:
 	if [ ! -d ${PREFIX} ]; then mkdir -p ${PREFIX}; fi;
 	@echo "[*] Checking for working 'llvm-config'..."
 	@which $(LLVM_CONFIG) >/dev/null 2>&1 || ( echo "[-] Oops, can't find 'llvm-config'. Install clang or set \$$LLVM_CONFIG or \$$PATH beforehand."; echo "    (Sometimes, the binary will be named llvm-config-3.5 or something like that.)"; exit 1 )
+	@${LLVM_CONFIG} --version | grep ${CHCEK_VERSION} > /dev/null 2>&1|| ( echo "[-] LLVM version is `${LLVM_CONFIG} --version`, please use LLVM ${CHCEK_VERSION}"; exit 1)
 	@echo "[*] Checking for working '$(CC)'..."
 	@which $(CC) >/dev/null 2>&1 || ( echo "[-] Oops, can't find '$(CC)'. Make sure that it's in your \$$PATH (or set \$$CC and \$$CXX)."; exit 1 )
 	@echo "[+] All set and ready to build."

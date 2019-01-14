@@ -46,6 +46,12 @@ impl FuzzStats {
     pub fn count(&mut self, cond: &CondStmt) {
         self.0[cond.get_fuzz_type().index()].num_conds.count();
     }
+
+    pub fn may_be_model_failure(&self) -> bool {
+        self.0[fuzz_type::FuzzType::ExploreFuzz.index()].num_conds.0 + 1
+            < (self.0[fuzz_type::FuzzType::AFLFuzz.index()].num_conds.0
+                + self.0[fuzz_type::FuzzType::OtherFuzz.index()].num_conds.0)
+    }
 }
 
 impl fmt::Display for FuzzStats {
