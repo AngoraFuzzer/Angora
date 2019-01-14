@@ -38,6 +38,7 @@ extern "C" {
 void dfsan_add_label(dfsan_label label, void *addr, uptr size);
 void dfsan_set_label(dfsan_label label, void *addr, uptr size);
 dfsan_label dfsan_read_label(const void *addr, uptr size);
+const dfsan_label * dfsan_shadow_for(const void * addr);
 dfsan_label dfsan_union(dfsan_label l1, dfsan_label l2);
 }  // extern "C"
 

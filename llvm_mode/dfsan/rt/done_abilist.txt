@@ -68,6 +68,7 @@ fun:dfsan_has_label_with_desc=uninstrumented
 fun:dfsan_has_label_with_desc=discard
 fun:dfsan_set_write_callback=uninstrumented
 fun:dfsan_set_write_callback=custom
+fun:dfsan_shadow_for=discard
 
 # fun:dfsan_fun_init=uninstrumented
 # fun:dfsan_fun_init=discard
@@ -83,9 +84,9 @@ fun:dfsan_combine_and_ins=discard
 ###############################################################################
 # glibc
 ###############################################################################
-fun:malloc=discard
-fun:realloc=discard
-fun:free=discard
+# fun:malloc=discard
+# fun:realloc=discard
+# fun:free=discard
 
 # Functions that return a value that depends on the input, but the output might
 # not be necessarily data-dependent on the input.

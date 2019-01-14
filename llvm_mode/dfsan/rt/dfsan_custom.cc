@@ -223,6 +223,7 @@ __dfsw_strncasecmp(const char *s1, const char *s2, size_t n,
   return 0;
 }
 
+/*
 SANITIZER_INTERFACE_ATTRIBUTE void *__dfsw_calloc(size_t nmemb, size_t size,
                                                   dfsan_label nmemb_label,
                                                   dfsan_label size_label,
@@ -232,6 +233,7 @@ SANITIZER_INTERFACE_ATTRIBUTE void *__dfsw_calloc(size_t nmemb, size_t size,
   *ret_label = 0;
   return p;
 }
+*/
 
 SANITIZER_INTERFACE_ATTRIBUTE size_t
 __dfsw_strlen(const char *s, dfsan_label s_label, dfsan_label *ret_label) {
