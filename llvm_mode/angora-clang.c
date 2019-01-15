@@ -142,6 +142,7 @@ static void add_angora_runtime() {
     // cc_params[cc_par_cnt++] = "-lruntime";
     cc_params[cc_par_cnt++] = alloc_printf("%s/libruntime.a", obj_path);
     cc_params[cc_par_cnt++] = alloc_printf("%s/io-func.o", obj_path);
+    cc_params[cc_par_cnt++] = alloc_printf("%s/stdalloc.o", obj_path);
     char *rule_obj = getenv(TAINT_CUSTOM_RULE_VAR);
     if (rule_obj) {
       cc_params[cc_par_cnt++] = rule_obj;
