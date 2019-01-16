@@ -34,6 +34,14 @@ fun:__angora_leave_fn=discard
 fun:__unfold_branch_fn=uninstrumented
 fun:__unfold_branch_fn=discard
 
+### Memory related
+# alloc
+fun:malloc=custom
+fun:calloc=custom
+fun:free=custom
+fun:realloc=custom
+fun:reallocarray=custom
+
 ### IO read
 # open
 fun:open=custom

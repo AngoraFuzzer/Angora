@@ -126,7 +126,7 @@ static void add_angora_runtime() {
     cc_params[cc_par_cnt++] = alloc_printf("%s/libruntime_fast.a", obj_path);
   }
 
-  cc_params[cc_par_cnt++] = "-I/home/chenpeng/clang+llvm/include";
+  // cc_params[cc_par_cnt++] = "-I/home/angora/clang+llvm6/include";
 
   if (clang_type == CLANG_TRACK_TYPE || clang_type == CLANG_DFSAN_TYPE) {
     if (is_cxx && clang_type == CLANG_TRACK_TYPE) {
@@ -142,6 +142,7 @@ static void add_angora_runtime() {
     // cc_params[cc_par_cnt++] = "-lruntime";
     cc_params[cc_par_cnt++] = alloc_printf("%s/libruntime.a", obj_path);
     cc_params[cc_par_cnt++] = alloc_printf("%s/io-func.o", obj_path);
+    cc_params[cc_par_cnt++] = alloc_printf("%s/stdalloc.o", obj_path);
     char *rule_obj = getenv(TAINT_CUSTOM_RULE_VAR);
     if (rule_obj) {
       cc_params[cc_par_cnt++] = rule_obj;
@@ -409,7 +410,7 @@ int main(int argc, char **argv) {
       printf("%s ", cc_params[i]);
     }
     printf("\n");
-   */
+  */
   execvp(cc_params[0], (char **)cc_params);
 
   FATAL("Oops, failed to execute '%s' - check your PATH", cc_params[0]);

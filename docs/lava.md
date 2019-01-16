@@ -102,3 +102,7 @@ unsigned int lava_get(unsigned int bug_num) {
 ```
 
 - Angora can find 1400~1700 bugs (including unlisted bugs).
+
+**Update Jan 15, 2019**
+
+Angora is able to find ~2400 bugs after using the fix explained here [Angora LAVA `who` Fix](./lava-who-fix.md).

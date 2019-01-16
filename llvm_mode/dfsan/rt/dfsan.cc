@@ -167,6 +167,16 @@ dfsan_read_label(const void *addr, uptr size) {
     return 0;
   return __dfsan_union_load(shadow_for(addr), size);
 }
+
+SANITIZER_INTERFACE_ATTRIBUTE const dfsan_label *
+dfsan_shadow_for(const void * addr) {
+    return shadow_for(addr);
+}
+
+// const std::vector<struct tag_seg> dfsan_get_label_offsets(dfsan_label l) {
+//   return  __dfsan_tag_set->find(l);
+// }
+
 void Flags::SetDefaults() {
 #define DFSAN_FLAG(Type, Name, DefaultValue, Description) Name = DefaultValue;
 #include "dfsan_flags.inc"

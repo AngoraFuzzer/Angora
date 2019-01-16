@@ -22,6 +22,7 @@
 #include "./config.h"
 #include "./dfsan/dfsan_interface.h"
 
+
 static int granularity = 1; // byte level
 
 extern void __angora_track_fini_rs();
@@ -577,3 +578,4 @@ __dfsw___lxstat(int vers, const char *path, struct stat *buf,
   *ret_label = 0;
   return ret;
 }
+
