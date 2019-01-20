@@ -30,7 +30,7 @@ key and bound values as the value. Minimal instrumentation is required for this
 approach. The source code can be found in the repository under the `llvm_mode`
 directory. 
 
-## Implicit Dependencies (Unsolved)
+## Path Coverage (Unsolved)
 
 There are also implicit dependencies within `who`. A simplified version would 
 be:
@@ -58,8 +58,8 @@ The code requires that a previous element in the input array should have its
 set to 7 so that input values are given to boottime, in turn allowing `lava_*` 
 variables to receive the value. 
 
-Apparently this scenario involves implicit dependencies between different input
-bytes. Enabling context sensitive branching records may help.
+Solving this type of bugs would require recording path coverage, a problem
+neither AFL nor Angora aims to solve.
 
 ## Synthesized Integer from String Bytes (Unsolved)
 

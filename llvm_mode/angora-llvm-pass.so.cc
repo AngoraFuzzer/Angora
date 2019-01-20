@@ -98,6 +98,13 @@ public:
   Constant *TraceFnTT;
   Constant *TraceExploitTT;
 
+  FunctionType * TraceCmpTy;
+  FunctionType * TraceSwTy;
+  FunctionType * TraceCmpTtTy;
+  FunctionType * TraceSwTtTy;
+  FunctionType * TraceFnTtTy;
+  FunctionType * TraceExploitTtTy;
+
   // Custom setting
   AngoraABIList ABIList;
   AngoraABIList ExploitList;
@@ -249,14 +256,24 @@ void AngoraLLVMPass::initVariables(Module &M) {
       GlobalVariable::GeneralDynamicTLSModel, 0, false);
 
   if (CompileType == CLANG_FAST_TYPE) {
+    /*
     TraceCmp = M.getOrInsertFunction("__angora_trace_cmp", Int32Ty, Int32Ty,
                                      Int32Ty, Int64Ty, Int64Ty, nullptr);
 
     TraceSw = M.getOrInsertFunction("__angora_trace_switch", Int64Ty, Int32Ty,
                                     Int64Ty, nullptr);
+    */
+    Type * TraceCmpArgs[4] = {Int32Ty, Int32Ty, Int64Ty, Int64Ty};
+    TraceCmpTy = FunctionType::get(Int32Ty, TraceCmpArgs, false);
+    TraceCmp = M.getOrInsertFunction("__angora_trace_cmp", TraceCmpTy);
+
+    Type * TraceSwArgs[2] = {Int32Ty, Int64Ty};
+    TraceSwTy = FunctionType::get(Int64Ty, TraceSwArgs, false);
+    TraceSw = M.getOrInsertFunction("__angora_trace_switch", TraceSwTy);
   }
 
   if (CompileType == CLANG_TRACK_TYPE) {
+    /*
     TraceCmpTT =
         M.getOrInsertFunction("__angora_trace_cmp_tt", VoidTy, Int32Ty, Int32Ty,
                               Int32Ty, Int32Ty, Int64Ty, Int64Ty, nullptr);
@@ -271,6 +288,22 @@ void AngoraLLVMPass::initVariables(Module &M) {
     TraceExploitTT =
         M.getOrInsertFunction("__angora_trace_exploit_val_tt", VoidTy, Int32Ty,
                               Int32Ty, Int32Ty, Int64Ty, nullptr);
+    */
+    Type * TraceCmpTtArgs[6] = {Int32Ty, Int32Ty, Int32Ty, Int32Ty, Int64Ty, Int64Ty};
+    TraceCmpTtTy = FunctionType::get(VoidTy, TraceCmpTtArgs, false);
+    TraceCmpTT = M.getOrInsertFunction("__angora_trace_cmp_tt", TraceCmpTtTy);
+
+    Type * TraceSwTtArgs[5] = {Int32Ty, Int32Ty, Int64Ty, Int32Ty, Int64PtrTy};
+    TraceSwTtTy = FunctionType::get(VoidTy, TraceSwTtArgs, false);
+    TraceSwTT = M.getOrInsertFunction("__angora_trace_switch_tt", TraceSwTtTy);
+
+    Type * TraceFnTtArgs[4] = {Int32Ty, Int32Ty, Int8PtrTy, Int8PtrTy};
+    TraceFnTtTy = FunctionType::get(VoidTy, TraceFnTtArgs, false);
+    TraceFnTT = M.getOrInsertFunction("__angora_trace_fn_tt", TraceFnTtTy);
+
+    Type * TraceExploitTtArgs[4] = {Int32Ty, Int32Ty, Int32Ty, Int64Ty};
+    TraceExploitTtTy = FunctionType::get(VoidTy, TraceExploitTtArgs, false);
+    TraceExploitTT = M.getOrInsertFunction("__angora_trace_exploit_val_tt", TraceExploitTtTy);
   }
 
   std::vector<std::string> AllABIListFiles;
@@ -829,7 +862,9 @@ static void registerAngoraLLVMPass(const PassManagerBuilder &,
   PM.add(new AngoraLLVMPass());
 }
 
-static RegisterPass<AngoraLLVMPass> X("angora_llvm_pass", "Angora LLVM Pass");
+static RegisterPass<AngoraLLVMPass> X("angora_llvm_pass", "Angora LLVM Pass",
+                                              false,
+                                              false);
 
 static RegisterStandardPasses
     RegisterAngoraLLVMPass(PassManagerBuilder::EP_OptimizerLast,
