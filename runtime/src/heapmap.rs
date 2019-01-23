@@ -20,7 +20,7 @@ fn heapmap_insert(base: HeapPointer, bound: HeapAreaBound) {
             poisoned.into_inner()
         },
     };
-    println!("[+] Inserting ({:x}, {}) into heapmap.", base, bound);
+    // println!("[+] Inserting ({:x}, {}) into heapmap.", base, bound);
     heapmap.insert(base, bound);
 }
 
@@ -32,7 +32,7 @@ fn heapmap_remove(base: HeapPointer) {
             poisoned.into_inner()
         },
     };
-    println!("[+] Removing {:x} from heapmap.", base);
+    // println!("[+] Removing {:x} from heapmap.", base);
     heapmap.remove(&base);
 }
 
@@ -44,9 +44,9 @@ fn heapmap_retrieve(base: HeapPointer) -> Option<HeapAreaBound> {
             poisoned.into_inner()
         },
     };
-    println!("[+] Retrieving {:x} from heapmap.", base);
+    // println!("[+] Retrieving {:x} from heapmap.", base);
     let ret = heapmap.get(&base)?;
-    println!("[+] Value retrieved as {}", ret);
+    // println!("[+] Value retrieved as {}", ret);
     Some(*ret)
 }
 
