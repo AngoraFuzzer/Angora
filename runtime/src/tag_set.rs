@@ -300,7 +300,7 @@ impl TagSet {
     }
 
     pub fn find(&self, mut lb: usize) -> Vec<TagSeg> {
-        assert!(lb < self.nodes.len());
+        // assert!(lb < self.nodes.len());
         let mut tag_list = vec![];
 
         let mut last_begin = MAX_LB as u32;

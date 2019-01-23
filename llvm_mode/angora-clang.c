@@ -137,9 +137,6 @@ static void add_angora_runtime() {
       cc_params[cc_par_cnt++] = "-lc++abi";
       cc_params[cc_par_cnt++] = "-Wl,--end-group";
     }
-    // cc_params[cc_par_cnt++] =
-    //    alloc_printf("-L%s", obj_path);
-    // cc_params[cc_par_cnt++] = "-lruntime";
     cc_params[cc_par_cnt++] = alloc_printf("%s/libruntime.a", obj_path);
     cc_params[cc_par_cnt++] = alloc_printf("%s/io-func.o", obj_path);
     cc_params[cc_par_cnt++] = alloc_printf("%s/stdalloc.o", obj_path);
@@ -149,21 +146,18 @@ static void add_angora_runtime() {
     }
   }
 
-  cc_params[cc_par_cnt++] = "-pie";
-  cc_params[cc_par_cnt++] = "-fpic";
-  cc_params[cc_par_cnt++] = "-Wl,--no-as-needed";
-  cc_params[cc_par_cnt++] = "-Wl,--gc-sections"; // if darwin -Wl, -dead_strip
-
   if (clang_type != CLANG_FAST_TYPE) {
     // cc_params[cc_par_cnt++] = "-pthread";
     cc_params[cc_par_cnt++] = "-lstdc++";
     cc_params[cc_par_cnt++] = "-lrt";
   }
 
+  cc_params[cc_par_cnt++] = "-Wl,--no-as-needed";
+  cc_params[cc_par_cnt++] = "-Wl,--gc-sections"; // if darwin -Wl, -dead_strip
   cc_params[cc_par_cnt++] = "-ldl";
   cc_params[cc_par_cnt++] = "-lpthread";
   cc_params[cc_par_cnt++] = "-lm";
-  cc_params[cc_par_cnt++] = "-Qunused-arguments";
+
 }
 
 static void add_dfsan_pass() {
@@ -214,10 +208,6 @@ static void edit_params(u32 argc, char **argv) {
     u8 *alt_cc = getenv("ANGORA_CC");
     cc_params[0] = alt_cc ? alt_cc : (u8 *)"clang";
   }
-
-  add_angora_pass();
-  add_dfsan_pass();
-
   /* Detect stray -v calls from ./configure scripts. */
   if (argc == 1 && !strcmp(argv[1], "-v"))
     maybe_linking = 0;
@@ -253,6 +243,13 @@ static void edit_params(u32 argc, char **argv) {
 
     cc_params[cc_par_cnt++] = cur;
   }
+
+  add_angora_pass();
+  add_dfsan_pass();
+
+  cc_params[cc_par_cnt++] = "-pie";
+  cc_params[cc_par_cnt++] = "-fpic";
+  cc_params[cc_par_cnt++] = "-Qunused-arguments";
 
   if (getenv("ANGORA_HARDEN")) {
     cc_params[cc_par_cnt++] = "-fstack-protector-all";
@@ -351,6 +348,8 @@ static void edit_params(u32 argc, char **argv) {
       cc_params[cc_par_cnt++] = "none";
     }
 
+    add_angora_runtime();
+    
     switch (bit_mode) {
     case 0:
       break;
@@ -366,7 +365,6 @@ static void edit_params(u32 argc, char **argv) {
     }
   }
 
-  add_angora_runtime();
 
   cc_params[cc_par_cnt] = NULL;
 }
