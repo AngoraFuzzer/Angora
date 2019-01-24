@@ -61,21 +61,26 @@ variables to receive the value.
 Solving this type of bugs would require recording path coverage, a problem
 neither AFL nor Angora aims to solve.
 
-## Synthesized Integer from String Bytes (Unsolved)
+## Member Variable Size in Struct (Partially Solved)
 
 A few unsolved cases have their test values assembled from bytes taken from a 
-string, like the example below:
+string in a struct, like the example below:
 
 ```
 int lava_1234 = 0;
 char * host = ... ; // Get a string from input
 lava_1234 |= ((uchar *) (host))[0] << (0*8);
 lava_1234 |= ((uchar *) (host))[1] << (1*8);
+lava_1234 |= ((uchar *) (host))[2] << (2*8);
+lava_1234 |= ((uchar *) (host))[3] << (3*8);
 ...
 ```
 
-The shape of these variables cannot be inferred reliably, due to a number of 
-issues involving the accuracy and granularity of taint tracking. A simple 
-solution would be to implement a strategy similar to that of REDQUEEN, but it
-would be meaningful only to such cases.
+LAVA introduces an problem where the length of the string could be less than 4 
+bytes. This would result in the remaining bytes not being properly tainted, 
+therefore the condition cannot be solved reliably.
+
+The current workaround is to provide the fuzzer with a seed that ensures 
+the length of each member variable is greater than 4, ensuring that the 
+`lava_*` variables can be fully tainted.
 
