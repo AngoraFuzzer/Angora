@@ -105,7 +105,7 @@ impl CondOutput for CondStmtBase {
         };
 
         debug!(
-            "id: {}, op: {} -> {}, size:{}, condition: {}, arg({} {}), output: {}",
+            "id: {}, op: {} -> {}, size:{}, condition: {}, arg({:x} {:x}), output: {}",
             self.cmpid, self.op, op, self.size, self.condition, a, b, output
         );
 
