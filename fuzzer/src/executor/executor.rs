@@ -11,8 +11,10 @@ use std::{
     collections::HashMap,
     path::Path,
     process::{Command, Stdio},
-    sync::{atomic::{compiler_fence, Ordering},
-        Arc, RwLock},
+    sync::{
+        atomic::{compiler_fence, Ordering},
+        Arc, RwLock,
+    },
     time,
 };
 use wait_timeout::ChildExt;
@@ -47,6 +49,14 @@ impl Executor {
         // ** Envs **
         let mut envs = HashMap::new();
         envs.insert(
+            defs::ASAN_OPTIONS_VAR.to_string(),
+            defs::ASAN_OPTIONS_CONTENT.to_string(),
+        );
+        envs.insert(
+            defs::MSAN_OPTIONS_VAR.to_string(),
+            defs::MSAN_OPTIONS_CONTENT.to_string(),
+        );
+        envs.insert(
             defs::BRANCHES_SHM_ENV_VAR.to_string(),
             branches.get_id().to_string(),
         );
@@ -66,6 +76,7 @@ impl Executor {
             &envs,
             fd.as_raw_fd(),
             cmd.is_stdin,
+            cmd.uses_asan,
             cmd.time_limit,
             cmd.mem_limit,
         ));
@@ -98,6 +109,7 @@ impl Executor {
             &self.envs,
             self.fd.as_raw_fd(),
             self.cmd.is_stdin,
+            self.cmd.uses_asan,
             self.cmd.time_limit,
             self.cmd.mem_limit,
         );
@@ -397,19 +409,23 @@ impl Executor {
         let timeout = time::Duration::from_secs(time_limit);
         let ret = match child.wait_timeout(timeout).unwrap() {
             Some(status) => {
-                if status.code().is_some() {
-                    StatusType::Normal
+                if let Some(status_code) = status.code() {
+                    if self.cmd.uses_asan && status_code == defs::MSAN_ERROR_CODE {
+                        StatusType::Crash
+                    } else {
+                        StatusType::Normal
+                    }
                 } else {
                     StatusType::Crash
                 }
-            },
+            }
             None => {
                 // Timeout
                 // child hasn't exited yet
                 child.kill().expect("Could not send kill signal to child.");
                 child.wait().expect("Error during waiting for child.");
                 StatusType::Timeout
-            },
+            }
         };
         ret
     }

@@ -5,6 +5,13 @@ pub static TRACK_OUTPUT_VAR: &str = "ANGORA_TRACK_OUTPUT";
 pub static COND_STMT_ENV_VAR: &str = "ANGORA_COND_STMT_SHM_ID";
 pub static BRANCHES_SHM_ENV_VAR: &str = "ANGORA_BRANCHES_SHM_ID";
 pub static LD_LIBRARY_PATH_VAR: &str = "LD_LIBRARY_PATH";
+pub static ASAN_OPTIONS_VAR: &str = "ASAN_OPTIONS";
+pub static MSAN_OPTIONS_VAR: &str = "MSAN_OPTIONS";
+pub static ASAN_OPTIONS_CONTENT: &str =
+    "abort_on_error=1:detect_leaks=0:symbolize=0:allocator_may_return_null=1";
+pub const MSAN_ERROR_CODE: i32 = 86;
+pub static MSAN_OPTIONS_CONTENT: &str =
+    "exit_code=86:symbolize=0:abort_on_error=1:allocator_may_return_null=1:msan_track_origins=0";
 
 // forksrv.rs
 pub static ENABLE_FORKSRV: &str = "ANGORA_ENABLE_FORKSRV";

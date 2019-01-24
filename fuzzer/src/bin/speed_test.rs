@@ -30,6 +30,7 @@ fn main() {
         &envs,
         0 as RawFd,
         false,
+        false,
         TIME_LIMIT,
         MEM_LIMIT,
     );

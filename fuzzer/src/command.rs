@@ -1,4 +1,4 @@
-use crate::{search, tmpfs};
+use crate::{check_dep, search, tmpfs};
 use std::{
     path::{Path, PathBuf},
     process::Command,
@@ -23,6 +23,7 @@ pub struct CommandOpt {
     pub mem_limit: u64,
     pub time_limit: u64,
     pub is_raw: bool,
+    pub uses_asan: bool,
     pub ld_library: String,
     pub enable_afl: bool,
     pub enable_exploitation: bool,
@@ -34,7 +35,7 @@ impl CommandOpt {
         pargs: Vec<String>,
         out_dir: &Path,
         search_method: &str,
-        mem_limit: u64,
+        mut mem_limit: u64,
         time_limit: u64,
         enable_afl: bool,
         enable_exploitation: bool,
@@ -71,6 +72,14 @@ impl CommandOpt {
         let main_bin = tmp_args[0].clone();
         let track_bin = track_target.to_string();
         let track_args = main_args.clone();
+
+        let uses_asan = check_dep::check_asan(&main_bin);
+
+        if uses_asan && mem_limit != 0 {
+            warn!("The program compiled with ASAN, set MEM_LIMIT to 0 (unlimited)");
+            mem_limit = 0;
+        }
+
         Self {
             id: 0,
             main: (main_bin, main_args),
@@ -83,6 +92,7 @@ impl CommandOpt {
             search_method: search::parse_search_method(search_method),
             mem_limit,
             time_limit,
+            uses_asan,
             is_raw: true,
             ld_library,
             enable_afl,

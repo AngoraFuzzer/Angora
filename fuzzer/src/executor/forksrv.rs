@@ -22,6 +22,7 @@ static FORKSRV_NEW_CHILD: [u8; 4] = [8, 8, 8, 8];
 pub struct Forksrv {
     path: String,
     pub socket: UnixStream,
+    uses_asan: bool,
     is_stdin: bool,
 }
 
@@ -32,6 +33,7 @@ impl Forksrv {
         envs: &HashMap<String, String>,
         fd: RawFd,
         is_stdin: bool,
+        uses_asan: bool,
         time_limit: u64,
         mem_limit: u64,
     ) -> Forksrv {
@@ -41,7 +43,7 @@ impl Forksrv {
             Err(e) => {
                 error!("FATAL: Failed to bind to socket: {:?}", e);
                 panic!();
-            },
+            }
         };
 
         let mut envs_fk = envs.clone();
@@ -62,7 +64,7 @@ impl Forksrv {
             Err(e) => {
                 error!("FATAL: Failed to spawn child. Reason: {}", e);
                 panic!();
-            },
+            }
         };
 
         // FIXME: block here if client doesn't exist.
@@ -71,7 +73,7 @@ impl Forksrv {
             Err(e) => {
                 error!("FATAL: failed to accept from socket: {:?}", e);
                 panic!();
-            },
+            }
         };
 
         socket
@@ -86,6 +88,7 @@ impl Forksrv {
         Forksrv {
             path: socket_path.to_owned(),
             socket,
+            uses_asan,
             is_stdin,
         }
     }
@@ -105,7 +108,7 @@ impl Forksrv {
                     Err(e) => {
                         warn!("Unable to recover child pid: {:?}", e);
                         return StatusType::Error;
-                    },
+                    }
                 };
                 if child_pid <= 0 {
                     warn!(
@@ -114,11 +117,11 @@ impl Forksrv {
                     );
                     return StatusType::Error;
                 }
-            },
+            }
             Err(error) => {
                 warn!("Fail to read child_id -- {}", error);
                 return StatusType::Error;
-            },
+            }
         }
 
         buf = vec![0; 4];
@@ -132,16 +135,17 @@ impl Forksrv {
                     Err(e) => {
                         warn!("Unable to recover result from child: {}", e);
                         return StatusType::Error;
-                    },
+                    }
                 };
+                let exit_code = unsafe { libc::WEXITSTATUS(status) };
                 let signaled = unsafe { libc::WIFSIGNALED(status) };
-                if signaled {
+                if signaled || (self.uses_asan && exit_code == MSAN_ERROR_CODE) {
                     debug!("Crash code: {}", status);
                     StatusType::Crash
                 } else {
                     StatusType::Normal
                 }
-            },
+            }
 
             Err(_) => {
                 unsafe {
@@ -152,7 +156,7 @@ impl Forksrv {
                     warn!("Killing timed out process");
                 }
                 return StatusType::Timeout;
-            },
+            }
         }
     }
 }

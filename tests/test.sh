@@ -32,8 +32,7 @@ target=${name}/${name}
 rm -f ${target}.fast ${target}.cmp ${target}.taint 
 
 bin_dir=../bin/
-
-USE_FAST=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.fast
+ANGORA_USE_ASAN=1 USE_FAST=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.fast
 USE_TRACK=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.taint
 #LLVM_COMPILER=clang wllvm -O0 -g ${target}.c -lz -o ${target}
 #extract-bc ${target}
@@ -52,7 +51,7 @@ fi
 
 args=`cat ${args_file}`
 
-cmd="$envs $fuzzer  -A -i $input -o $output -j $num_jobs"
+cmd="$envs $fuzzer -M 0 -A -i $input -o $output -j $num_jobs"
 cmd="$cmd -t ${target}.taint ${sync_afl} -- ${target}.fast ${args}"
 
 echo "run: ${cmd}"

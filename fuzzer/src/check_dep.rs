@@ -1,4 +1,6 @@
+use memmap;
 use std::{fs::File, io::prelude::*, path::Path};
+use twoway;
 
 static CHECK_CRASH_MSG: &str = r#"
 If your system is configured to send core dump, there will be an
@@ -24,6 +26,20 @@ fn check_target_binary(target: &str) {
     if !program_path.exists() || !program_path.is_file() {
         panic!("Invalid executable file! {:?}", target);
     }
+}
+
+pub fn check_asan(target: &str) -> bool {
+    let file = File::open(target).expect("Unable to open file");
+    let f_data = unsafe {
+        memmap::MmapOptions::new()
+            .map(&file)
+            .expect("unable to mmap file")
+    };
+    let libasan = "libasan.so";
+    let has_asan = twoway::find_bytes(&f_data[..], libasan.as_bytes()).is_some();
+    let masn = "__msan_init";
+    let has_masn = twoway::find_bytes(&f_data[..], masn.as_bytes()).is_some();
+    has_asan || has_masn
 }
 
 fn check_io_dir(in_dir: &str, out_dir: &str) {

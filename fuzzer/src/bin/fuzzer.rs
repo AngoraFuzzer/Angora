@@ -41,7 +41,7 @@ fn main() {
              .short("M")
              .long("memory_limit")
              .value_name("MEM")
-             .help("Memory limit for programs, default is 200(MB)")
+             .help("Memory limit for programs, default is 200(MB), set 0 for unlimit memory")
              .takes_value(true))
         .arg(Arg::with_name("time_limit")
              .short("T")
