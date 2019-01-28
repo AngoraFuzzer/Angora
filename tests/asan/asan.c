@@ -1,3 +1,10 @@
+/*
+issue #26
+https://github.com/AngoraFuzzer/Angora/issues/26
+
+support asan
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 

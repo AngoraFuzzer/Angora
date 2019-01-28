@@ -137,6 +137,12 @@ static void add_angora_runtime() {
       cc_params[cc_par_cnt++] = "-lc++abi";
       cc_params[cc_par_cnt++] = "-Wl,--end-group";
     }
+    cc_params[cc_par_cnt++] = "-Wl,--whole-archive";
+    cc_params[cc_par_cnt++] = alloc_printf("%s/DFSanRT.a", obj_path);
+    cc_params[cc_par_cnt++] = "-Wl,--no-whole-archive";
+    cc_params[cc_par_cnt++] =
+    alloc_printf("-Wl,--dynamic-list=%s/DFSanRT.a.syms", obj_path);
+
     cc_params[cc_par_cnt++] = alloc_printf("%s/libruntime.a", obj_path);
     cc_params[cc_par_cnt++] = alloc_printf("%s/io-func.o", obj_path);
     cc_params[cc_par_cnt++] = alloc_printf("%s/stdalloc.o", obj_path);
@@ -166,12 +172,6 @@ static void add_dfsan_pass() {
     cc_params[cc_par_cnt++] = "-load";
     cc_params[cc_par_cnt++] = "-Xclang";
     cc_params[cc_par_cnt++] = alloc_printf("%s/DFSanPass.so", obj_path);
-    cc_params[cc_par_cnt++] = "-Wl,--whole-archive";
-    cc_params[cc_par_cnt++] = alloc_printf("%s/DFSanRT.a", obj_path);
-    cc_params[cc_par_cnt++] = "-Wl,--no-whole-archive";
-    cc_params[cc_par_cnt++] =
-        alloc_printf("-Wl,--dynamic-list=%s/DFSanRT.a.syms", obj_path);
-
     cc_params[cc_par_cnt++] = "-mllvm";
     cc_params[cc_par_cnt++] =
         alloc_printf("-angora-dfsan-abilist2=%s/angora_abilist.txt", obj_path);
