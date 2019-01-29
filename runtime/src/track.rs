@@ -3,7 +3,7 @@ use crate::tag_set_wrap;
 use angora_common::{cond_stmt_base::*, defs};
 use lazy_static::lazy_static;
 use libc;
-use std::{cmp, slice, sync::Mutex};
+use std::{slice, sync::Mutex};
 
 // use shm_conds;
 lazy_static! {
@@ -111,38 +111,47 @@ pub extern "C" fn __dfsw___angora_trace_fn_tt(
     _l3: DfsanLabel,
     _l4: DfsanLabel,
 ) {
-    let mut size = size as usize;
-    if size == 0 {
-        let arg1_len = unsafe { libc::strlen(parg1) } as usize;
-        let arg2_len = unsafe { libc::strlen(parg2) } as usize;
-        size = cmp::min(arg1_len, arg2_len);
-    }
+    let (arglen1, arglen2) = if size == 0 {
+        unsafe { (libc::strlen(parg1) as usize, libc::strlen(parg2) as usize) }
+    } else {
+        (size as usize, size as usize)
+    };
 
-    if size <= 0 || size > 64 {
-        return;
-    }
-
-    let lb1 = unsafe { dfsan_read_label(parg1, size) };
-    let lb2 = unsafe { dfsan_read_label(parg2, size) };
+    let lb1 = unsafe { dfsan_read_label(parg1, arglen1) };
+    let lb2 = unsafe { dfsan_read_label(parg2, arglen2) };
 
     if lb1 == 0 && lb2 == 0 {
         return;
     }
 
-    let arg1 = unsafe { slice::from_raw_parts(parg1 as *mut u8, size) }.to_vec();
-    let arg2 = unsafe { slice::from_raw_parts(parg2 as *mut u8, size) }.to_vec();
+    let arg1 = unsafe { slice::from_raw_parts(parg1 as *mut u8, arglen1) }.to_vec();
+    let arg2 = unsafe { slice::from_raw_parts(parg2 as *mut u8, arglen2) }.to_vec();
 
-    log_cmp(
-        cmpid,
-        defs::COND_FALSE_ST,
-        defs::COND_FN_OP,
-        size as u32,
-        lb1,
-        lb2,
-        0,
-        0,
-        Some((arg1, arg2)),
-    );
+    if lb1 > 0 {
+        log_cmp(
+            cmpid,
+            defs::COND_FALSE_ST,
+            defs::COND_FN_OP,
+            arglen2 as u32,
+            lb1,
+            0,
+            0,
+            0,
+            Some((arg1, arg2)),
+        );
+    } else if lb2 > 0 {
+        log_cmp(
+            cmpid,
+            defs::COND_FALSE_ST,
+            defs::COND_FN_OP,
+            arglen1 as u32,
+            0,
+            lb2,
+            0,
+            0,
+            Some((arg1, arg2)),
+        );
+    }
 }
 
 #[no_mangle]

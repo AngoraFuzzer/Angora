@@ -37,8 +37,8 @@ impl<'a> SearchHandler<'a> {
         match status {
             StatusType::Skip => {
                 self.skip = true;
-            },
-            _ => {},
+            }
+            _ => {}
         }
 
         // bonus
@@ -61,6 +61,7 @@ impl<'a> SearchHandler<'a> {
 
     pub fn execute_input(&mut self, input: &MutInput) {
         input.write_to_input(&self.cond.offsets, &mut self.buf);
+        debug!("buf: {:?}", self.buf);
         let status = self.executor.run(&self.buf, self.cond);
         self.process_status(status);
     }

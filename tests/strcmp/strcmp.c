@@ -44,7 +44,7 @@ int main (int argc, char** argv) {
   a[9] = 0;
 
   if (strcmp(a, b) == 0) {
-      //printf("hey, you hit it \n");
+      printf("hey, you hit it \n");
       abort();
   }
 
@@ -65,8 +65,6 @@ int main (int argc, char** argv) {
       //printf("hey, you hit it \n");
       abort();
   }
-
-
 
   return 0;
 }
