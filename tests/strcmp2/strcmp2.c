@@ -24,8 +24,17 @@ int main (int argc, char** argv) {
 
   int len = 20;
   fgets(buf, len, fp);
+  char a[20] = {1, 1, 1, 1, 7, 8, 9, 1, 45, 2, 88, 1,
+                1, 2, 3, 4, 5, 0};
+
+
   char b[10] = {1, 1, 1, 1,
                 1, 2, 3, 4, 5, 0};
+
+  if (strcmp(buf, a) == 0) {
+      printf("hey, you hit it \n");
+      abort();
+  }
 
 
   if (strcmp(buf, b) == 0) {
