@@ -45,27 +45,29 @@ impl<'a> FnFuzz<'a> {
     pub fn run(&mut self) {
         let len = self.handler.cond.base.size as usize;
         let output = self.handler.cond.variables.split_off(len);
-        let input_len = self.handler.get_f_input().val_len();
-        if input_len != output.len() {
-            error!("not all bytes are tainted");
-        }
-        if input_len < len {
-            self.insert_bytes(len - input_len);
-        }
-        if input_len > len {
-            self.remove_bytes(input_len - len);
-        }
-
         let mut input = self.handler.get_f_input();
-        let input_vals = input.get_value();
-
-        let min_len = std::cmp::min(input_len, len);
-        for i in 0..min_len {
-            let diff = output[i] as i16 - input_vals[i] as i16;
-            if diff != 0 {
-                debug!("has diff");
+        let input_len = input.val_len();
+        if input_len != output.len() {
+            warn!("not all bytes are tainted");
+        } else {
+            if input_len < len {
+                self.insert_bytes(len - input_len);
             }
-            self.handler.cond.variables[i] = (self.handler.cond.variables[i] as i16 - diff) as u8;
+            if input_len > len {
+                self.remove_bytes(input_len - len);
+            }
+            input = self.handler.get_f_input();
+            let input_vals = input.get_value();
+
+            let min_len = std::cmp::min(input_len, len);
+            for i in 0..min_len {
+                let diff = output[i] as i16 - input_vals[i] as i16;
+                if diff != 0 {
+                    debug!("has diff");
+                }
+                self.handler.cond.variables[i] =
+                    (self.handler.cond.variables[i] as i16 - diff) as u8;
+            }
         }
         input.assign(&self.handler.cond.variables);
         self.handler.execute_input(&input);
