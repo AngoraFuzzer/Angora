@@ -469,7 +469,7 @@ void AngoraLLVMPass::visitCallInst(Instruction *Inst) {
     // by `xor` with the same value.
     LoadInst *CtxVal = IRB.CreateLoad(AngoraContext);
     setInsNonSan(CtxVal);
-    Value *UpdatedCtx = CtxVal;
+    Value *UpdatedCtx = SelectRet;
     if (!direct_fn_ctx) {
       // Implementation of function context for AFL by heiko eissfeldt:
       // https://github.com/vanhauser-thc/afl-patches/blob/master/afl-fuzz-context_sensitive.diff

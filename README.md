@@ -78,6 +78,8 @@ make install
 
 ```
 
+If you fail to build by this approach, try `wllvm` and `gllvm` described in [Build a target program](./docs/build_target.md#wllvm-or-gllvm).
+
 
 ### Fuzzing
 

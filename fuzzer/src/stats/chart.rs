@@ -121,6 +121,7 @@ impl fmt::Display for ChartStats {
 
         if self.search.multiple_inconsist() {
             warn!("Multiple inconsistent warnings. It caused by the fast and track programs has different behaviors. If most constraints are inconsistent, ensure they are compiled with the same environment. Otherwise, please report us.");
+            // panic()!
         }
 
         if self.fuzz.may_be_model_failure() {
