@@ -230,7 +230,7 @@ impl<'a> GdSearch<'a> {
                 } else {
                     (true, false, f0 - f_plus)
                 }
-            },
+            }
         }
     }
 
@@ -255,10 +255,10 @@ impl<'a> GdSearch<'a> {
     }
 
     fn compute_delta_all(input: &mut MutInput, grad: &Grad, step: usize) {
-        let step = step as f32;
+        let step = step as f64;
         for (i, g) in grad.iter().enumerate() {
-            let movement = (g.pct * step).round() as u64;
-            input.update(i, g.sign, movement);
+            let movement = g.pct * step;
+            input.update(i, g.sign, movement as u64);
         }
     }
 
@@ -278,7 +278,10 @@ impl<'a> GdSearch<'a> {
         let vsum = grad.val_sum();
         if vsum > 0 {
             let guess_step = f0 / vsum;
-            debug!("f0 is : {}, guess step is : {}", f0, guess_step);
+            debug!(
+                "f0 is : {}, vsum: {}, input: {:?}, guess step is : {}",
+                f0, vsum, input, guess_step
+            );
             Self::compute_delta_all(&mut input, grad, guess_step as usize);
             let f_new = self.execute(&input);
             if f_new >= f_last {
@@ -298,7 +301,7 @@ impl<'a> GdSearch<'a> {
                 }
                 if let Some(idx) = delta_index {
                     // only descent by idx-th dimension
-                    let movement = (grad[idx].pct * step as f32).round() as u64;
+                    let movement = (grad[idx].pct * step as f64).round() as u64;
                     input.update(idx, grad[idx].sign, movement);
                 } else {
                     // all dimensions

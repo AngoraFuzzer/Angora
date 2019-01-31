@@ -10,7 +10,7 @@ impl Drop for Depot {
         let mut log_q = fs::File::create(dir.join(defs::COND_QUEUE_FILE)).unwrap();
         writeln!(
             log_q,
-            "cmpid, context, order, belong, p, op, condition, is_desirable, offsets"
+            "cmpid, context, order, belong, p, op, condition, is_desirable, offsets, state"
         )
         .unwrap();
         let q = self.queue.lock().unwrap();

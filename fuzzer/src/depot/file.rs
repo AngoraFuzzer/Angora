@@ -11,17 +11,21 @@ pub fn get_file_name(dir: &Path, id: usize) -> PathBuf {
 
 pub fn read_from_file(path: &Path) -> Vec<u8> {
     let mut file;
-
+    let mut i = 0;
     loop {
         match fs::File::open(path) {
             Ok(f) => {
                 file = f;
                 break;
-            },
+            }
             Err(e) => {
                 error!("fail to read from file : {:?}", e);
-            },
+            }
         };
+        i += 1;
+        if i == 10 {
+            panic!();
+        }
     }
 
     let mut buf = Vec::new();

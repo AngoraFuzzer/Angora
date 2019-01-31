@@ -8,7 +8,7 @@ use std::{
 pub struct GradUnit {
     pub sign: bool,
     pub val: u64,
-    pub pct: f32,
+    pub pct: f64,
 }
 
 impl fmt::Debug for GradUnit {
@@ -37,11 +37,11 @@ impl Grad {
 
     pub fn normalize(&mut self) {
         // f32::MAX > u64::MAX
-        let max_grad = self.max_val() as f32;
+        let max_grad = self.max_val() as f64;
         if max_grad > 0.0 {
             for g in &mut self.0 {
                 g.pct = config::GD_MOMENTUM_BETA * g.pct
-                    + (1.0 - config::GD_MOMENTUM_BETA) * (g.val as f32 / max_grad);
+                    + (1.0 - config::GD_MOMENTUM_BETA) * (g.val as f64 / max_grad);
             }
         }
     }
@@ -55,7 +55,12 @@ impl Grad {
     }
 
     pub fn val_sum(&self) -> u64 {
-        self.0.iter().map(|&x| x.val).sum()
+        // self.0.iter().map(|&x| x.val).sum()
+        let mut sum: u64 = 0u64;
+        for x in self.0.iter() {
+            sum = sum.saturating_add(x.val);
+        }
+        sum
     }
 
     pub fn clear(&mut self) {
