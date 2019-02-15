@@ -1,5 +1,11 @@
 // Refer: http://www.cplusplus.com/reference/cwchar/fgetws/
 /* fgetws example */
+/*
+  Note: fuzzer cannot solve this example.
+  Fuzzer changes the input, and the new input might cause
+  fgetws: Invalid or incomplete multibyte or wide character.
+*/
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +13,7 @@
 
 int main(int argc, char** argv) {
   if (argc < 2) return 0;
+  setlocale(LC_ALL, "");
   FILE * pFile;
   wchar_t mystring [10000];
 
@@ -17,11 +24,11 @@ int main(int argc, char** argv) {
         abort();
       }
     } else {
-      printf("Buffer is not long enough!\n");
+      perror("fgetws");
     }
     fclose (pFile);
   } else {
-     printf("I cannot open infile! TAT\n");
+    perror("fopen");
   }
   return 0;
 }

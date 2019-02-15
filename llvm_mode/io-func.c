@@ -1,11 +1,11 @@
 /*
   C IO Proxy Function
-
   to write custom functions, modify custom/angora_abilist.txt first
  */
 
 #include <assert.h>
 #include <fcntl.h>
+#include <locale.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -16,6 +16,8 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+#include <wchar.h>
+#include <wctype.h>
 
 #include "../runtime/include/ffds.h"
 #include "../runtime/include/len_label.h"
@@ -320,8 +322,12 @@ __dfsw__IO_getc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
 }
 
 __attribute__((visibility("default"))) int
-__dfsw_getchar(dfsan_label *ret_label) {
+__dfsw_getc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
+  return __dfsw__IO_getc(fd, fd_label, ret_label);
+}
 
+__attribute__((visibility("default"))) int
+__dfsw_getchar(dfsan_label *ret_label) {
   long offset = ftell(stdin);
   int c = getchar();
   *ret_label = 0;
@@ -330,7 +336,7 @@ __dfsw_getchar(dfsan_label *ret_label) {
 #endif
   if (c != EOF) {
     dfsan_label l = dfsan_create_label(offset);
-    *ret_label = l;
+   *ret_label = l;
   }
   return c;
 }
@@ -360,7 +366,6 @@ __attribute__((visibility("default"))) char *
 __dfsw_fgets_unlocked(char *str, int count, FILE *fd, dfsan_label str_label,
                       dfsan_label count_label, dfsan_label fd_label,
                       dfsan_label *ret_label) {
-
   long offset = ftell(fd);
   char *ret = fgets_unlocked(str, count, fd);
 #ifdef DEBUG_INFO
@@ -393,6 +398,184 @@ __dfsw_gets(char *str, dfsan_label str_label, dfsan_label *ret_label) {
   }
   return ret;
 }
+
+__attribute__((visibility("default"))) wint_t
+__dfsw_fgetwc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
+  long offset = ftell(fd);
+  wint_t c = fgetwc(fd);
+  *ret_label = 0;
+#ifdef DEBUG_INFO
+  fprintf(stderr, "### fgetwc %p, range is %ld\n", fd, offset);
+#endif
+  if (c != WEOF && is_fuzzing_ffd(fd)) {
+    // Refer: https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_71/rtref/fgetwc.htm
+    // The fgetwc() function returns the next wide character that corresponds to the multibyte character from the input stream pointed to by stream. If the stream is at EOF, the EOF indicator for the stream is set, and fgetwc() returns WEOF.
+    dfsan_label l = dfsan_create_label(offset);
+    *ret_label = l;
+  }
+  return c;
+}
+
+// Refer: http://www.delorie.com/gnu/docs/glibc/libc_184.html
+// This function is a GNU extension.
+/* __attribute__((visibility("default"))) wint_t
+__dfsw_fgetwc_unlocked(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
+  long offset = ftell(fd);
+  wint_t c = fgetwc_unlocked(fd);
+  *ret_label = 0;
+#ifdef DEBUG_INFO
+  fprintf(stderr, "### fgetwc_unlocked %p, range is %ld\n", fd, offset);
+#endif
+  if (c != WEOF && is_fuzzing_ffd(fd)) {
+    // Refer: https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_71/rtref/fgetwc.htm
+    // The fgetwc() function returns the next wide character that corresponds to the multibyte character from the input stream pointed to by stream. If the stream is at EOF, the EOF indicator for the stream is set, and fgetwc() returns WEOF.
+    dfsan_label l = dfsan_create_label(offset);
+    *ret_label = l;
+  }
+  return c;
+} */
+
+// Refer: https://linux.die.net/man/3/getwc
+// The getwc() function or macro functions identically to fgetwc().
+__attribute__((visibility("default"))) wint_t
+__dfsw_getwc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
+  long offset = ftell(fd);
+  wint_t c = getwc(fd);
+  *ret_label = 0;
+#ifdef DEBUG_INFO
+  fprintf(stderr, "### getwc %p, range is %ld\n", fd, offset);
+#endif
+  if (c != WEOF && is_fuzzing_ffd(fd)) {
+    // Refer: https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_71/rtref/fgetwc.htm
+    // The fgetwc() function returns the next wide character that corresponds to the multibyte character from the input stream pointed to by stream. If the stream is at EOF, the EOF indicator for the stream is set, and fgetwc() returns WEOF.
+    dfsan_label l = dfsan_create_label(offset);
+    *ret_label = l;
+  }
+  return c;
+}
+
+// Refer: https://linux.die.net/man/3/getwc
+// Function: wint_t getwc_unlocked (FILE *stream)
+// The getwc_unlocked function is equivalent to the getwc function except that it does not implicitly lock the stream.
+// This function is a GNU extension.
+/*
+__attribute__((visibility("default"))) wint_t
+__dfsw_getwc_unlocked(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
+long offset = ftell(fd);
+  wint_t c = getwc_unlocked(fd);
+  *ret_label = 0;
+#ifdef DEBUG_INFO
+  fprintf(stderr, "### getwc_unlocked %p, range is %ld\n", fd, offset);
+#endif
+  if (c != WEOF && is_fuzzing_ffd(fd)) {
+    // Refer: https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_71/rtref/fgetwc.htm
+    // The fgetwc() function returns the next wide character that corresponds to the multibyte character from the input stream pointed to by stream. If the stream is at EOF, the EOF indicator for the stream is set, and fgetwc() returns WEOF.
+    dfsan_label l = dfsan_create_label(offset);
+    *ret_label = l;
+  }
+  return c;
+}
+*/
+
+__attribute__((visibility("default"))) wchar_t *
+__dfsw_fgetws(wchar_t  *str, int count, FILE *fd, dfsan_label str_label,
+             dfsan_label count_label, dfsan_label fd_label,
+             dfsan_label *ret_label) {
+  long offset = ftell(fd);
+  wchar_t *ret = fgetws(str, count, fd);
+  // On success, the function returns str.
+#ifdef DEBUG_INFO
+  if (ret) {
+    fprintf(stderr, "### fgetws %p, range is %ld, %ld \n", fd, offset,
+      sizeof(wchar_t) * wcslen(ret));
+  }
+#endif
+  if (ret && is_fuzzing_ffd(fd)) {
+    int len = wcslen(ret) ;
+    assign_taint_labels_exf(str, offset, len, count, sizeof(wchar_t));
+    *ret_label = str_label;
+  } else {
+    *ret_label = 0;
+  }
+  return ret;
+}
+
+/*
+__attribute__((visibility("default"))) wchar_t *
+__dfsw_fgetws_unlocked(wchar_t  *str, int count, FILE *fd, dfsan_label str_label,
+             dfsan_label count_label, dfsan_label fd_label,
+             dfsan_label *ret_label) {
+  long offset = ftell(fd);
+  wchar_t *ret = fgetws_unlocked(str, count, fd);
+  // On success, the function returns str.
+#ifdef DEBUG_INFO
+  if (ret) {
+    fprintf(stderr, "### fgetws_unlocked %p, range is %ld, %ld \n", fd, offset,
+      sizeof(wchar_t) * wcslen(ret));
+  }
+#endif
+  if (ret && is_fuzzing_ffd(fd)) {
+    int len = wcslen(ret) ;
+    assign_taint_labels_exf(str, offset, len, count, sizeof(wchar_t));
+    *ret_label = str_label;
+  } else {
+    *ret_label = 0;
+  }
+  return ret;
+}
+*/
+
+__attribute__((visibility("default"))) int
+__dfsw_getw(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
+  long offset = ftell(fd);
+  int c = getw(fd);
+  *ret_label = 0;
+#ifdef DEBUG_INFO
+  fprintf(stderr, "### getw %p, range is %ld, c is %d\n", fd, offset,
+          c);
+#endif
+  if (is_fuzzing_ffd(fd) && c != EOF) {
+    dfsan_label l = dfsan_create_label(offset);
+    *ret_label = l;
+  }
+  return c;
+}
+
+// Refer: http://www.cplusplus.com/reference/cwchar/getwchar/
+// Get wide character from stdin
+__attribute__((visibility("default"))) wint_t
+__dfsw_getwchar(dfsan_label *ret_label) {
+  long offset = ftell(stdin);
+  wint_t c = getwchar();
+  *ret_label = 0;
+#ifdef DEBUG_INFO
+  fprintf(stderr, "### getwchar stdin, range is %ld, 1 \n", offset);
+#endif
+  if (c != WEOF) {
+    dfsan_label l = dfsan_create_label(offset);
+   *ret_label = l;
+  }
+  return c;
+}
+
+/*
+// Refer: http://www.cplusplus.com/reference/cwchar/getwchar/
+// Get wide character from stdin
+__attribute__((visibility("default"))) wint_t
+__dfsw_getwchar_unlocked(dfsan_label *ret_label) {
+  long offset = ftell(stdin);
+  wint_t c = getwchar_unlocked();
+  *ret_label = 0;
+#ifdef DEBUG_INFO
+  fprintf(stderr, "### getwchar_unlocked stdin, range is %ld, 1 \n", offset);
+#endif
+  if (c != WEOF) {
+    dfsan_label l = dfsan_create_label(offset);
+   *ret_label = l;
+  }
+  return c;
+}
+*/
 
 #include <utmp.h>
 // int utmpname(const char *file);
@@ -578,4 +761,3 @@ __dfsw___lxstat(int vers, const char *path, struct stat *buf,
   *ret_label = 0;
   return ret;
 }
-

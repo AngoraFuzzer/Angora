@@ -17,7 +17,7 @@ int main (int argc, char** argv) {
     }
     fclose (pFile);
   } else {
-    printf("I cannot open infile! TAT\n");
+    perror("fopen");
   }
   return 0;
 }
