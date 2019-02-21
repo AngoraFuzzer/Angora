@@ -83,7 +83,7 @@ impl Forksrv {
             .set_write_timeout(Some(Duration::from_secs(time_limit)))
             .expect("Couldn't set write timeout");
 
-        info!("All right -- Init ForkServer {} successfully!", socket_path);
+        debug!("All right -- Init ForkServer {} successfully!", socket_path);
 
         Forksrv {
             path: socket_path.to_owned(),
@@ -167,7 +167,7 @@ impl Drop for Forksrv {
         // Tell the child process to exit
         let fin = [0u8; 2];
         if self.socket.write(&fin).is_err() {
-            warn!("Fail to write socket !!  FIN ");
+            debug!("Fail to write socket !!  FIN ");
         }
         let path = Path::new(&self.path);
         if path.exists() {

@@ -48,7 +48,7 @@ impl<'a> FnFuzz<'a> {
         let mut input = self.handler.get_f_input();
         let input_len = input.val_len();
         if input_len != output.len() {
-            warn!("not all bytes are tainted");
+            debug!("not all bytes are tainted");
         } else {
             if input_len < len {
                 self.insert_bytes(len - input_len);

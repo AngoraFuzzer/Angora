@@ -206,14 +206,15 @@ fn main_thread_sync_and_log(
     stats: &Arc<RwLock<stats::ChartStats>>,
     child_count: Arc<AtomicUsize>,
 ) {
+    let mut last_explore_num = stats.read().unwrap().get_explore_num();
     let sync_dir = Path::new(out_dir);
     let mut synced_ids = HashMap::new();
     if sync_afl {
         depot::sync_afl(executor, running.clone(), sync_dir, &mut synced_ids);
     }
     let mut sync_counter = 1;
+    show_stats(&mut log_file, depot, global_branches, stats);
     while running.load(Ordering::SeqCst) {
-        show_stats(&mut log_file, depot, global_branches, stats);
         thread::sleep(time::Duration::from_secs(5));
         sync_counter -= 1;
         if sync_afl && sync_counter <= 0 {
@@ -221,10 +222,20 @@ fn main_thread_sync_and_log(
             sync_counter = 12;
         }
 
+        show_stats(&mut log_file, depot, global_branches, stats);
         if Arc::strong_count(&child_count) == 1 {
-            // TODO: channel
-            break;
+            let s = stats.read().unwrap();
+            let cur_explore_num = s.get_explore_num();
+            if cur_explore_num == 0 {
+                warn!("There is none constraint in the seeds, please ensure the inputs are vaild in the seed directory, or the program is ran correctly, or the read functions have been marked as source.");
+                break;
+            } else {
+                if cur_explore_num == last_explore_num {
+                    info!("Solve all constraints!!");
+                    break;
+                }
+                last_explore_num = cur_explore_num;
+            }
         }
     }
-    show_stats(&mut log_file, depot, global_branches, stats);
 }

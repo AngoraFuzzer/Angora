@@ -111,6 +111,13 @@ impl ChartStats {
             self.num_crashes.0
         )
     }
+
+    pub fn get_explore_num(&self) -> usize {
+        self.fuzz
+            .get(fuzz_type::FuzzType::ExploreFuzz.index())
+            .num_conds
+            .into()
+    }
 }
 
 impl fmt::Display for ChartStats {
