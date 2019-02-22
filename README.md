@@ -17,7 +17,7 @@ Arxiv: [Angora: Efficient Fuzzing by Principled Search](https://arxiv.org/abs/18
 ### Build Requirements
 
 - Linux-amd64 (Tested on Ubuntu 16.04/18.04 and Debian Buster)
-- Rust stable, can be obtained using [rustup](https://rustup.rs)
+- Rust stable (>= 1.31), can be obtained using [rustup](https://rustup.rs)
 - [LLVM 4.0.0](http://llvm.org/docs/index.html) : run `PREFIX=/path-to-install ./build/llvm.sh`.
 
 ### Environment Variables
