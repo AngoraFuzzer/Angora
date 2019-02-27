@@ -141,7 +141,7 @@ static void add_angora_runtime() {
     cc_params[cc_par_cnt++] = alloc_printf("%s/DFSanRT.a", obj_path);
     cc_params[cc_par_cnt++] = "-Wl,--no-whole-archive";
     cc_params[cc_par_cnt++] =
-    alloc_printf("-Wl,--dynamic-list=%s/DFSanRT.a.syms", obj_path);
+        alloc_printf("-Wl,--dynamic-list=%s/DFSanRT.a.syms", obj_path);
 
     cc_params[cc_par_cnt++] = alloc_printf("%s/libruntime.a", obj_path);
     cc_params[cc_par_cnt++] = alloc_printf("%s/io-func.o", obj_path);
@@ -163,7 +163,6 @@ static void add_angora_runtime() {
   cc_params[cc_par_cnt++] = "-ldl";
   cc_params[cc_par_cnt++] = "-lpthread";
   cc_params[cc_par_cnt++] = "-lm";
-
 }
 
 static void add_dfsan_pass() {
@@ -258,7 +257,7 @@ static void edit_params(u32 argc, char **argv) {
       cc_params[cc_par_cnt++] = "-D_FORTIFY_SOURCE=2";
   }
 
-  if (!asan_set) {
+  if (!asan_set && clang_type == CLANG_FAST_TYPE) {
     // We did not test Angora on asan and msan..
     if (getenv("ANGORA_USE_ASAN")) {
 
@@ -349,7 +348,7 @@ static void edit_params(u32 argc, char **argv) {
     }
 
     add_angora_runtime();
-    
+
     switch (bit_mode) {
     case 0:
       break;
@@ -364,7 +363,6 @@ static void edit_params(u32 argc, char **argv) {
       break;
     }
   }
-
 
   cc_params[cc_par_cnt] = NULL;
 }

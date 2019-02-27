@@ -28,18 +28,38 @@ fn check_target_binary(target: &str) {
     }
 }
 
-pub fn check_asan(target: &str) -> bool {
+fn mmap_file(target: &str) -> memmap::Mmap {
     let file = File::open(target).expect("Unable to open file");
-    let f_data = unsafe {
+    unsafe {
         memmap::MmapOptions::new()
             .map(&file)
             .expect("unable to mmap file")
-    };
-    let libasan = "libasan.so";
-    let has_asan = twoway::find_bytes(&f_data[..], libasan.as_bytes()).is_some();
-    let masn = "__msan_init";
-    let has_masn = twoway::find_bytes(&f_data[..], masn.as_bytes()).is_some();
-    has_asan || has_masn
+    }
+}
+
+fn containt_string(f_data: &memmap::Mmap, s: &str) -> bool {
+    twoway::find_bytes(&f_data[..], s.as_bytes()).is_some()
+}
+
+pub fn check_asan(target: &str) -> bool {
+    let f_data = mmap_file(target);
+    containt_string(&f_data, "libasan.so") || containt_string(&f_data, "__msan_init")
+}
+
+fn check_fast(target: &str) {
+    check_target_binary(target);
+    let f_data = mmap_file(target);
+    if !containt_string(&f_data, "__angora_cond_cmpid") {
+        panic!("The program is not complied by Angora");
+    }
+}
+
+fn check_track(target: &str) {
+    check_target_binary(target);
+    let f_data = mmap_file(target);
+    if !containt_string(&f_data, "__dfsw___angora_trace_cmp_tt") {
+        panic!("The program is not complied by Angora with taint tracking");
+    }
 }
 
 fn check_io_dir(in_dir: &str, out_dir: &str) {
@@ -57,9 +77,9 @@ fn check_io_dir(in_dir: &str, out_dir: &str) {
     }
 }
 
-pub fn check_dep(in_dir: &str, out_dir: &str, target: &str, target2: &str) {
+pub fn check_dep(in_dir: &str, out_dir: &str, target_fast: &str, target_track: &str) {
     check_crash_handling();
-    check_target_binary(target);
-    check_target_binary(target2); // track binary
+    check_fast(target_fast);
+    check_track(target_track);
     check_io_dir(in_dir, out_dir);
 }

@@ -28,8 +28,15 @@ and precise input generation which significantly increases input coverage.
   - `src/depot`: Depot module for input/output file management.
   - `src/executor`: Executor module for managing target program runs.
   - `src/search`: Exploration strategies. You are free to implement and integrate your own strategy with Angora.
+  - `src/cond_stmt`: Conditional statement module for constraints.
+  - `src/mut_input`: Input bytes for conditional statements.
+  - `src/track`: Parse taint analysis result.
+  - `src/stats`: Statistical chart.
+  - `src/branches`: Branch counting.
 - `llvm_mode`: Includes source code for instrumenting compilers and DFSan, the taint tracking framework.
 - `runtime`: Taint tracking runtime library for target program.
 - `runtime_fast`: Branch and constraint information collection library for target program.
 - `tests`: Sample tests to evaluate fuzzer performance.
+- `tools`: Some scripts.
+- `docs`: Documentation.
 

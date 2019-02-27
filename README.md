@@ -46,6 +46,13 @@ As with AFL, system core dumps must be disabled.
 echo core | sudo tee /proc/sys/kernel/core_pattern
 ```
 
+## Test
+Test if Angora is builded successfully.
+```
+cd /path-to-angora/tests
+./test.sh mini
+```
+
 ## Running Angora
 
 ### Build Target Program
