@@ -14,17 +14,23 @@
 #define CLANG_TRACK_TYPE 1
 // just do data tracking
 #define CLANG_DFSAN_TYPE 2
+// use libdft implemented by intel pin
+#define CLANG_PIN_TYPE 3
 
 // #define DEBUG_INFO
 // #define ALLOC_PRELOAD
 
 #ifdef DEBUG_INFO
 // #define DEBUG_PRINTF printf
-#define DEBUG_PRINTF(...) do{ printf( __VA_ARGS__ ); } while( 0 )
+#define DEBUG_PRINTF(...)                                                      \
+  do {                                                                         \
+    printf(__VA_ARGS__);                                                       \
+  } while (0)
 #else
-#define DEBUG_PRINTF(...) do{ } while ( 0 )
+#define DEBUG_PRINTF(...)                                                      \
+  do {                                                                         \
+  } while (0)
 #endif
-
 
 #define SHM_ENV_VAR "ANGORA_BRANCHES_SHM_ID"
 #define ENABLE_FORKSRV "ANGORA_ENABLE_FORKSRV"
@@ -72,12 +78,14 @@ typedef uint32_t dfsan_label;
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
-// typedef uint64_t u64;
+typedef uint64_t u64;
+/*
 #ifdef __x86_64__
 typedef unsigned long long u64;
 #else
 typedef uint64_t u64;
 #endif
+*/
 typedef int8_t s8;
 typedef int16_t s16;
 typedef int32_t s32;

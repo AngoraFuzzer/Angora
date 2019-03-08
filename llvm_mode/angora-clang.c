@@ -66,12 +66,15 @@ static void check_type(char *name) {
   u8 *use_fast = getenv("USE_FAST");
   u8 *use_dfsan = getenv("USE_DFSAN");
   u8 *use_track = getenv("USE_TRACK");
+  u8 *use_pin = getenv("USE_PIN");
   if (use_fast) {
     clang_type = CLANG_FAST_TYPE;
   } else if (use_dfsan) {
     clang_type = CLANG_DFSAN_TYPE;
   } else if (use_track) {
     clang_type = CLANG_TRACK_TYPE;
+  } else if (use_pin) {
+    clang_type = CLANG_PIN_TYPE;
   }
   if (!strcmp(name, "angora-clang++")) {
     is_cxx = 1;
@@ -95,7 +98,7 @@ static void add_angora_pass() {
   if (clang_type == CLANG_DFSAN_TYPE) {
     cc_params[cc_par_cnt++] = "-mllvm";
     cc_params[cc_par_cnt++] = "-DFSanMode";
-  } else if (clang_type == CLANG_TRACK_TYPE) {
+  } else if (clang_type == CLANG_TRACK_TYPE || clang_type == CLANG_PIN_TYPE) {
     cc_params[cc_par_cnt++] = "-mllvm";
     cc_params[cc_par_cnt++] = "-TrackMode";
   }
@@ -150,6 +153,10 @@ static void add_angora_runtime() {
     if (rule_obj) {
       cc_params[cc_par_cnt++] = rule_obj;
     }
+  }
+
+  if (clang_type == CLANG_PIN_TYPE) {
+    cc_params[cc_par_cnt++] = alloc_printf("%s/pin_stub.o", obj_path);
   }
 
   if (clang_type != CLANG_FAST_TYPE) {

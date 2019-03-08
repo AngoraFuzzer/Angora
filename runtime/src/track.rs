@@ -22,18 +22,20 @@ fn infer_eq_sign(op: u32, lb1: u32, lb2: u32) -> u32 {
 
 #[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_cmp_tt(
-    condition: u32,
     cmpid: u32,
+    context: u32,
     size: u32,
     op: u32,
     arg1: u64,
     arg2: u64,
+    condition: u32,
     _l0: DfsanLabel,
     _l1: DfsanLabel,
     _l2: DfsanLabel,
     _l3: DfsanLabel,
     l4: DfsanLabel,
     l5: DfsanLabel,
+    _l6: DfsanLabel,
 ) {
     //println!("[CMP] id: {}, ctx: {}", cmpid, get_context());
     // ret_label: *mut DfsanLabel
@@ -45,23 +47,27 @@ pub extern "C" fn __dfsw___angora_trace_cmp_tt(
 
     let op = infer_eq_sign(op, lb1, lb2);
 
-    log_cmp(cmpid, condition, op, size, lb1, lb2, arg1, arg2, None);
+    log_cmp(
+        cmpid, context, condition, op, size, lb1, lb2, arg1, arg2, None,
+    );
 }
 
 #[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_switch_tt(
     cmpid: u32,
+    context: u32,
     size: u32,
     condition: u64,
     num: u32,
     args: *mut u64,
     _l0: DfsanLabel,
     _l1: DfsanLabel,
-    l2: DfsanLabel,
+    _l2: DfsanLabel,
+    l3: DfsanLabel,
     _l3: DfsanLabel,
     _l4: DfsanLabel,
 ) {
-    let lb = l2;
+    let lb = l3;
     if lb == 0 {
         return;
     }
@@ -69,7 +75,7 @@ pub extern "C" fn __dfsw___angora_trace_switch_tt(
     let cond = CondStmtMb {
         base: CondStmtBase {
             cmpid,
-            context: get_context(),
+            context,
             order: 0,
             belong: 0,
             condition: defs::COND_FALSE_ST,
@@ -103,6 +109,7 @@ pub extern "C" fn __dfsw___angora_trace_switch_tt(
 #[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_fn_tt(
     cmpid: u32,
+    context: u32,
     size: u32,
     parg1: *mut i8,
     parg2: *mut i8,
@@ -130,6 +137,7 @@ pub extern "C" fn __dfsw___angora_trace_fn_tt(
     if lb1 > 0 {
         log_cmp(
             cmpid,
+            context,
             defs::COND_FALSE_ST,
             defs::COND_FN_OP,
             arglen2 as u32,
@@ -142,6 +150,7 @@ pub extern "C" fn __dfsw___angora_trace_fn_tt(
     } else if lb2 > 0 {
         log_cmp(
             cmpid,
+            context,
             defs::COND_FALSE_ST,
             defs::COND_FN_OP,
             arglen1 as u32,
@@ -157,25 +166,39 @@ pub extern "C" fn __dfsw___angora_trace_fn_tt(
 #[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_exploit_val_tt(
     cmpid: u32,
+    context: u32,
     size: u32,
     op: u32,
     val: u64,
     _l0: DfsanLabel,
     _l1: DfsanLabel,
     _l2: DfsanLabel,
-    l3: DfsanLabel,
+    _l3: DfsanLabel,
+    l4: DfsanLabel,
 ) {
-    let lb: DfsanLabel = l3;
+    let lb: DfsanLabel = l4;
     if len_label::is_len_label(lb) || lb == 0 {
         return;
     }
 
-    log_cmp(cmpid, defs::COND_FALSE_ST, op, size, lb, 0, val, 0, None);
+    log_cmp(
+        cmpid,
+        context,
+        defs::COND_FALSE_ST,
+        op,
+        size,
+        lb,
+        0,
+        val,
+        0,
+        None,
+    );
 }
 
 #[inline]
 fn log_cmp(
     cmpid: u32,
+    context: u32,
     condition: u32,
     op: u32,
     size: u32,
@@ -188,7 +211,7 @@ fn log_cmp(
     let cond = CondStmtMb {
         base: CondStmtBase {
             cmpid,
-            context: get_context(),
+            context,
             order: 0,
             belong: 0,
             condition,

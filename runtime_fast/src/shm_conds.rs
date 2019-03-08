@@ -7,14 +7,9 @@ use std::{env, ops::DerefMut, sync::Mutex};
 use lazy_static::lazy_static;
 
 extern "C" {
-    fn __angora_get_context() -> u32;
+    // static __angora_cond_cmpid: u32;
     fn __angora_set_cmpid(cid: u32);
     fn __angora_reset_globals();
-}
-
-#[inline(always)]
-fn get_context() -> u32 {
-    unsafe { __angora_get_context() }
 }
 
 #[inline(always)]
@@ -52,8 +47,8 @@ impl ShmConds {
         self.cond.lb1 = condition;
     }
 
-    pub fn check_match(&mut self, cmpid: u32) -> bool {
-        if self.cond.cmpid == cmpid && self.cond.context == get_context() {
+    pub fn check_match(&mut self, cmpid: u32, context: u32) -> bool {
+        if self.cond.cmpid == cmpid && self.cond.context == context {
             self.rt_order += 1;
             if self.cond.order & 0xFFFF == self.rt_order {
                 return true;
