@@ -6,7 +6,7 @@ edition = "2018"
 
 [lib]
 name="runtime"
-crate-type = ["rlib", "staticlib"] # "cdfylib"
+crate-type = ["rlib", "staticlib"] # "cdylib"
 
 [dependencies]
 serde="1.0"

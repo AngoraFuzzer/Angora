@@ -351,7 +351,8 @@ impl Executor {
         let ret_status = self.run_target(
             &self.cmd.track,
             config::MEM_LIMIT_TRACK,
-            self.cmd.time_limit * config::TIME_LIMIT_TRACK,
+            //self.cmd.time_limit *
+            config::TIME_LIMIT_TRACK,
         );
         compiler_fence(Ordering::SeqCst);
 
@@ -367,6 +368,7 @@ impl Executor {
             Path::new(&self.cmd.track_path),
             id as u32,
             speed,
+            self.cmd.mode.is_pin_mode(),
             self.cmd.enable_exploitation,
         );
 
@@ -398,8 +400,8 @@ impl Executor {
             .stdin(Stdio::null())
             .env_clear()
             .envs(&self.envs)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
+            //.stdout(Stdio::null())
+            //.stderr(Stdio::null())
             .mem_limit(mem_limit.clone())
             .setsid()
             .pipe_stdin(self.fd.as_raw_fd(), self.cmd.is_stdin)
@@ -410,7 +412,9 @@ impl Executor {
         let ret = match child.wait_timeout(timeout).unwrap() {
             Some(status) => {
                 if let Some(status_code) = status.code() {
-                    if self.cmd.uses_asan && status_code == defs::MSAN_ERROR_CODE {
+                    if (self.cmd.uses_asan && status_code == defs::MSAN_ERROR_CODE)
+                        || (self.cmd.mode.is_pin_mode() && status_code > 128)
+                    {
                         StatusType::Crash
                     } else {
                         StatusType::Normal

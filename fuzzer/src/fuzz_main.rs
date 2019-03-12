@@ -18,6 +18,7 @@ use libc;
 use pretty_env_logger;
 
 pub fn fuzz_main(
+    mode: &str,
     in_dir: &str,
     out_dir: &str,
     track_target: &str,
@@ -31,18 +32,10 @@ pub fn fuzz_main(
     enable_exploitation: bool,
 ) {
     pretty_env_logger::init();
-    check_dep::check_dep(in_dir, out_dir, &pargs[0], track_target);
-
-    let running = Arc::new(AtomicBool::new(true));
-    set_sigint_handler(running.clone());
 
     let angora_out_dir = initialize_directories(in_dir, out_dir, sync_afl);
-    let depot = Arc::new(depot::Depot::new(in_dir, &angora_out_dir));
-    info!("depot: {:?}", depot.dirs);
-    let stats = Arc::new(RwLock::new(stats::ChartStats::new()));
-    let global_branches = Arc::new(branches::GlobalBranches::new());
-
     let command_option = command::CommandOpt::new(
+        mode,
         track_target,
         pargs,
         &angora_out_dir,
@@ -52,9 +45,15 @@ pub fn fuzz_main(
         enable_afl,
         enable_exploitation,
     );
-
     info!("{:?}", command_option);
+    check_dep::check_dep(in_dir, out_dir, &command_option);
+
+    let depot = Arc::new(depot::Depot::new(in_dir, &angora_out_dir));
+    let stats = Arc::new(RwLock::new(stats::ChartStats::new()));
+    let global_branches = Arc::new(branches::GlobalBranches::new());
     let fuzzer_stats = create_stats_file_and_write_pid(&angora_out_dir);
+    let running = Arc::new(AtomicBool::new(true));
+    set_sigint_handler(running.clone());
 
     let mut executor = executor::Executor::new(
         command_option.specify(0),

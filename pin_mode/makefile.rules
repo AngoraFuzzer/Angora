@@ -39,7 +39,7 @@ TOOL_ROOTS := pin_track
 SA_TOOL_ROOTS :=
 
 # This defines all the applications that will be run during the tests.
-APP_ROOTS := mini_test
+APP_ROOTS := 
 
 # This defines any additional object files that need to be compiled.
 OBJECT_ROOTS := 

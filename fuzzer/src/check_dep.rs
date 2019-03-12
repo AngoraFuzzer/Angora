@@ -1,3 +1,4 @@
+use crate::command::CommandOpt;
 use memmap;
 use std::{fs::File, io::prelude::*, path::Path};
 use twoway;
@@ -54,7 +55,7 @@ fn check_fast(target: &str) {
     }
 }
 
-fn check_track(target: &str) {
+fn check_track_llvm(target: &str) {
     check_target_binary(target);
     let f_data = mmap_file(target);
     if !containt_string(&f_data, "__dfsw___angora_trace_cmp_tt") {
@@ -77,9 +78,11 @@ fn check_io_dir(in_dir: &str, out_dir: &str) {
     }
 }
 
-pub fn check_dep(in_dir: &str, out_dir: &str, target_fast: &str, target_track: &str) {
-    check_crash_handling();
-    check_fast(target_fast);
-    check_track(target_track);
+pub fn check_dep(in_dir: &str, out_dir: &str, cmd: &CommandOpt) {
     check_io_dir(in_dir, out_dir);
+    check_crash_handling();
+    check_fast(&cmd.main.0);
+    if !cmd.mode.is_pin_mode() {
+        check_track_llvm(&cmd.track.0);
+    }
 }

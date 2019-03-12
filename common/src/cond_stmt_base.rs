@@ -21,11 +21,13 @@ pub struct CondStmtBase {
     pub arg2: u64,
 }
 
+/*
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct CondStmtMb {
     pub base: CondStmtBase,
     pub magic_bytes: Option<(Vec<u8>, Vec<u8>)>,
 }
+*/
 
 impl PartialEq for CondStmtBase {
     fn eq(&self, other: &CondStmtBase) -> bool {

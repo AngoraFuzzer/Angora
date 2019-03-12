@@ -2,7 +2,7 @@ use bincode::{deserialize_from, serialize_into};
 use std::{collections::HashMap, env, fs, io, path::Path};
 
 use crate::{len_label, tag_set_wrap};
-use angora_common::{cond_stmt_base::CondStmtMb, config, defs, log_data::LogData};
+use angora_common::{cond_stmt_base::CondStmtBase, config, defs, log_data::LogData};
 
 #[derive(Debug)]
 pub struct Logger {
@@ -32,52 +32,51 @@ impl Logger {
     fn save_tag(&mut self, lb: u32) {
         if lb > 0 {
             let tag = tag_set_wrap::tag_set_find(lb as usize);
-            if let Some(v) = tag.last() {
-                if v.end as usize > self.data.max_offset {
-                    self.data.max_offset = v.end as usize;
-                }
-            }
             self.data.tags.entry(lb).or_insert(tag);
         }
     }
 
+    pub fn save_magic_bytes(&mut self, bytes: (Vec<u8>, Vec<u8>)) {
+        let i = self.data.cond_list.len();
+        if i > 0 {
+            self.data.magic_bytes.insert(i - 1, bytes);
+        }
+    }
+
     // like the fn in fparser.rs
-    pub fn get_order(&mut self, cond: &mut CondStmtMb) -> u32 {
-        let order_key = (cond.base.cmpid, cond.base.context);
+    pub fn get_order(&mut self, cond: &mut CondStmtBase) -> u32 {
+        let order_key = (cond.cmpid, cond.context);
         let order = self.order_map.entry(order_key).or_insert(0);
-        if cond.base.order == 0 {
+        if cond.order == 0 {
             // first case in switch
             let order_inc = *order + 1;
             *order = order_inc;
         }
-        cond.base.order += *order;
+        cond.order += *order;
         *order
     }
 
-    pub fn save(&mut self, mut cond: CondStmtMb) {
-        if cond.base.lb1 == 0 && cond.base.lb2 == 0 {
+    pub fn save(&mut self, mut cond: CondStmtBase) {
+        if cond.lb1 == 0 && cond.lb2 == 0 {
             return;
         }
 
         let mut order = 0;
 
-        // also modify cond.base to remove len_label information
-        let len_cond = len_label::get_len_cond(&mut cond.base);
+        // also modify cond to remove len_label information
+        let len_cond = len_label::get_len_cond(&mut cond);
 
-        if cond.base.op < defs::COND_AFL_OP || cond.base.op == defs::COND_FN_OP {
-            self.save_tag(cond.base.lb1);
-            self.save_tag(cond.base.lb2);
+        if cond.op < defs::COND_AFL_OP || cond.op == defs::COND_FN_OP {
             order = self.get_order(&mut cond);
         }
         if order <= config::MAX_COND_ORDER {
+            self.save_tag(cond.lb1);
+            self.save_tag(cond.lb2);
             self.data.cond_list.push(cond);
 
             if let Some(mut c) = len_cond {
                 c.order = 0x10000 + order; // avoid the same as cond;
-                self.data.cond_list.push(CondStmtMb {
-                    base: c,
-                    magic_bytes: None,
-                });
+                self.data.cond_list.push(c);
             }
         }
     }

@@ -9,7 +9,13 @@ use angora::fuzz_main;
 fn main() {
     let matches = App::new("angora-fuzzer")
         .version(crate_version!())
-        .about("fuzz some program")
+        .about("Angora is a mutation-based fuzzer. The main goal of Angora is to increase branch coverage by solving path constraints without symbolic execution.")
+        .arg(Arg::with_name("mode")
+             .short("m")
+             .long("mode")
+             .value_name("Mode")
+             .help("Which binary instrumentation framework are you using?")
+             .possible_values(&["llvm", "pin"]))
         .arg(Arg::with_name("input_dir")
              .short("i")
              .long("input")
@@ -65,7 +71,7 @@ fn main() {
              .short("S")
              .long("sync_afl")
              .help("Sync the seeds with AFL. Output directory should be in AFL's directory structure."))
-       .arg(Arg::with_name("disable_afl_mutation")
+        .arg(Arg::with_name("disable_afl_mutation")
              .short("A")
              .long("disable_afl_mutation")
              .help("Disable the fuzzer to mutate inputs using AFL's mutation strategies"))
@@ -76,6 +82,7 @@ fn main() {
        .get_matches();
 
     fuzz_main(
+        matches.value_of("mode").unwrap_or("llvm"),
         matches.value_of("input_dir").unwrap(),
         matches.value_of("output_dir").unwrap(),
         matches.value_of("track_target").unwrap_or("-"),

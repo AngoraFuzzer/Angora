@@ -1,29 +1,32 @@
 #include "branch_pred.h"
+#include "cond_stmt.h"
 #include "debug.h"
-#include "libdft_api.h"
+#include "logger.h"
 #include "pin.H"
 #include "syscall_hook.h"
 
-typedef uint32_t u32;
-typedef uint64_t u64;
-
-// KNOB<string> KnobOutputFile(KNOB_MODE_WRITEONCE, "pintool", "o", "",
-//                             "specify file name for output");
+Logger logger;
 
 VOID CmpHandler(THREADID tid, u32 cid, u32 ctx, u32 size, u32 op, u64 arg1,
                 u64 arg2, u32 cond) {
 
-  tag_t t1 = tagmap_getn_reg(tid, X64_ARG4_REG, 8);
-  tag_t t2 = tagmap_getn_reg(tid, X64_ARG5_REG, 8);
+  tag_t t1 = tagmap_getn_reg(tid, X64_ARG4_REG, size);
+  tag_t t2 = tagmap_getn_reg(tid, X64_ARG5_REG, size);
 
   if (tag_is_empty(t1) && tag_is_empty(t2)) {
-    LOGD("[cmp] cid: %d, tag is empty\n", cid);
+    return;
+    // LOGD("[cmp] cid: %d, tag is empty\n", cid);
   }
 
   LOGD("[cmp] cid: %d, ctx: %d, size: %d, op: %d, cond: %d, arg1: %lu, arg2: "
        "%lu, t1: %s, t2: %s \n",
        cid, ctx, size, op, cond, arg1, arg2, tag_sprint(t1).c_str(),
        tag_sprint(t2).c_str());
+  u32 ctr = logger.get_order(cid, ctx);
+  if (ctx <= MAX_ORDER) {
+    CondStmt stmt = {cid, ctx, ctr, 0, cond, 0, op, size, t1, t2, arg1, arg2};
+    logger.save_cond(stmt);
+  }
 }
 
 VOID EntryPoint(VOID *v) {
@@ -81,14 +84,8 @@ VOID EntryPoint(VOID *v) {
   }
 }
 
-/*
-VOID Fini(INT32 code, VOID *v) {
-  const string fileName = KnobOutputFile.Value();
-  if (!fileName.empty()) {
-    delete out;
-  }
-}
-*/
+VOID Fini(INT32 code, VOID *v) { logger.save_buffers(); }
+
 int main(int argc, char *argv[]) {
 
   PIN_InitSymbols();
@@ -103,16 +100,11 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  /*
-    const string fileName = KnobOutputFile.Value();
-
-    if (!fileName.empty()) {
-      out = new std::ofstream(fileName.c_str());
-    }
-  */
   PIN_AddApplicationStartFunction(EntryPoint, 0);
 
   hook_file_syscall();
+
+  PIN_AddFiniFunction(Fini, 0);
 
   PIN_StartProgram();
 

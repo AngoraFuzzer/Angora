@@ -1,12 +1,12 @@
-use crate::{cond_stmt_base::CondStmtMb, tag::TagSeg};
+use crate::{cond_stmt_base::CondStmtBase, tag::TagSeg};
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct LogData {
-    pub cond_list: Vec<CondStmtMb>,
+    pub cond_list: Vec<CondStmtBase>,
     pub tags: HashMap<u32, Vec<TagSeg>>,
-    pub max_offset: usize,
+    pub magic_bytes: HashMap<usize, (Vec<u8>, Vec<u8>)>,
 }
 
 impl LogData {
@@ -14,7 +14,7 @@ impl LogData {
         Self {
             cond_list: vec![],
             tags: HashMap::new(),
-            max_offset: 0,
+            magic_bytes: HashMap::new(),
         }
     }
 }

@@ -47,9 +47,7 @@ pub extern "C" fn __dfsw___angora_trace_cmp_tt(
 
     let op = infer_eq_sign(op, lb1, lb2);
 
-    log_cmp(
-        cmpid, context, condition, op, size, lb1, lb2, arg1, arg2, None,
-    );
+    log_cmp(cmpid, context, condition, op, size, lb1, lb2, arg1, arg2);
 }
 
 #[no_mangle]
@@ -72,22 +70,19 @@ pub extern "C" fn __dfsw___angora_trace_switch_tt(
         return;
     }
 
-    let cond = CondStmtMb {
-        base: CondStmtBase {
-            cmpid,
-            context,
-            order: 0,
-            belong: 0,
-            condition: defs::COND_FALSE_ST,
-            level: 0,
-            op: defs::COND_SW_OP,
-            size,
-            lb1: lb,
-            lb2: 0,
-            arg1: condition,
-            arg2: 0,
-        },
-        magic_bytes: None,
+    let cond = CondStmtBase {
+        cmpid,
+        context,
+        order: 0,
+        belong: 0,
+        condition: defs::COND_FALSE_ST,
+        level: 0,
+        op: defs::COND_SW_OP,
+        size,
+        lb1: lb,
+        lb2: 0,
+        arg1: condition,
+        arg2: 0,
     };
 
     let sw_args = unsafe { slice::from_raw_parts(args, num as usize) };
@@ -96,10 +91,10 @@ pub extern "C" fn __dfsw___angora_trace_switch_tt(
     if let Some(ref mut lc) = *lcl {
         for (i, arg) in sw_args.iter().enumerate() {
             let mut cond_i = cond.clone();
-            cond_i.base.order += (i << 16) as u32;
-            cond_i.base.arg2 = *arg;
+            cond_i.order += (i << 16) as u32;
+            cond_i.arg2 = *arg;
             if *arg == condition {
-                cond_i.base.condition = defs::COND_DONE_ST;
+                cond_i.condition = defs::COND_DONE_ST;
             }
             lc.save(cond_i);
         }
@@ -145,7 +140,6 @@ pub extern "C" fn __dfsw___angora_trace_fn_tt(
             0,
             0,
             0,
-            Some((arg1, arg2)),
         );
     } else if lb2 > 0 {
         log_cmp(
@@ -158,8 +152,11 @@ pub extern "C" fn __dfsw___angora_trace_fn_tt(
             lb2,
             0,
             0,
-            Some((arg1, arg2)),
         );
+    }
+    let mut lcl = LC.lock().expect("Could not lock LC.");
+    if let Some(ref mut lc) = *lcl {
+        lc.save_magic_bytes((arg1, arg2));
     }
 }
 
@@ -181,18 +178,7 @@ pub extern "C" fn __dfsw___angora_trace_exploit_val_tt(
         return;
     }
 
-    log_cmp(
-        cmpid,
-        context,
-        defs::COND_FALSE_ST,
-        op,
-        size,
-        lb,
-        0,
-        val,
-        0,
-        None,
-    );
+    log_cmp(cmpid, context, defs::COND_FALSE_ST, op, size, lb, 0, val, 0);
 }
 
 #[inline]
@@ -206,26 +192,21 @@ fn log_cmp(
     lb2: u32,
     arg1: u64,
     arg2: u64,
-    magic_bytes: Option<(Vec<u8>, Vec<u8>)>,
 ) {
-    let cond = CondStmtMb {
-        base: CondStmtBase {
-            cmpid,
-            context,
-            order: 0,
-            belong: 0,
-            condition,
-            level: 0,
-            op,
-            size,
-            lb1,
-            lb2,
-            arg1,
-            arg2,
-        },
-        magic_bytes,
+    let cond = CondStmtBase {
+        cmpid,
+        context,
+        order: 0,
+        belong: 0,
+        condition,
+        level: 0,
+        op,
+        size,
+        lb1,
+        lb2,
+        arg1,
+        arg2,
     };
-
     let mut lcl = LC.lock().expect("Could not lock LC.");
     if let Some(ref mut lc) = *lcl {
         lc.save(cond);
