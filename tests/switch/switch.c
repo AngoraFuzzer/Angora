@@ -3,14 +3,15 @@
   Simple switch,
   contains one crash in one of its condition cases.
  */
-#include "stdio.h"
 #include "stdint.h"
+#include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
 
-int main (int argc, char** argv) {
+int main(int argc, char **argv) {
   /***** common part *******/
-  if (argc < 2) return 0;
+  if (argc < 2)
+    return 0;
   char buf[255];
   int len = 20;
   FILE *fp;
@@ -26,31 +27,31 @@ int main (int argc, char** argv) {
   int x = 0;
   memcpy(&x, buf + 6, 4);
 
-  switch(b) {
+  printf("cond: %d\n", b);
+  switch (b) {
   case 12312213:
-    printf("11");
+    printf("11\n");
     break;
   case 13201000:
-    printf("22");
+    printf("22\n");
     break;
   case -1111:
-    printf("3");
+    printf("3\n");
     break;
   case 3330000:
-    printf("4");
+    printf("4\n");
     if (x == b) {
       abort();
     }
     break;
   case 5888:
-    printf("5");
+    printf("5\n");
     break;
   case -897978:
-    printf("6");
+    printf("6\n");
     break;
   default:
-    printf("123");
+    printf("123\n");
     break;
   }
-
 }

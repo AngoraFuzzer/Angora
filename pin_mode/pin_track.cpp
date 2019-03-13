@@ -13,22 +13,112 @@ VOID CmpHandler(THREADID tid, u32 cid, u32 ctx, u32 size, u32 op, u64 arg1,
   tag_t t1 = tagmap_getn_reg(tid, X64_ARG4_REG, size);
   tag_t t2 = tagmap_getn_reg(tid, X64_ARG5_REG, size);
 
+  u32 ctr = logger.get_order(cid, ctx);
+
+  if (BDD_HAS_LEN_LB(t1) || BDD_HAS_LEN_LB(t2)) {
+    if (ctx <= MAX_ORDER) {
+      u32 len_ctr = ctr + 0x10000;
+      CondStmt stmt = {cid,         ctx,  len_ctr, 0, cond, 0,
+                       COND_LEN_OP, size, 0,       1, arg1, arg2};
+      logger.save_cond(stmt);
+    }
+  }
+
   if (tag_is_empty(t1) && tag_is_empty(t2)) {
     return;
     // LOGD("[cmp] cid: %d, tag is empty\n", cid);
   }
 
-  LOGD("[cmp] cid: %d, ctx: %d, size: %d, op: %d, cond: %d, arg1: %lu, arg2: "
-       "%lu, t1: %s, t2: %s \n",
-       cid, ctx, size, op, cond, arg1, arg2, tag_sprint(t1).c_str(),
-       tag_sprint(t2).c_str());
-  u32 ctr = logger.get_order(cid, ctx);
   if (ctx <= MAX_ORDER) {
+    LOGD("[cmp] cid: %d, ctx: %d, size: %d, op: %d, cond: %d, arg1: %lu, arg2: "
+         "%lu, t1: %s, t2: %s \n",
+         cid, ctx, size, op, cond, arg1, arg2, tag_sprint(t1).c_str(),
+         tag_sprint(t2).c_str());
+
     CondStmt stmt = {cid, ctx, ctr, 0, cond, 0, op, size, t1, t2, arg1, arg2};
     logger.save_cond(stmt);
   }
 }
 
+VOID SwHandler(THREADID tid, u32 cid, u32 ctx, u32 size, u64 cond, u32 num,
+               u64 *args) {
+
+  tag_t t = tagmap_getn_reg(tid, X64_ARG3_REG, size);
+  u32 ctr = logger.get_order(cid, ctx);
+
+  if (tag_is_empty(t)) {
+    return;
+  }
+
+  if (ctx <= MAX_ORDER) {
+    LOGD("[switch] cid: %d, ctx: %d, size: %d, cond: %lu, t: %s,\n", cid, ctx,
+         size, cond, tag_sprint(t).c_str());
+
+    CondStmt stmt = {cid,        ctx,  ctr, 0, COND_FALSE_ST, 0,
+                     COND_SW_OP, size, t,   0, cond,          0};
+
+    for (u32 i = 0; i < num; i++) {
+      stmt.order = ctr + (i << 16);
+      stmt.arg2 = args[i];
+      if (stmt.arg1 == stmt.arg2) {
+        stmt.condition = COND_DONE_ST;
+      } else {
+        stmt.condition = COND_FALSE_ST;
+      }
+      logger.save_cond(stmt);
+    }
+  }
+}
+
+// can be track in pin?
+VOID FnHandler(THREADID tid, u32 cid, u32 ctx, u32 size, char *arg1,
+               char *arg2) {
+
+  u32 arg1_len = size;
+  u32 arg2_len = size;
+  if (size == 0) {
+    arg1_len = strlen(arg1);
+    arg2_len = strlen(arg2);
+  }
+
+  tag_t t1 = tagmap_getn((ADDRINT)arg1, arg1_len);
+  tag_t t2 = tagmap_getn((ADDRINT)arg2, arg2_len);
+
+  u32 ctr = logger.get_order(cid, ctx);
+
+  if (ctr <= MAX_ORDER) {
+    LOGD("[fn]\n");
+    if (!tag_is_empty(t1)) {
+      CondStmt stmt = {cid, ctx, ctr, 0, COND_FALSE_ST, 0, COND_FN_OP, arg2_len,
+                       t1,  0,   0,   0};
+      logger.save_cond(stmt);
+      logger.save_mb(arg1_len, arg2_len, arg1, arg2);
+    } else if (!tag_is_empty(t2)) {
+      CondStmt stmt = {cid, ctx, ctr, 0, COND_FALSE_ST, 0, COND_FN_OP, arg1_len,
+                       0,   t2,  0,   0};
+      logger.save_cond(stmt);
+      logger.save_mb(arg1_len, arg2_len, arg1, arg2);
+    }
+  }
+}
+
+VOID ExploitHandler(THREADID tid, u32 cid, u32 ctx, u32 size, u32 op, u64 val) {
+  tag_t t = tagmap_getn_reg(tid, X64_ARG4_REG, size);
+  u32 ctr = logger.get_order(cid, ctx);
+
+  if (tag_is_empty(t)) {
+    return;
+  }
+
+  if (ctx <= MAX_ORDER) {
+    LOGD("[exploit] cid: %d, ctx: %d, size: %d, op: %d, val: %lu, t: %s,\n",
+         cid, ctx, size, op, val, tag_sprint(t).c_str());
+
+    CondStmt stmt = {cid, ctx,  ctr, 0, COND_FALSE_ST, 0,
+                     op,  size, t,   0, val,           0};
+    logger.save_cond(stmt);
+  }
+}
 VOID EntryPoint(VOID *v) {
 
   for (IMG img = APP_ImgHead(); IMG_Valid(img); img = IMG_Next(img)) {
@@ -45,42 +135,40 @@ VOID EntryPoint(VOID *v) {
           IARG_FUNCARG_ENTRYPOINT_VALUE, 6, IARG_END);
       RTN_Close(cmp_rtn);
     }
-    /*
+
     RTN sw_rtn = RTN_FindByName(img, "__angora_trace_switch_tt");
+    if (RTN_Valid(sw_rtn)) {
+      RTN_Open(sw_rtn);
+      RTN_InsertCall(
+          sw_rtn, IPOINT_BEFORE, (AFUNPTR)SwHandler, IARG_THREAD_ID,
+          IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_FUNCARG_ENTRYPOINT_VALUE, 1,
+          IARG_FUNCARG_ENTRYPOINT_VALUE, 2, IARG_FUNCARG_ENTRYPOINT_VALUE, 3,
+          IARG_FUNCARG_ENTRYPOINT_VALUE, 4, IARG_FUNCARG_ENTRYPOINT_VALUE, 5,
+          IARG_END);
+      RTN_Close(sw_rtn);
+    }
     RTN fn_rtn = RTN_FindByName(img, "__angora_trace_fn_tt");
-    RTN so_rtn = RTN_FindByName(img, "__angora_trace_exploit_val_tt");
 
     if (RTN_Valid(fn_rtn)) {
       RTN_Open(fn_rtn);
       RTN_InsertCall(
-          fn_rtn, IPOINT_BEFORE, (AFUNPTR)FnHandler,
+          fn_rtn, IPOINT_BEFORE, (AFUNPTR)FnHandler, IARG_THREAD_ID,
           IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_FUNCARG_ENTRYPOINT_VALUE, 1,
           IARG_FUNCARG_ENTRYPOINT_VALUE, 2, IARG_FUNCARG_ENTRYPOINT_VALUE, 3,
           IARG_FUNCARG_ENTRYPOINT_VALUE, 4, IARG_END);
       RTN_Close(fn_rtn);
     }
 
-    if (RTN_Valid(sw_rtn)) {
-      RTN_Open(sw_rtn);
+    RTN exploit_rtn = RTN_FindByName(img, "__angora_trace_exploit_val_tt");
+    if (RTN_Valid(exploit_rtn)) {
+      RTN_Open(exploit_rtn);
       RTN_InsertCall(
-          sw_rtn, IPOINT_BEFORE, (AFUNPTR)SwHandler,
-          IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_FUNCARG_ENTRYPOINT_VALUE, 1,
-          IARG_FUNCARG_ENTRYPOINT_VALUE, 2, IARG_FUNCARG_ENTRYPOINT_REFERENCE,
-          3, IARG_FUNCARG_ENTRYPOINT_VALUE, 5, IARG_FUNCARG_ENTRYPOINT_VALUE, 6,
-          IARG_END);
-      RTN_Close(sw_rtn);
-    }
-
-    if (RTN_Valid(so_rtn)) {
-      RTN_Open(so_rtn);
-      RTN_InsertCall(
-          so_rtn, IPOINT_BEFORE, (AFUNPTR)SoHandler,
+          exploit_rtn, IPOINT_BEFORE, (AFUNPTR)ExploitHandler, IARG_THREAD_ID,
           IARG_FUNCARG_ENTRYPOINT_VALUE, 0, IARG_FUNCARG_ENTRYPOINT_VALUE, 1,
           IARG_FUNCARG_ENTRYPOINT_VALUE, 2, IARG_FUNCARG_ENTRYPOINT_VALUE, 3,
-          IARG_FUNCARG_ENTRYPOINT_REFERENCE, 4, IARG_END);
-      RTN_Close(so_rtn);
+          IARG_FUNCARG_ENTRYPOINT_VALUE, 4, IARG_END);
+      RTN_Close(exploit_rtn);
     }
-    */
   }
 }
 

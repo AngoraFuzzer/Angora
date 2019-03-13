@@ -88,8 +88,8 @@ pub const COND_AFL_OP: u32 = 0x8001;
 // sensititve offsets
 pub const COND_FN_OP: u32 = 0x8002;
 pub const COND_LEN_OP: u32 = 0x8003;
-pub const COND_ENTER_FN: u32 = 0x8010;
-pub const COND_LEAVE_FN: u32 = 0x8011;
+// pub const COND_ENTER_FN: u32 = 0x8010;
+// pub const COND_LEAVE_FN: u32 = 0x8011;
 
 // condition field
 pub const COND_FALSE_ST: u32 = 0;

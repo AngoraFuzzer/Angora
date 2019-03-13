@@ -57,7 +57,7 @@ pub fn get_log_data_pin(out_f: &Path) -> io::Result<LogData> {
     let num_mb = read_struct::<u32, _>(&mut buffer)? as usize;
 
     let cond_list = read_vector::<CondStmtBase, _>(&mut buffer, num_cond)?;
-    debug!("cond_list: {:?}", cond_list);
+    debug!("cond_list({}): {:?}", num_cond, cond_list);
 
     let mut tags_map = HashMap::new();
     for _ in 0..num_tags {
@@ -65,16 +65,16 @@ pub fn get_log_data_pin(out_f: &Path) -> io::Result<LogData> {
         let offsets = read_vector::<TagSeg, _>(&mut buffer, size as usize)?;
         tags_map.insert(id, offsets);
     }
-    debug!("tag_list: {:?}", tags_map);
+    debug!("tag_list({}): {:?}", num_tags, tags_map);
 
     let mut mb_map = HashMap::new();
     for _ in 0..num_mb {
-        let (id, size) = read_struct::<(u32, u32), _>(&mut buffer)?;
-        let arg1 = read_vector::<u8, _>(&mut buffer, size as usize)?;
-        let arg2 = read_vector::<u8, _>(&mut buffer, size as usize)?;
+        let (id, arg1_len, arg2_len) = read_struct::<(u32, u32, u32), _>(&mut buffer)?;
+        let arg1 = read_vector::<u8, _>(&mut buffer, arg1_len as usize)?;
+        let arg2 = read_vector::<u8, _>(&mut buffer, arg2_len as usize)?;
         mb_map.insert(id as usize, (arg1, arg2));
     }
-    debug!("mb_list: {:?}", mb_map);
+    debug!("mb_list({}): {:?}", num_mb, mb_map);
 
     Ok(LogData {
         cond_list,

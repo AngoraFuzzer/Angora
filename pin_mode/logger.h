@@ -94,6 +94,7 @@ public:
     }
     return ctr;
   }
+
   void save_tag(lb_type lb) {
     if (lb > 0 && lb_set.count(lb) == 0) {
       std::vector<tag_seg> t = tag_get(lb);
@@ -101,81 +102,29 @@ public:
       tag_buf.push_bytes((char *)&lb, 4);
       tag_buf.push_bytes((char *)&n, 4);
       tag_buf.push_bytes((char *)&t[0], sizeof(tag_seg) * n);
-      num_tag += 1;
+      num_tag++;
       lb_set.insert(lb);
     }
   };
 
-  void save_mb(u32 size, char *arg1, char *arg2) {
+  void save_mb(u32 arg1_len, u32 arg2_len, char *arg1, char *arg2) {
     if (num_cond > 0) {
       u32 i = num_cond - 1;
       mb_buf.push_bytes((char *)&i, 4);
-      mb_buf.push_bytes((char *)&size, 4);
-      mb_buf.push_bytes(arg1, size);
-      mb_buf.push_bytes(arg2, size);
+      mb_buf.push_bytes((char *)&arg1_len, 4);
+      mb_buf.push_bytes((char *)&arg2_len, 4);
+      mb_buf.push_bytes(arg1, arg1_len);
+      mb_buf.push_bytes(arg2, arg2_len);
+      num_mb++;
     }
   };
 
   void save_cond(CondStmt &cond) {
     save_tag(cond.lb1);
     save_tag(cond.lb2);
-    num_cond += 1;
+    num_cond++;
     cond_buf.push_bytes((char *)&cond, sizeof(CondStmt));
   }
 };
-
-/*
-// fn with magic bytes
-void CircBuf::push_cond(CondStmt &cond, u8 *arg1, u8 *arg2) {
-  std::lock_guard<std::mutex> lock(c_mutex);
-  add_label(cond.lb1);
-  add_label(cond.lb2);
-  push_bytes((u8 *)&cond, sizeof(CondStmt));
-  std::size_t size = cond.size;
-  push_bytes(arg1, size);
-  push_bytes(arg2, size);
-}
-
-void CircBuf::push_switch(CondStmt &cond, std::size_t num, u64 *args) {
-  std::lock_guard<std::mutex> lock(c_mutex);
-  add_label(cond.lb1);
-  for (int i = 0; i < num; i++) {
-    if (cond.condition == args[i])
-      cond.condition = 3;
-    else
-      cond.condition = 1;
-    cond.arg2 = args[i];
-    // Switch -> If
-    // distinguish them by "i".
-    // FIXME:
-    // cond.order = (cond.order & 0xFFFF) | (i << 16);
-    cond.order = (i << 16);
-    push_bytes((u8 *)&cond, sizeof(CondStmt));
-  }
-}
-
-void CircBuf::save_labels() {
-  // save an zero cond_stmt to indicate it should finish parse cond
-  CondStmt cond;
-  memset(&cond, 0, sizeof(CondStmt));
-  push_bytes((u8 *)&cond, sizeof(CondStmt));
-
-  // strucutre: {lable_id (u32), seg_len(u32), segs}
-  for (u32 i = 1; i <= max_label; i++) {
-    if (labels[i]) {
-      push_bytes((u8 *)&i, 4);
-      auto off = dfsan_get_label_lens(i);
-      u32 size = off.size();
-      push_bytes((u8 *)&size, 4);
-      push_bytes((u8 *)&off[0], sizeof(tag_seg) * size);
-    }
-  }
-
-  // finish with: {0, 0}, meaning label_id is 0, and size is 0, so we have to
-  // say goodbye.
-  u8 fin_bytes[8] = {0};
-  push_bytes(fin_bytes, 8);
-}
-*/
 
 #endif

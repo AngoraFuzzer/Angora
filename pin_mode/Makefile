@@ -13,7 +13,8 @@ else
 CONFIG_ROOT := ../Config
 endif
 
-LIBDFT_PATH=${HOME}/libdft64
+CUR_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+LIBDFT_PATH ?= ${CUR_DIR}/libdft64
 
 include $(CONFIG_ROOT)/makefile.config
 include makefile.rules
