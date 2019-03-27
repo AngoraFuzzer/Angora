@@ -102,6 +102,7 @@ For more information, please refer to the documentation under the
 - [Angora Overview](./docs/overview.md)
 - [Build a target program](./docs/build_target.md)
 - [Running Angora](./docs/running.md)
+- [Use libdft64 for taint tracking](./docs/pin_mode.md)
 - [Example - Fuzz program file by Angora](./docs/example.md)
 - [Run Angora on LAVA](./docs/lava.md)
 - [Exploit attack points](./docs/exploitation.md)
