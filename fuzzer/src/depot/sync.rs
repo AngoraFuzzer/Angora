@@ -12,7 +12,7 @@ use std::{
 };
 
 pub fn sync_depot(executor: &mut Executor, running: Arc<AtomicBool>, dir: &Path) {
-    executor.local_stats.set_start_time();
+    executor.local_stats.clear();
     let seed_dir = dir.read_dir().expect("read_dir call failed");
     for entry in seed_dir {
         if let Ok(entry) = entry {
@@ -31,7 +31,7 @@ pub fn sync_depot(executor: &mut Executor, running: Arc<AtomicBool>, dir: &Path)
         }
     }
     info!("sync {} file from seeds.", executor.local_stats.num_inputs);
-    executor.update_log_and_clear();
+    executor.update_log();
 }
 
 // Now we are in a sub-dir of AFL's output dir
@@ -42,7 +42,7 @@ pub fn sync_afl(
     sync_ids: &mut HashMap<String, usize>,
 ) {
     executor.rebind_forksrv();
-    executor.local_stats.set_start_time();
+    executor.local_stats.clear();
 
     if let Ok(entries) = sync_dir.read_dir() {
         for entry in entries {
@@ -66,7 +66,7 @@ pub fn sync_afl(
     let n: usize = executor.local_stats.num_inputs.into();
     info!("sync {} file from AFL.", n);
 
-    executor.update_log_and_clear();
+    executor.update_log();
 }
 
 fn get_afl_id(f: &fs::DirEntry) -> Option<usize> {

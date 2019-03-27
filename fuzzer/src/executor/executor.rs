@@ -400,8 +400,8 @@ impl Executor {
             .stdin(Stdio::null())
             .env_clear()
             .envs(&self.envs)
-            //.stdout(Stdio::null())
-            //.stderr(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
             .mem_limit(mem_limit.clone())
             .setsid()
             .pipe_stdin(self.fd.as_raw_fd(), self.cmd.is_stdin)
@@ -434,12 +434,12 @@ impl Executor {
         ret
     }
 
-    pub fn update_log_and_clear(&mut self) {
+    pub fn update_log(&mut self) {
         self.global_stats
             .write()
             .unwrap()
             .sync_from_local(&mut self.local_stats);
-        self.local_stats.clear();
+
         self.t_conds.clear();
         self.tmout_cnt = 0;
         self.invariable_cnt = 0;

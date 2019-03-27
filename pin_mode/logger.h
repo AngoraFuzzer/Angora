@@ -96,6 +96,7 @@ public:
   }
 
   void save_tag(lb_type lb) {
+    assert(!BDD_HAS_LEN_LB(lb));
     if (lb > 0 && lb_set.count(lb) == 0) {
       std::vector<tag_seg> t = tag_get(lb);
       u32 n = t.size();

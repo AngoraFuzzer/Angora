@@ -256,6 +256,16 @@ static void edit_params(u32 argc, char **argv) {
   cc_params[cc_par_cnt++] = "-pie";
   cc_params[cc_par_cnt++] = "-fpic";
   cc_params[cc_par_cnt++] = "-Qunused-arguments";
+  /*
+  cc_params[cc_par_cnt++] = "-mno-mmx";
+  cc_params[cc_par_cnt++] = "-mno-sse";
+  cc_params[cc_par_cnt++] = "-mno-sse2";
+  cc_params[cc_par_cnt++] = "-mno-avx";
+  cc_params[cc_par_cnt++] = "-mno-sse3";
+  cc_params[cc_par_cnt++] = "-mno-sse4.1";
+  cc_params[cc_par_cnt++] = "-mno-sse4.2";
+  cc_params[cc_par_cnt++] = "-mno-ssse3";
+  */
 
   if (getenv("ANGORA_HARDEN")) {
     cc_params[cc_par_cnt++] = "-fstack-protector-all";

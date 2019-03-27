@@ -92,6 +92,6 @@ impl<'a> SearchHandler<'a> {
 
 impl<'a> Drop for SearchHandler<'a> {
     fn drop(&mut self) {
-        self.executor.update_log_and_clear();
+        self.executor.update_log();
     }
 }
