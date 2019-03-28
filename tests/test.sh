@@ -7,7 +7,7 @@ num_jobs=1
 sync_afl=""
 LOG_TYPE=angora
 MODE="pin"
-# MODE="llvm"
+MODE="llvm"
 #LOG_TYPE=info
 
 if [ ! -z ${RELEASE+x} ]; then

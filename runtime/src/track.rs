@@ -20,6 +20,12 @@ fn infer_eq_sign(op: u32, lb1: u32, lb2: u32) -> u32 {
     op
 }
 
+fn infer_shape(lb: u32, size: u32) {
+    if lb > 0 {
+        tag_set_wrap::__angora_tag_set_infer_shape_in_math_op(lb, size);
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_cmp_tt(
     cmpid: u32,
@@ -46,6 +52,8 @@ pub extern "C" fn __dfsw___angora_trace_cmp_tt(
     }
 
     let op = infer_eq_sign(op, lb1, lb2);
+    infer_shape(lb1, size);
+    infer_shape(lb2, size);
 
     log_cmp(cmpid, context, condition, op, size, lb1, lb2, arg1, arg2);
 }
@@ -69,6 +77,8 @@ pub extern "C" fn __dfsw___angora_trace_switch_tt(
     if lb == 0 {
         return;
     }
+
+    infer_shape(lb, size);
 
     let cond = CondStmtBase {
         cmpid,

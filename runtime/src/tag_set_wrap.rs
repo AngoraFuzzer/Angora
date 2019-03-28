@@ -42,7 +42,7 @@ pub extern "C" fn __angora_tag_set_combine(mut lb1: u32, mut lb2: u32) -> u32 {
 }
 
 #[no_mangle]
-pub extern "C" fn __angora_tag_set_combine_n(lbs: *const u32, size: u32) -> u32 {
+pub extern "C" fn __angora_tag_set_combine_n(lbs: *const u32, size: u32, infer_shape: bool) -> u32 {
     let mut len_lb = 0;
     let lbs = unsafe { slice::from_raw_parts(lbs, size as usize) };
     let lbs = lbs
@@ -59,7 +59,7 @@ pub extern "C" fn __angora_tag_set_combine_n(lbs: *const u32, size: u32) -> u32 
         .collect::<Vec<usize>>();
     let mut tsl = TS.lock().unwrap();
     let lb = if let Some(ref mut ts) = *tsl {
-        ts.combine_n(lbs) as u32
+        ts.combine_n(lbs, infer_shape) as u32
     } else {
         0
     };
@@ -72,20 +72,27 @@ pub extern "C" fn __angora_tag_set_combine_n(lbs: *const u32, size: u32) -> u32 
 pub extern "C" fn __angora_tag_set_mark_sign(lb: u32) {
     let mut tsl = TS.lock().unwrap();
     if let Some(ref mut ts) = *tsl {
-        ts.mark_sign(get_normal_label_usize(lb as usize));
+        ts.set_sign(get_normal_label_usize(lb as usize));
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn __angora_tag_set_infer_shape_in_math_op(lb: u32, len: u32) {
+    let mut tsl = TS.lock().unwrap();
+    if let Some(ref mut ts) = *tsl {
+        ts.infer_shape2(get_normal_label_usize(lb as usize), len as usize);
     }
 }
 
 // called in dfsan/pass/DFSanPass
 #[no_mangle]
-pub extern "C" fn __angora_tag_set_combine_and(lb: u32) -> u32 {
+pub extern "C" fn __angora_tag_set_combine_and(lb: u32) {
     if config::DISABLE_INFER_SHAPE_IF_HAS_AND_OP {
         let mut tsl = TS.lock().unwrap();
         if let Some(ref mut ts) = *tsl {
-            return ts.combine_and(get_normal_label_usize(lb as usize)) as u32;
+            ts.combine_and(get_normal_label_usize(lb as usize));
         }
     }
-    lb
 }
 
 #[no_mangle]

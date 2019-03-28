@@ -253,8 +253,11 @@ class DataFlowSanitizer : public ModulePass {
   FunctionType *DFSanSetLabelFnTy;
   FunctionType *DFSanNonzeroLabelFnTy;
   FunctionType *DFSanVarargWrapperFnTy;
+  FunctionType *DFSanCombineAndFnTy;
+  FunctionType *DFSanInferShapeFnTy;
   Constant *DFSanMarkSignedFn;
   Constant *DFSanCombineAndFn;
+  Constant *DFSanInferShapeFn;
   Constant *DFSanUnionFn;
   Constant *DFSanCheckedUnionFn;
   Constant *DFSanUnionLoadFn;
@@ -491,6 +494,13 @@ bool DataFlowSanitizer::doInitialization(Module &M) {
   DFSanVarargWrapperFnTy = FunctionType::get(
       Type::getVoidTy(*Ctx), Type::getInt8PtrTy(*Ctx), /*isVarArg=*/false);
 
+  DFSanCombineAndFnTy =
+      FunctionType::get(Type::getVoidTy(*Ctx), ShadowPtrTy, /*isVarArg=*/false);
+
+  Type *DFSanInferShapeArgs[3] = {ShadowTy, ShadowTy, ShadowTy};
+  DFSanInferShapeFnTy = FunctionType::get(
+      Type::getVoidTy(*Ctx), DFSanInferShapeArgs, /*isVarArg=*/false);
+
   if (GetArgTLSPtr) {
     Type *ArgTLSTy = ArrayType::get(ShadowTy, 64);
     ArgTLS = nullptr;
@@ -657,13 +667,22 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
   }
 
   // find & ops.
-  DFSanCombineAndFn = Mod->getOrInsertFunction("dfsan_combine_and_ins",
-                                               ShadowTy, ShadowTy, nullptr);
+  DFSanCombineAndFn =
+      Mod->getOrInsertFunction("dfsan_combine_and_ins", DFSanCombineAndFnTy);
   if (Function *F = dyn_cast<Function>(DFSanCombineAndFn)) {
     F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
     F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
-    F->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
     F->addAttribute(1, Attribute::ZExt);
+  }
+
+  DFSanInferShapeFn = Mod->getOrInsertFunction("dfsan_infer_shape_in_math_op",
+                                               DFSanInferShapeFnTy);
+  if (Function *F = dyn_cast<Function>(DFSanInferShapeFn)) {
+    F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+    F->addAttribute(1, Attribute::ZExt);
+    F->addAttribute(2, Attribute::ZExt);
+    F->addAttribute(3, Attribute::ZExt);
   }
 
   DFSanUnionFn = Mod->getOrInsertFunction("__dfsan_union", DFSanUnionFnTy);
@@ -1030,16 +1049,13 @@ Value *DFSanFunction::combineShadows(Value *V1, Value *V2, Instruction *Pos) {
       Value *Arg2 = Pos->getOperand(1);
       if (Arg1->getType()->isIntegerTy() && Arg2->getType()->isIntegerTy()) {
         IRBuilder<> IRB(Pos);
-        if (V1 == DFS.ZeroShadow && V2 != DFS.ZeroShadow) { // Constant
+        if (isa<ConstantInt>(Arg1) && V2 != DFS.ZeroShadow) { // Constant
           CallInst *Call = IRB.CreateCall(DFS.DFSanCombineAndFn, {V2});
-          Call->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
           Call->addAttribute(1, Attribute::ZExt);
           return Call;
-        } else if (V2 == DFS.ZeroShadow && V1 != DFS.ZeroShadow) {
+        } else if (isa<ConstantInt>(Arg2) && V1 != DFS.ZeroShadow) {
           CallInst *Call = IRB.CreateCall(DFS.DFSanCombineAndFn, {V1});
-          Call->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
           Call->addAttribute(1, Attribute::ZExt);
-          return Call;
         }
       }
     }
@@ -1068,6 +1084,29 @@ Value *DFSanFunction::combineShadows(Value *V1, Value *V2, Instruction *Pos) {
     Call->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
     Call->addAttribute(1, Attribute::ZExt);
     Call->addAttribute(2, Attribute::ZExt);
+  }
+
+  switch (Pos->getOpcode()) {
+  case Instruction::Add:
+  case Instruction::Sub:
+  case Instruction::Mul:
+  case Instruction::UDiv:
+  case Instruction::SDiv:
+  case Instruction::SRem:
+    // case Instruction::Shl:
+    // case Instruction::AShr:
+    // case Instruction::LShr:
+    IRBuilder<> IRB(Pos);
+    Value *Arg1 = Pos->getOperand(0);
+    int num_bits = Arg1->getType()->getScalarSizeInBits();
+    int num_bytes = num_bits / 8;
+    if (num_bytes > 0 && num_bits % 8 == 0) {
+      Value *SizeArg = ConstantInt::get(DFS.ShadowTy, num_bytes);
+      CallInst *Call = IRB.CreateCall(DFS.DFSanInferShapeFn, {V1, V2, SizeArg});
+      Call->addAttribute(1, Attribute::ZExt);
+      Call->addAttribute(2, Attribute::ZExt);
+    }
+    break;
   }
 
   // Attn: Pos is Inst
