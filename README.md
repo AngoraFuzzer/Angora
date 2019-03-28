@@ -86,7 +86,7 @@ make install
 ```
 
 If you fail to build by this approach, try `wllvm` and `gllvm` described in [Build a target program](./docs/build_target.md#wllvm-or-gllvm).
-
+Also, we have implemented taint analysis by libdft64 instead of DFSan (Please read [Use libdft64 for taint tracking](./docs/pin_mod.md)). 
 
 ### Fuzzing
 

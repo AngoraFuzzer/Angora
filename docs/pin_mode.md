@@ -1,6 +1,7 @@
-# Angora's Pin mode
+# Angora's Pin mode - Use libdft64 for taint tracking
 
 Angora now supports using [libdft64](https://github.com/AngoraFuzzer/libdft64) for taint anlysis instead of DFSan (LLVM mode).
+The feature is still experimental.
 
 ## Build requirements
 
