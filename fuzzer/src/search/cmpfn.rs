@@ -43,11 +43,11 @@ impl<'a> FnFuzz<'a> {
     }
 
     pub fn run(&mut self) {
-        let len = self.handler.cond.base.size as usize;
-        let output = self.handler.cond.variables.split_off(len);
+        let len = self.handler.cond.base.size as usize; // magic bytes's length
+        let output = self.handler.cond.variables.split_off(len); // mapping input
         let mut input = self.handler.get_f_input();
         let input_len = input.val_len();
-        if input_len != output.len() {
+        if input_len != output.len() { // some bytes may be not tained.
             debug!(
                 "not all bytes are tainted: input_len {}, output_len : {}",
                 input_len,
@@ -62,13 +62,11 @@ impl<'a> FnFuzz<'a> {
             }
             input = self.handler.get_f_input();
             let input_vals = input.get_value();
-
-            let min_len = std::cmp::min(input_len, len);
+            assert_eq!(input.len(), len);
+            // input_len becomes len now.
+            let min_len = std::cmp::min(len, output.len());
             for i in 0..min_len {
                 let diff = output[i] as i16 - input_vals[i] as i16;
-                if diff != 0 {
-                    debug!("has diff");
-                }
                 self.handler.cond.variables[i] =
                     (self.handler.cond.variables[i] as i16 - diff) as u8;
             }

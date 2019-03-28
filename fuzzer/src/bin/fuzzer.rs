@@ -34,7 +34,7 @@ fn main() {
              .short("t")
              .long("track")
              .value_name("PROM")
-             .help("Sets the target (USE_TRACK) for tracking, including taints, cmps.  Only set in LLVM mode.")
+             .help("Sets the target (USE_TRACK or USE_PIN) for tracking, including taints, cmps.  Only set in LLVM mode.")
              .takes_value(true))
         .arg(Arg::with_name("pargs")
             .help("Targeted program (USE_FAST) and arguments. Any \"@@\" will be substituted with the input filename from Angora.")
