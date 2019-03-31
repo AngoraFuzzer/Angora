@@ -27,3 +27,13 @@ pip install --upgrade pip==9.0.3
 pip install wllvm
 mkdir /go
 go get github.com/SRI-CSL/gllvm/cmd/...
+
+# install pin mode
+git submodule update --init --recursive
+cd pin_mode/libdft64
+PREFIX=/ ./install_pin.sh
+make
+cp env.init /opt/
+chmod +x /opt/env.init
+cd ..
+make
