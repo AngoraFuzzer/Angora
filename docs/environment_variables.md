@@ -14,4 +14,5 @@
 
 - `RUST_LOG=trace`: enable tracing output
 - `RUST_LOG=debug`: enable debugging output
+- `ANGORA_DISABLE_CPU_BINDING=1`: Disable cpu binding.
 

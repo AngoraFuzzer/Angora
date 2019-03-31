@@ -10,7 +10,7 @@ execution.
 
 ## Published Work
 
-Arxiv: [Angora: Efficient Fuzzing by Principled Search](https://arxiv.org/abs/1803.01307), S&P '2018.
+Arxiv: [Angora: Efficient Fuzzing by Principled Search](https://arxiv.org/abs/1803.01307), S&P 2018.
 
 ## Building Angora
 
@@ -87,7 +87,7 @@ make install
 
 If you fail to build by this approach, try `wllvm` and `gllvm` described in [Build a target program](./docs/build_target.md#wllvm-or-gllvm).
 
-Also, we have implemented taint analysis with libdft64 instead of DFSan (Please read [Use libdft64 for taint tracking](./docs/pin_mode.md)). 
+Also, we have implemented taint analysis with libdft64 instead of DFSan ([Use libdft64 for taint tracking](./docs/pin_mode.md)). 
 
 ### Fuzzing
 

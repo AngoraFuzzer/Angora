@@ -139,33 +139,31 @@ pub extern "C" fn __dfsw___angora_trace_fn_tt(
     let arg1 = unsafe { slice::from_raw_parts(parg1 as *mut u8, arglen1) }.to_vec();
     let arg2 = unsafe { slice::from_raw_parts(parg2 as *mut u8, arglen2) }.to_vec();
 
+    let mut cond = CondStmtBase {
+        cmpid,
+        context,
+        order: 0,
+        belong: 0,
+        condition: defs::COND_FALSE_ST,
+        level: 0,
+        op: defs::COND_FN_OP,
+        size: 0,
+        lb1: 0,
+        lb2: 0,
+        arg1: 0,
+        arg2: 0,
+    };
+
     if lb1 > 0 {
-        log_cmp(
-            cmpid,
-            context,
-            defs::COND_FALSE_ST,
-            defs::COND_FN_OP,
-            arglen2 as u32,
-            lb1,
-            0,
-            0,
-            0,
-        );
+        cond.lb1 = lb1;
+        cond.size = arglen2 as u32;
     } else if lb2 > 0 {
-        log_cmp(
-            cmpid,
-            context,
-            defs::COND_FALSE_ST,
-            defs::COND_FN_OP,
-            arglen1 as u32,
-            0,
-            lb2,
-            0,
-            0,
-        );
+        cond.lb2 = lb2;
+        cond.size = arglen1 as u32;
     }
     let mut lcl = LC.lock().expect("Could not lock LC.");
     if let Some(ref mut lc) = *lcl {
+        lc.save(cond);
         lc.save_magic_bytes((arg1, arg2));
     }
 }

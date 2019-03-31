@@ -1,5 +1,6 @@
 use std;
 // -- envs
+pub static DISABLE_CPU_BINDING_VAR: &str = "ANGORA_DISABLE_CPU_BINDING";
 // executor.rs
 pub static TRACK_OUTPUT_VAR: &str = "ANGORA_TRACK_OUTPUT";
 pub static COND_STMT_ENV_VAR: &str = "ANGORA_COND_STMT_SHM_ID";
