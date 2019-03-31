@@ -37,6 +37,11 @@ impl FuzzStats {
         &mut self.0[i]
     }
 
+    pub fn get(&self, i: usize) -> &StrategyStats {
+        assert!(i < fuzz_type::FUZZ_TYPE_NUM);
+        &self.0[i]
+    }
+
     pub fn clear(&mut self) {
         for s in self.0.iter_mut() {
             s.num_conds = Default::default();

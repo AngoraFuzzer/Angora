@@ -7,11 +7,21 @@ num_jobs=1
 #sync_afl="--sync_afl"
 sync_afl=""
 LOG_TYPE=angora
+MODE="pin"
+MODE="llvm"
 # LOG_TYPE=info
 
 if [ ! -z ${RELEASE+x} ]; then
     BUILD_TYPE="release"
 fi
+
+if [ ! -z ${LLVM_MODE+x} ]; then
+    MODE="llvm"
+fi
+if [ ! -z ${PIN_MODE+x} ]; then
+    MODE="pin"
+fi
+
 
 envs="RUST_BACKTRACE=1 RUST_LOG=${LOG_TYPE}"
 fuzzer="../target/${BUILD_TYPE}/fuzzer"
@@ -35,6 +45,7 @@ rm -f ${target}.fast ${target}.cmp ${target}.taint
 bin_dir=../bin/
 USE_FAST=1 ${bin_dir}/angora-clang++ -std=c++11 ${target}.cpp -o ${target}.fast
 USE_TRACK=1 ${bin_dir}/angora-clang++ -std=c++11 ${target}.cpp -o ${target}.taint
+USE_PIN=1 ${bin_dir}/angora-clang++ -std=c++11 ${target}.cpp -o ${target}.pin
 
 echo "Compile Done.."
 
@@ -47,7 +58,13 @@ fi
 args=`cat ${args_file}`
 
 cmd="$envs $fuzzer -A -i $input -o $output -j $num_jobs"
-cmd="$cmd -t ${target}.taint ${sync_afl} -- ${target}.fast ${args}"
+
+if [ $MODE = "llvm" ]; then
+    cmd="$cmd -m llvm -t ${target}.taint ${sync_afl} -- ${target}.fast ${args}"
+elif [ $MODE = "pin" ]; then
+    cmd="$cmd -m pin -t ${target}.pin ${sync_afl} -- ${target}.fast ${args}"
+fi;
+
 
 echo "run: ${cmd}"
 eval $cmd

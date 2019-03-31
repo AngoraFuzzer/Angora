@@ -16,3 +16,5 @@ output*/
 *.tar.xz
 auto/
 /bin/
+obj-intel64/
+.DS_Store

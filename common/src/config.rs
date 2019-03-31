@@ -32,7 +32,7 @@ pub const MAX_SEARCH_EXEC_NUM: usize = 376;
 pub const MAX_EXPLOIT_EXEC_NUM: usize = 66;
 pub const MAX_NUM_MINIMAL_OPTIMA_ROUND: usize = 8;
 pub const MAX_RANDOM_SAMPLE_NUM: usize = 10;
-pub const GD_MOMENTUM_BETA: f32 = 0.0;
+pub const GD_MOMENTUM_BETA: f64 = 0.0;
 pub const GD_ESCAPE_RATIO: f64 = 1.0;
 pub const BONUS_EXEC_NUM: usize = 66;
 

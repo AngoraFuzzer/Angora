@@ -6,11 +6,21 @@ num_jobs=1
 #sync_afl="--sync_afl"
 sync_afl=""
 LOG_TYPE=angora
+MODE="pin"
+MODE="llvm"
 #LOG_TYPE=info
 
 if [ ! -z ${RELEASE+x} ]; then
     BUILD_TYPE="release"
 fi
+
+if [ ! -z ${LLVM_MODE+x} ]; then
+    MODE="llvm"
+fi
+if [ ! -z ${PIN_MODE+x} ]; then
+    MODE="pin"
+fi
+
 
 envs="RUST_BACKTRACE=1 RUST_LOG=${LOG_TYPE}"
 fuzzer="../target/${BUILD_TYPE}/fuzzer"
@@ -32,9 +42,9 @@ target=${name}/${name}
 rm -f ${target}.fast ${target}.cmp ${target}.taint 
 
 bin_dir=../bin/
-
-USE_FAST=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.fast
+ANGORA_USE_ASAN=1 USE_FAST=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.fast
 USE_TRACK=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.taint
+USE_PIN=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.pin
 #LLVM_COMPILER=clang wllvm -O0 -g ${target}.c -lz -o ${target}
 #extract-bc ${target}
 #opt -load ../bin/unfold-branch-pass.so -unfold_branch_pass < ${target}.bc > ${target}2.bc
@@ -52,8 +62,12 @@ fi
 
 args=`cat ${args_file}`
 
-cmd="$envs $fuzzer  -A -i $input -o $output -j $num_jobs"
-cmd="$cmd -t ${target}.taint ${sync_afl} -- ${target}.fast ${args}"
+cmd="$envs $fuzzer -M 0 -A -i $input -o $output -j $num_jobs"
+if [ $MODE = "llvm" ]; then
+    cmd="$cmd -m llvm -t ${target}.taint ${sync_afl} -- ${target}.fast ${args}"
+elif [ $MODE = "pin" ]; then
+    cmd="$cmd -m pin -t ${target}.pin ${sync_afl} -- ${target}.fast ${args}"
+fi;
 
 echo "run: ${cmd}"
 eval $cmd

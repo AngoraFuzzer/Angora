@@ -1,3 +1,4 @@
+// Assume it is direct and linear
 use super::*;
 use crate::cond_stmt::CondOutput;
 

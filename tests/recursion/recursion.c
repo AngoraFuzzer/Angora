@@ -2,22 +2,23 @@
   Test:
   Recursion
 */
-#include "stdio.h"
 #include "stdint.h"
+#include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
 
-int  __attribute__ ((noinline))  bar(int* buf, int i, int len) {
+int __attribute__((noinline)) bar(int *buf, int i, int len) {
   if (i > 1000) {
     return 0;
   }
   if (buf[i % len] == 66) {
-    bar(buf, i+1, len);
+    bar(buf, i + 1, len);
   }
 }
 
-int main (int argc, char** argv) {
-  if (argc < 2) return 0;
+int main(int argc, char **argv) {
+  if (argc < 2)
+    return 0;
 
   FILE *fp;
   char buf[255];
@@ -31,7 +32,7 @@ int main (int argc, char** argv) {
   }
 
   int len = 100;
-  //dfsan_read_label(&(len), sizeof *buf);
+
   ret = fread(buf, sizeof *buf, len, fp);
   fclose(fp);
   if (ret < len) {

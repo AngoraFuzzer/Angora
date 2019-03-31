@@ -5,7 +5,7 @@
    ANGORA    (\_/)
    FUZZER    (x'.')
  -- OVERVIEW --
-    TIMING |     ALL: [00:00:05],     TRACK: [00:00:00]
+    TIMING |     RUN: [00:00:05],     TRACK: [00:00:00]
   COVERAGE |    EDGE:   10.50,   DENSITY:    0.00%
     EXECS  |   TOTAL:      27,     ROUND:      10,     MAX_R:       1
     SPEED  |  PERIOD:    5.40r/s    TIME:  212.40us,
@@ -71,4 +71,4 @@
     - `SW`: Switch comparisons solved / all
 - `STATE`: State for the constraints
     - `d`: Solved
-    - `p`: Not solved.
+    - `p`: Pending, not solved.

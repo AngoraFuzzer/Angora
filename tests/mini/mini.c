@@ -25,7 +25,6 @@ int main(int argc, char **argv) {
   }
 
   int len = 20;
-  // dfsan_read_label(&(len), sizeof *buf);
   ret = fread(buf, sizeof *buf, len, fp);
   fclose(fp);
   if (ret < len) {

@@ -3,24 +3,23 @@
   Loops
 */
 
-#include "stdio.h"
 #include "stdint.h"
+#include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
 
-int __attribute__ ((noinline))  bar(uint16_t x, uint16_t y) {
+int __attribute__((noinline)) bar(uint16_t x, uint16_t y) {
 
-  if (x == y*y + 23) {
+  if (x == y * y + 23) {
     return 1;
   } else {
     return 0;
   }
-
 }
 
-
-int main (int argc, char** argv) {
-  if (argc < 2) return 0;
+int main(int argc, char **argv) {
+  if (argc < 2)
+    return 0;
 
   FILE *fp;
   char buf[255];
@@ -34,7 +33,7 @@ int main (int argc, char** argv) {
   }
 
   int len = 20;
-  //dfsan_read_label(&(len), sizeof *buf);
+
   ret = fread(buf, sizeof *buf, len, fp);
   fclose(fp);
   if (ret < len) {
@@ -48,7 +47,7 @@ int main (int argc, char** argv) {
   memcpy(&a[2], buf + 10, 2);
   memcpy(&a[3], buf + 15, 2);
 
-  for ( int i = 0 ; i < 4; i ++) {
+  for (int i = 0; i < 4; i++) {
     if (!bar(a[i], i)) {
       break;
     }

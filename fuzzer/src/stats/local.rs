@@ -20,11 +20,7 @@ pub struct LocalStats {
 impl LocalStats {
     pub fn register(&mut self, cond: &CondStmt) {
         self.fuzz_type = cond.get_fuzz_type();
-        self.start_time = Default::default();
-    }
-
-    pub fn set_start_time(&mut self) {
-        self.start_time = Default::default();
+        self.clear();
     }
 
     pub fn clear(&mut self) {
@@ -32,6 +28,8 @@ impl LocalStats {
         self.num_inputs = Default::default();
         self.num_hangs = Default::default();
         self.num_crashes = Default::default();
+
+        self.start_time = Default::default();
         self.track_time = Default::default();
     }
 
@@ -39,14 +37,14 @@ impl LocalStats {
         match status {
             StatusType::Normal => {
                 self.num_inputs.count();
-            },
+            }
             StatusType::Timeout => {
                 self.num_hangs.count();
-            },
+            }
             StatusType::Crash => {
                 self.num_crashes.count();
-            },
-            _ => {},
+            }
+            _ => {}
         }
     }
 }

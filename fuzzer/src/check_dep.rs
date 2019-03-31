@@ -1,4 +1,7 @@
+use crate::command::CommandOpt;
+use memmap;
 use std::{fs::File, io::prelude::*, path::Path};
+use twoway;
 
 static CHECK_CRASH_MSG: &str = r#"
 If your system is configured to send core dump, there will be an
@@ -26,6 +29,40 @@ fn check_target_binary(target: &str) {
     }
 }
 
+fn mmap_file(target: &str) -> memmap::Mmap {
+    let file = File::open(target).expect("Unable to open file");
+    unsafe {
+        memmap::MmapOptions::new()
+            .map(&file)
+            .expect("unable to mmap file")
+    }
+}
+
+fn containt_string(f_data: &memmap::Mmap, s: &str) -> bool {
+    twoway::find_bytes(&f_data[..], s.as_bytes()).is_some()
+}
+
+pub fn check_asan(target: &str) -> bool {
+    let f_data = mmap_file(target);
+    containt_string(&f_data, "libasan.so") || containt_string(&f_data, "__msan_init")
+}
+
+fn check_fast(target: &str) {
+    check_target_binary(target);
+    let f_data = mmap_file(target);
+    if !containt_string(&f_data, "__angora_cond_cmpid") {
+        panic!("The program is not complied by Angora");
+    }
+}
+
+fn check_track_llvm(target: &str) {
+    check_target_binary(target);
+    let f_data = mmap_file(target);
+    if !containt_string(&f_data, "__dfsw___angora_trace_cmp_tt") {
+        panic!("The program is not complied by Angora with taint tracking");
+    }
+}
+
 fn check_io_dir(in_dir: &str, out_dir: &str) {
     let in_dir_p = Path::new(in_dir);
     let out_dir_p = Path::new(out_dir);
@@ -41,9 +78,11 @@ fn check_io_dir(in_dir: &str, out_dir: &str) {
     }
 }
 
-pub fn check_dep(in_dir: &str, out_dir: &str, target: &str, target2: &str) {
-    check_crash_handling();
-    check_target_binary(target);
-    check_target_binary(target2); // track binary
+pub fn check_dep(in_dir: &str, out_dir: &str, cmd: &CommandOpt) {
     check_io_dir(in_dir, out_dir);
+    check_crash_handling();
+    check_fast(&cmd.main.0);
+    if !cmd.mode.is_pin_mode() {
+        check_track_llvm(&cmd.track.0);
+    }
 }

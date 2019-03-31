@@ -14,7 +14,7 @@ fn main() {
     let path = PathBuf::from(&args[1]);
 
     // let t = load_track_data(path.as_path(), 0, 0, 0, 0);
-    let (t, _) = match read_and_parse(path.as_path(), false) {
+    let t = match read_and_parse(path.as_path(), true, false) {
         Result::Ok(val) => val,
         Result::Err(err) => panic!("parse track file error!! {:?}", err),
     };

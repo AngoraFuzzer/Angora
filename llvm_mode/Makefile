@@ -1,5 +1,5 @@
 PREFIX     = ../bin/
-PROGS      = ${PREFIX}angora-clang ${PREFIX}angora-llvm-pass.so ${PREFIX}unfold-branch-pass.so ${PREFIX}angora-llvm-rt.o  ${PREFIX}io-func.o ${PREFIX}globals.o ${PREFIX}stdalloc.o ${PREFIX}alloc-preload.so
+PROGS      = ${PREFIX}angora-clang ${PREFIX}angora-llvm-pass.so ${PREFIX}unfold-branch-pass.so ${PREFIX}angora-llvm-rt.o  ${PREFIX}io-func.o ${PREFIX}globals.o ${PREFIX}stdalloc.o ${PREFIX}alloc-preload.so ${PREFIX}pin_stub.o
 
 all: test_deps $(PROGS) rule_list ext_lib dfsan_lib
 
@@ -45,6 +45,9 @@ ${PREFIX}stdalloc.o: stdalloc.c config.h
 
 ${PREFIX}alloc-preload.so: alloc-preload.so.c
 	${CC} -shared -fPIC -ldl $< -o $@
+
+${PREFIX}pin_stub.o: pin_stub.c
+	$(CC) $(CFLAGS) -fPIC -c $< -o $@
 
 .NOTPARALLEL: clean
 

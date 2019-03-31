@@ -1,6 +1,6 @@
 [package]
 name = "angora"
-version = "1.0.0"
+version = "1.1.0"
 authors = ["spinpx <spinpx@gmail.com>"]
 edition = "2018"
 
@@ -19,12 +19,14 @@ byteorder = "1.2"
 chrono = "0.4"
 priority-queue = "0.5"
 num_cpus = "1.0"
-derive_more = "0.13"
+derive_more = "0.14"
 colored = "1.6"
 serde="1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 # lazy_static = "1.1"
+memmap = "0.7.0"
+twoway = "0.2.0"
 
 angora_common = {path = "../common" }
 runtime = {path = "../runtime" }

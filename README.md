@@ -10,14 +10,14 @@ execution.
 
 ## Published Work
 
-Arxiv: [Angora: Efficient Fuzzing by Principled Search](https://arxiv.org/abs/1803.01307), S&P '2018.
+Arxiv: [Angora: Efficient Fuzzing by Principled Search](https://arxiv.org/abs/1803.01307), S&P 2018.
 
 ## Building Angora
 
 ### Build Requirements
 
 - Linux-amd64 (Tested on Ubuntu 16.04/18.04 and Debian Buster)
-- Rust stable, can be obtained using [rustup](https://rustup.rs)
+- Rust stable (>= 1.31), can be obtained using [rustup](https://rustup.rs)
 - [LLVM 7.0.0](http://llvm.org/docs/index.html) : run `PREFIX=/path-to-install ./build/llvm.sh`.
 
 ### Environment Variables
@@ -44,6 +44,13 @@ As with AFL, system core dumps must be disabled.
 
 ```shell
 echo core | sudo tee /proc/sys/kernel/core_pattern
+```
+
+## Test
+Test if Angora is builded successfully.
+```
+cd /path-to-angora/tests
+./test.sh mini
 ```
 
 ## Running Angora
@@ -78,6 +85,9 @@ make install
 
 ```
 
+If you fail to build by this approach, try `wllvm` and `gllvm` described in [Build a target program](./docs/build_target.md#wllvm-or-gllvm).
+
+Also, we have implemented taint analysis with libdft64 instead of DFSan ([Use libdft64 for taint tracking](./docs/pin_mode.md)). 
 
 ### Fuzzing
 
@@ -93,6 +103,7 @@ For more information, please refer to the documentation under the
 - [Angora Overview](./docs/overview.md)
 - [Build a target program](./docs/build_target.md)
 - [Running Angora](./docs/running.md)
+- [Use libdft64 for taint tracking](./docs/pin_mode.md)
 - [Example - Fuzz program file by Angora](./docs/example.md)
 - [Run Angora on LAVA](./docs/lava.md)
 - [Exploit attack points](./docs/exploitation.md)

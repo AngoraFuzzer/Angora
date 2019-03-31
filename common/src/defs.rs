@@ -1,10 +1,18 @@
 use std;
 // -- envs
+pub static DISABLE_CPU_BINDING_VAR: &str = "ANGORA_DISABLE_CPU_BINDING";
 // executor.rs
 pub static TRACK_OUTPUT_VAR: &str = "ANGORA_TRACK_OUTPUT";
 pub static COND_STMT_ENV_VAR: &str = "ANGORA_COND_STMT_SHM_ID";
 pub static BRANCHES_SHM_ENV_VAR: &str = "ANGORA_BRANCHES_SHM_ID";
 pub static LD_LIBRARY_PATH_VAR: &str = "LD_LIBRARY_PATH";
+pub static ASAN_OPTIONS_VAR: &str = "ASAN_OPTIONS";
+pub static MSAN_OPTIONS_VAR: &str = "MSAN_OPTIONS";
+pub static ASAN_OPTIONS_CONTENT: &str =
+    "abort_on_error=1:detect_leaks=0:symbolize=0:allocator_may_return_null=1";
+pub const MSAN_ERROR_CODE: i32 = 86;
+pub static MSAN_OPTIONS_CONTENT: &str =
+    "exit_code=86:symbolize=0:abort_on_error=1:allocator_may_return_null=1:msan_track_origins=0";
 
 // forksrv.rs
 pub static ENABLE_FORKSRV: &str = "ANGORA_ENABLE_FORKSRV";
@@ -81,8 +89,8 @@ pub const COND_AFL_OP: u32 = 0x8001;
 // sensititve offsets
 pub const COND_FN_OP: u32 = 0x8002;
 pub const COND_LEN_OP: u32 = 0x8003;
-pub const COND_ENTER_FN: u32 = 0x8010;
-pub const COND_LEAVE_FN: u32 = 0x8011;
+// pub const COND_ENTER_FN: u32 = 0x8010;
+// pub const COND_LEAVE_FN: u32 = 0x8011;
 
 // condition field
 pub const COND_FALSE_ST: u32 = 0;

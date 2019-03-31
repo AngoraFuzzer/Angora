@@ -66,12 +66,15 @@ static void check_type(char *name) {
   u8 *use_fast = getenv("USE_FAST");
   u8 *use_dfsan = getenv("USE_DFSAN");
   u8 *use_track = getenv("USE_TRACK");
+  u8 *use_pin = getenv("USE_PIN");
   if (use_fast) {
     clang_type = CLANG_FAST_TYPE;
   } else if (use_dfsan) {
     clang_type = CLANG_DFSAN_TYPE;
   } else if (use_track) {
     clang_type = CLANG_TRACK_TYPE;
+  } else if (use_pin) {
+    clang_type = CLANG_PIN_TYPE;
   }
   if (!strcmp(name, "angora-clang++")) {
     is_cxx = 1;
@@ -95,7 +98,7 @@ static void add_angora_pass() {
   if (clang_type == CLANG_DFSAN_TYPE) {
     cc_params[cc_par_cnt++] = "-mllvm";
     cc_params[cc_par_cnt++] = "-DFSanMode";
-  } else if (clang_type == CLANG_TRACK_TYPE) {
+  } else if (clang_type == CLANG_TRACK_TYPE || clang_type == CLANG_PIN_TYPE) {
     cc_params[cc_par_cnt++] = "-mllvm";
     cc_params[cc_par_cnt++] = "-TrackMode";
   }
@@ -137,9 +140,12 @@ static void add_angora_runtime() {
       cc_params[cc_par_cnt++] = "-lc++abi";
       cc_params[cc_par_cnt++] = "-Wl,--end-group";
     }
-    // cc_params[cc_par_cnt++] =
-    //    alloc_printf("-L%s", obj_path);
-    // cc_params[cc_par_cnt++] = "-lruntime";
+    cc_params[cc_par_cnt++] = "-Wl,--whole-archive";
+    cc_params[cc_par_cnt++] = alloc_printf("%s/DFSanRT.a", obj_path);
+    cc_params[cc_par_cnt++] = "-Wl,--no-whole-archive";
+    cc_params[cc_par_cnt++] =
+        alloc_printf("-Wl,--dynamic-list=%s/DFSanRT.a.syms", obj_path);
+
     cc_params[cc_par_cnt++] = alloc_printf("%s/libruntime.a", obj_path);
     cc_params[cc_par_cnt++] = alloc_printf("%s/io-func.o", obj_path);
     cc_params[cc_par_cnt++] = alloc_printf("%s/stdalloc.o", obj_path);
@@ -149,10 +155,9 @@ static void add_angora_runtime() {
     }
   }
 
-  cc_params[cc_par_cnt++] = "-pie";
-  cc_params[cc_par_cnt++] = "-fpic";
-  cc_params[cc_par_cnt++] = "-Wl,--no-as-needed";
-  cc_params[cc_par_cnt++] = "-Wl,--gc-sections"; // if darwin -Wl, -dead_strip
+  if (clang_type == CLANG_PIN_TYPE) {
+    cc_params[cc_par_cnt++] = alloc_printf("%s/pin_stub.o", obj_path);
+  }
 
   if (clang_type != CLANG_FAST_TYPE) {
     // cc_params[cc_par_cnt++] = "-pthread";
@@ -160,10 +165,11 @@ static void add_angora_runtime() {
     cc_params[cc_par_cnt++] = "-lrt";
   }
 
+  cc_params[cc_par_cnt++] = "-Wl,--no-as-needed";
+  cc_params[cc_par_cnt++] = "-Wl,--gc-sections"; // if darwin -Wl, -dead_strip
   cc_params[cc_par_cnt++] = "-ldl";
   cc_params[cc_par_cnt++] = "-lpthread";
   cc_params[cc_par_cnt++] = "-lm";
-  cc_params[cc_par_cnt++] = "-Qunused-arguments";
 }
 
 static void add_dfsan_pass() {
@@ -172,12 +178,6 @@ static void add_dfsan_pass() {
     cc_params[cc_par_cnt++] = "-load";
     cc_params[cc_par_cnt++] = "-Xclang";
     cc_params[cc_par_cnt++] = alloc_printf("%s/DFSanPass.so", obj_path);
-    cc_params[cc_par_cnt++] = "-Wl,--whole-archive";
-    cc_params[cc_par_cnt++] = alloc_printf("%s/DFSanRT.a", obj_path);
-    cc_params[cc_par_cnt++] = "-Wl,--no-whole-archive";
-    cc_params[cc_par_cnt++] =
-        alloc_printf("-Wl,--dynamic-list=%s/DFSanRT.a.syms", obj_path);
-
     cc_params[cc_par_cnt++] = "-mllvm";
     cc_params[cc_par_cnt++] =
         alloc_printf("-angora-dfsan-abilist2=%s/angora_abilist.txt", obj_path);
@@ -214,10 +214,6 @@ static void edit_params(u32 argc, char **argv) {
     u8 *alt_cc = getenv("ANGORA_CC");
     cc_params[0] = alt_cc ? alt_cc : (u8 *)"clang";
   }
-
-  add_angora_pass();
-  add_dfsan_pass();
-
   /* Detect stray -v calls from ./configure scripts. */
   if (argc == 1 && !strcmp(argv[1], "-v"))
     maybe_linking = 0;
@@ -254,6 +250,23 @@ static void edit_params(u32 argc, char **argv) {
     cc_params[cc_par_cnt++] = cur;
   }
 
+  add_angora_pass();
+  add_dfsan_pass();
+
+  cc_params[cc_par_cnt++] = "-pie";
+  cc_params[cc_par_cnt++] = "-fpic";
+  cc_params[cc_par_cnt++] = "-Qunused-arguments";
+  /*
+  cc_params[cc_par_cnt++] = "-mno-mmx";
+  cc_params[cc_par_cnt++] = "-mno-sse";
+  cc_params[cc_par_cnt++] = "-mno-sse2";
+  cc_params[cc_par_cnt++] = "-mno-avx";
+  cc_params[cc_par_cnt++] = "-mno-sse3";
+  cc_params[cc_par_cnt++] = "-mno-sse4.1";
+  cc_params[cc_par_cnt++] = "-mno-sse4.2";
+  cc_params[cc_par_cnt++] = "-mno-ssse3";
+  */
+
   if (getenv("ANGORA_HARDEN")) {
     cc_params[cc_par_cnt++] = "-fstack-protector-all";
 
@@ -261,7 +274,7 @@ static void edit_params(u32 argc, char **argv) {
       cc_params[cc_par_cnt++] = "-D_FORTIFY_SOURCE=2";
   }
 
-  if (!asan_set) {
+  if (!asan_set && clang_type == CLANG_FAST_TYPE) {
     // We did not test Angora on asan and msan..
     if (getenv("ANGORA_USE_ASAN")) {
 
@@ -351,6 +364,8 @@ static void edit_params(u32 argc, char **argv) {
       cc_params[cc_par_cnt++] = "none";
     }
 
+    add_angora_runtime();
+
     switch (bit_mode) {
     case 0:
       break;
@@ -365,8 +380,6 @@ static void edit_params(u32 argc, char **argv) {
       break;
     }
   }
-
-  add_angora_runtime();
 
   cc_params[cc_par_cnt] = NULL;
 }

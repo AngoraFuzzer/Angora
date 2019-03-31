@@ -37,8 +37,8 @@ impl<'a> SearchHandler<'a> {
         match status {
             StatusType::Skip => {
                 self.skip = true;
-            },
-            _ => {},
+            }
+            _ => {}
         }
 
         // bonus
@@ -92,6 +92,6 @@ impl<'a> SearchHandler<'a> {
 
 impl<'a> Drop for SearchHandler<'a> {
     fn drop(&mut self) {
-        self.executor.update_log_and_clear();
+        self.executor.update_log();
     }
 }

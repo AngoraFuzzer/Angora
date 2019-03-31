@@ -1,5 +1,6 @@
-use crate::{search, tmpfs};
+use crate::{check_dep, search, tmpfs};
 use std::{
+    env,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -8,9 +9,31 @@ static TMP_DIR: &str = "tmp";
 static INPUT_FILE: &str = "cur_input";
 static FORKSRV_SOCKET_FILE: &str = "forksrv_socket";
 static TRACK_FILE: &str = "track";
+static PIN_ROOT_VAR: &str = "PIN_ROOT";
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum InstrumentationMode {
+    LLVM,
+    Pin,
+}
+
+impl InstrumentationMode {
+    pub fn from(mode: &str) -> Self {
+        match mode {
+            "llvm" => InstrumentationMode::LLVM,
+            "pin" => InstrumentationMode::Pin,
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn is_pin_mode(&self) -> bool {
+        self == &InstrumentationMode::Pin
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct CommandOpt {
+    pub mode: InstrumentationMode,
     pub id: usize,
     pub main: (String, Vec<String>),
     pub track: (String, Vec<String>),
@@ -23,6 +46,7 @@ pub struct CommandOpt {
     pub mem_limit: u64,
     pub time_limit: u64,
     pub is_raw: bool,
+    pub uses_asan: bool,
     pub ld_library: String,
     pub enable_afl: bool,
     pub enable_exploitation: bool,
@@ -30,15 +54,17 @@ pub struct CommandOpt {
 
 impl CommandOpt {
     pub fn new(
+        mode: &str,
         track_target: &str,
         pargs: Vec<String>,
         out_dir: &Path,
         search_method: &str,
-        mem_limit: u64,
+        mut mem_limit: u64,
         time_limit: u64,
         enable_afl: bool,
         enable_exploitation: bool,
     ) -> Self {
+        let mode = InstrumentationMode::from(mode);
         let tmp_dir = out_dir.join(TMP_DIR);
         tmpfs::create_tmpfs_dir(&tmp_dir);
 
@@ -67,11 +93,50 @@ impl CommandOpt {
         );
 
         let mut tmp_args = pargs.clone();
-        let main_args: Vec<String> = tmp_args.drain(1..).collect();
         let main_bin = tmp_args[0].clone();
-        let track_bin = track_target.to_string();
-        let track_args = main_args.clone();
+        let main_args: Vec<String> = tmp_args.drain(1..).collect();
+        let uses_asan = check_dep::check_asan(&main_bin);
+        if uses_asan && mem_limit != 0 {
+            warn!("The program compiled with ASAN, set MEM_LIMIT to 0 (unlimited)");
+            mem_limit = 0;
+        }
+
+        let track_bin;
+        let mut track_args = Vec::<String>::new();
+        if mode.is_pin_mode() {
+            // ugly
+            let exe_path = env::current_exe().unwrap();
+            let project_dir = exe_path
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap();
+
+            let pin_root =
+                env::var(PIN_ROOT_VAR).expect("You should set the environment of PIN_ROOT!");
+            let pin_bin = format!("{}/{}", pin_root, "pin");
+            track_bin = pin_bin.to_string();
+            let pin_tool = project_dir
+                .join("pin_mode")
+                .join("obj-intel64")
+                .join("pin_track.so")
+                .to_str()
+                .unwrap()
+                .to_owned();
+            track_args.push(String::from("-t"));
+            track_args.push(pin_tool);
+            track_args.push(String::from("--"));
+            track_args.push(track_target.to_string());
+            track_args.extend(main_args.clone());
+        } else {
+            track_bin = track_target.to_string();
+            track_args = main_args.clone();
+        }
+
         Self {
+            mode,
             id: 0,
             main: (main_bin, main_args),
             track: (track_bin, track_args),
@@ -83,6 +148,7 @@ impl CommandOpt {
             search_method: search::parse_search_method(search_method),
             mem_limit,
             time_limit,
+            uses_asan,
             is_raw: true,
             ld_library,
             enable_afl,

@@ -1,0 +1,3 @@
+[submodule "pin_mode/libdft64"]
+	path = pin_mode/libdft64
+	url = git@github.com:spinpx/libdft64.git

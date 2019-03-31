@@ -9,7 +9,13 @@ use angora::fuzz_main;
 fn main() {
     let matches = App::new("angora-fuzzer")
         .version(crate_version!())
-        .about("fuzz some program")
+        .about("Angora is a mutation-based fuzzer. The main goal of Angora is to increase branch coverage by solving path constraints without symbolic execution.")
+        .arg(Arg::with_name("mode")
+             .short("m")
+             .long("mode")
+             .value_name("Mode")
+             .help("Which binary instrumentation framework are you using?")
+             .possible_values(&["llvm", "pin"]))
         .arg(Arg::with_name("input_dir")
              .short("i")
              .long("input")
@@ -28,7 +34,7 @@ fn main() {
              .short("t")
              .long("track")
              .value_name("PROM")
-             .help("Sets the target (USE_TRACK) for tracking, including taints, cmps.  Only set in LLVM mode.")
+             .help("Sets the target (USE_TRACK or USE_PIN) for tracking, including taints, cmps.  Only set in LLVM mode.")
              .takes_value(true))
         .arg(Arg::with_name("pargs")
             .help("Targeted program (USE_FAST) and arguments. Any \"@@\" will be substituted with the input filename from Angora.")
@@ -41,7 +47,7 @@ fn main() {
              .short("M")
              .long("memory_limit")
              .value_name("MEM")
-             .help("Memory limit for programs, default is 200(MB)")
+             .help("Memory limit for programs, default is 200(MB), set 0 for unlimit memory")
              .takes_value(true))
         .arg(Arg::with_name("time_limit")
              .short("T")
@@ -65,7 +71,7 @@ fn main() {
              .short("S")
              .long("sync_afl")
              .help("Sync the seeds with AFL. Output directory should be in AFL's directory structure."))
-       .arg(Arg::with_name("disable_afl_mutation")
+        .arg(Arg::with_name("disable_afl_mutation")
              .short("A")
              .long("disable_afl_mutation")
              .help("Disable the fuzzer to mutate inputs using AFL's mutation strategies"))
@@ -76,6 +82,7 @@ fn main() {
        .get_matches();
 
     fuzz_main(
+        matches.value_of("mode").unwrap_or("llvm"),
         matches.value_of("input_dir").unwrap(),
         matches.value_of("output_dir").unwrap(),
         matches.value_of("track_target").unwrap_or("-"),

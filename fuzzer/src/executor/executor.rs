@@ -11,8 +11,10 @@ use std::{
     collections::HashMap,
     path::Path,
     process::{Command, Stdio},
-    sync::{atomic::{compiler_fence, Ordering},
-        Arc, RwLock},
+    sync::{
+        atomic::{compiler_fence, Ordering},
+        Arc, RwLock,
+    },
     time,
 };
 use wait_timeout::ChildExt;
@@ -47,6 +49,14 @@ impl Executor {
         // ** Envs **
         let mut envs = HashMap::new();
         envs.insert(
+            defs::ASAN_OPTIONS_VAR.to_string(),
+            defs::ASAN_OPTIONS_CONTENT.to_string(),
+        );
+        envs.insert(
+            defs::MSAN_OPTIONS_VAR.to_string(),
+            defs::MSAN_OPTIONS_CONTENT.to_string(),
+        );
+        envs.insert(
             defs::BRANCHES_SHM_ENV_VAR.to_string(),
             branches.get_id().to_string(),
         );
@@ -66,6 +76,7 @@ impl Executor {
             &envs,
             fd.as_raw_fd(),
             cmd.is_stdin,
+            cmd.uses_asan,
             cmd.time_limit,
             cmd.mem_limit,
         ));
@@ -98,6 +109,7 @@ impl Executor {
             &self.envs,
             self.fd.as_raw_fd(),
             self.cmd.is_stdin,
+            self.cmd.uses_asan,
             self.cmd.time_limit,
             self.cmd.mem_limit,
         );
@@ -339,7 +351,8 @@ impl Executor {
         let ret_status = self.run_target(
             &self.cmd.track,
             config::MEM_LIMIT_TRACK,
-            self.cmd.time_limit * config::TIME_LIMIT_TRACK,
+            //self.cmd.time_limit *
+            config::TIME_LIMIT_TRACK,
         );
         compiler_fence(Ordering::SeqCst);
 
@@ -355,6 +368,7 @@ impl Executor {
             Path::new(&self.cmd.track_path),
             id as u32,
             speed,
+            self.cmd.mode.is_pin_mode(),
             self.cmd.enable_exploitation,
         );
 
@@ -397,29 +411,35 @@ impl Executor {
         let timeout = time::Duration::from_secs(time_limit);
         let ret = match child.wait_timeout(timeout).unwrap() {
             Some(status) => {
-                if status.code().is_some() {
-                    StatusType::Normal
+                if let Some(status_code) = status.code() {
+                    if (self.cmd.uses_asan && status_code == defs::MSAN_ERROR_CODE)
+                        || (self.cmd.mode.is_pin_mode() && status_code > 128)
+                    {
+                        StatusType::Crash
+                    } else {
+                        StatusType::Normal
+                    }
                 } else {
                     StatusType::Crash
                 }
-            },
+            }
             None => {
                 // Timeout
                 // child hasn't exited yet
                 child.kill().expect("Could not send kill signal to child.");
                 child.wait().expect("Error during waiting for child.");
                 StatusType::Timeout
-            },
+            }
         };
         ret
     }
 
-    pub fn update_log_and_clear(&mut self) {
+    pub fn update_log(&mut self) {
         self.global_stats
             .write()
             .unwrap()
             .sync_from_local(&mut self.local_stats);
-        self.local_stats.clear();
+
         self.t_conds.clear();
         self.tmout_cnt = 0;
         self.invariable_cnt = 0;

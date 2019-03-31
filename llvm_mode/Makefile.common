@@ -27,6 +27,7 @@ CXXFLAGS    ?= -O3 -funroll-loops -g
 CXXFLAGS    += -Wall -D_FORTIFY_SOURCE=2 -g -Wno-pointer-sign \
                -Wno-variadic-macros
 
+# patch for Segmentation fault in llvm (>=5): https://bugs.llvm.org/show_bug.cgi?id=39321
 CLANG_CFL    = `$(LLVM_CONFIG) --cxxflags` -fno-rtti -fpic $(CXXFLAGS)
 CLANG_LFL    = `$(LLVM_CONFIG) --ldflags` $(LDFLAGS)
 
