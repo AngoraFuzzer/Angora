@@ -21,7 +21,7 @@ public:
   void push_bytes(char *bytes, std::size_t size) {
     if (size > 0 && bytes) {
       size_t next = len + size;
-      if (next > BUF_LEN) {
+      if (next > cap) {
         cap *= 2;
         buffer = (char *)realloc(buffer, cap);
       }
