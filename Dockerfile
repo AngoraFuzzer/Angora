@@ -1,5 +1,10 @@
 FROM ubuntu:16.04
 
+RUN apt-get update && \
+    apt-get -y upgrade && \
+    apt-get install -y git build-essential wget zlib1g-dev golang-go python-pip python-dev build-essential && \
+    apt-get clean
+
 RUN mkdir -p angora
 COPY . angora
 WORKDIR angora
@@ -10,9 +15,6 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     GOPATH=/go \
     PATH=/clang+llvm/bin:/usr/local/cargo/bin:/angora/bin/:/go/bin:$PATH \
     LD_LIBRARY_PATH=/clang+llvm/lib:$LD_LIBRARY_PATH
-
-RUN apt-get update && \
-    apt-get install -y git build-essential wget zlib1g-dev golang-go python-pip python-dev build-essential 
 
 
 RUN ./build/install_rust.sh
