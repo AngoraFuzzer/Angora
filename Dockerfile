@@ -9,13 +9,18 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PIN_ROOT=/pin-3.7-97619-g0d0c92f4f-gcc-linux \
     GOPATH=/go \
     PATH=/clang+llvm/bin:/usr/local/cargo/bin:/angora/bin/:/go/bin:$PATH \
-    LD_LIBRARY_PATH=/clang+llvm/lib:$LD_LIBRARY_PATH 
+    LD_LIBRARY_PATH=/clang+llvm/lib:$LD_LIBRARY_PATH
 
-#ENV RUSTUP_DIST_SERVER="https://mirrors.ustc.edu.cn/rust-static"
-#ENV RUSTUP_UPDATE_ROOT="https://mirrors.ustc.edu.cn/rust-static/rustup"
+RUN apt-get update && \
+    apt-get install -y git build-essential wget zlib1g-dev golang-go python-pip python-dev build-essential 
 
-RUN ./build/docker_build.sh
+
+RUN ./build/install_rust.sh
+RUN PREFIX=/ ./build/install_llvm.sh
+RUN ./build/build.sh
+RUN ./build/install_pin_mode.sh
+RUN ./build/install_tools.sh
 
 VOLUME ["/data"]
 WORKDIR /data
-ENTRYPOINT [ "/opt/env.init" ]
+# ENTRYPOINT [ "/opt/env.init" ]

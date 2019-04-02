@@ -1,8 +1,13 @@
 #!/bin/bash
 set -eux
-LLVM_DEP_URL=${LLVM_DEP_URL:-http://releases.llvm.org/4.0.0}
+
+LINUX_VER=${LINUX_VER:-ubuntu-16.04}
+LLVM_VER=${LLVM_VER:-4.0.1}
 PREFIX=${PREFIX:-${HOME}}
-TAR_NAME=clang+llvm-4.0.0-x86_64-linux-gnu-ubuntu-16.04
+
+LLVM_DEP_URL=http://releases.llvm.org/${LLVM_VER}
+TAR_NAME=clang+llvm-${LLVM_VER}-x86_64-linux-gnu-${LINUX_VER}
+
 wget -q ${LLVM_DEP_URL}/${TAR_NAME}.tar.xz
 tar -C ${PREFIX} -xf ${TAR_NAME}.tar.xz
 rm ${TAR_NAME}.tar.xz

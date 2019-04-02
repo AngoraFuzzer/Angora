@@ -11,7 +11,6 @@ fi
 cargo build
 cargo build --release
 
-
 PREFIX=bin/
 mkdir -p ${PREFIX}
 cp target/release/*.a ${PREFIX}
