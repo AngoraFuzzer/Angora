@@ -122,7 +122,7 @@ __dfsw_realloc(void *ptr, size_t size, dfsan_label ptr_label,
       heapmap_invalidate(ptr);
 #endif
       const dfsan_label *old_label_area = dfsan_shadow_for(ptr);
-      const dfsan_label *new_label_area = dfsan_shadow_for(ret);
+      dfsan_label *new_label_area = dfsan_shadow_for(ret);
       // DEBUG_PRINTF("[+] Before memcpy: old label = %u, new label = %u\n",
       //     dfsan_read_label(ptr, old_size),
       //     dfsan_read_label(ret, new_size));

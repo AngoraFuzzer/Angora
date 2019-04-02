@@ -97,13 +97,13 @@ VOID FnHandler(THREADID tid, u32 cid, u32 ctx, u32 size, char *arg1,
     if (!tag_is_empty(t1)) {
       CondStmt stmt = {cid, ctx, ctr, 0, COND_FALSE_ST, 0, COND_FN_OP, arg2_len,
                        t1,  0,   0,   0};
-      logger.save_cond(stmt);
-      logger.save_mb(arg1_len, arg2_len, arg1, arg2);
+      u32 cond_idx = logger.save_cond(stmt);
+      logger.save_mb(cond_idx, arg1_len, arg2_len, arg1, arg2);
     } else if (!tag_is_empty(t2)) {
       CondStmt stmt = {cid, ctx, ctr, 0, COND_FALSE_ST, 0, COND_FN_OP, arg1_len,
                        0,   t2,  0,   0};
-      logger.save_cond(stmt);
-      logger.save_mb(arg1_len, arg2_len, arg1, arg2);
+      u32 cond_idx = logger.save_cond(stmt);
+      logger.save_mb(cond_idx, arg1_len, arg2_len, arg1, arg2);
     }
   }
 }
