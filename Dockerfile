@@ -23,4 +23,4 @@ RUN ./build/install_tools.sh
 
 VOLUME ["/data"]
 WORKDIR /data
-# ENTRYPOINT [ "/opt/env.init" ]
+ENTRYPOINT [ "/opt/env.init" ]

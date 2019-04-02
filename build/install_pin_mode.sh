@@ -8,6 +8,5 @@ cd pin_mode/libdft64
 PREFIX=/ ./install_pin.sh
 make
 cp env.init /opt/
-chmod +x /opt/env.init
 cd ..
 make
