@@ -255,29 +255,57 @@ void AngoraLLVMPass::initVariables(Module &M) {
     Type *TraceCmpArgs[5] = {Int32Ty, Int32Ty, Int32Ty, Int64Ty, Int64Ty};
     TraceCmpTy = FunctionType::get(Int32Ty, TraceCmpArgs, false);
     TraceCmp = M.getOrInsertFunction("__angora_trace_cmp", TraceCmpTy);
+    if (Function *F = dyn_cast<Function>(TraceCmp)) {
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+      // F->addAttribute(1, Attribute::ZExt);
+    }
 
     Type *TraceSwArgs[3] = {Int32Ty, Int32Ty, Int64Ty};
     TraceSwTy = FunctionType::get(Int64Ty, TraceSwArgs, false);
     TraceSw = M.getOrInsertFunction("__angora_trace_switch", TraceSwTy);
+    if (Function *F = dyn_cast<Function>(TraceSw)) {
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+      // F->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+      // F->addAttribute(1, Attribute::ZExt);
+    }
+
   } else if (TrackMode) {
     Type *TraceCmpTtArgs[7] = {Int32Ty, Int32Ty, Int32Ty, Int32Ty,
                                Int64Ty, Int64Ty, Int32Ty};
     TraceCmpTtTy = FunctionType::get(VoidTy, TraceCmpTtArgs, false);
     TraceCmpTT = M.getOrInsertFunction("__angora_trace_cmp_tt", TraceCmpTtTy);
+    if (Function *F = dyn_cast<Function>(TraceCmpTT)) {
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+    }
 
     Type *TraceSwTtArgs[6] = {Int32Ty, Int32Ty, Int32Ty,
                               Int64Ty, Int32Ty, Int64PtrTy};
     TraceSwTtTy = FunctionType::get(VoidTy, TraceSwTtArgs, false);
     TraceSwTT = M.getOrInsertFunction("__angora_trace_switch_tt", TraceSwTtTy);
+    if (Function *F = dyn_cast<Function>(TraceSwTT)) {
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+    }
 
     Type *TraceFnTtArgs[5] = {Int32Ty, Int32Ty, Int32Ty, Int8PtrTy, Int8PtrTy};
     TraceFnTtTy = FunctionType::get(VoidTy, TraceFnTtArgs, false);
     TraceFnTT = M.getOrInsertFunction("__angora_trace_fn_tt", TraceFnTtTy);
+    if (Function *F = dyn_cast<Function>(TraceFnTT)) {
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadOnly);
+    }
 
     Type *TraceExploitTtArgs[5] = {Int32Ty, Int32Ty, Int32Ty, Int32Ty, Int64Ty};
     TraceExploitTtTy = FunctionType::get(VoidTy, TraceExploitTtArgs, false);
     TraceExploitTT = M.getOrInsertFunction("__angora_trace_exploit_val_tt",
                                            TraceExploitTtTy);
+    if (Function *F = dyn_cast<Function>(TraceExploitTT)) {
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+    }
   }
 
   std::vector<std::string> AllABIListFiles;
@@ -428,27 +456,6 @@ void AngoraLLVMPass::visitCallInst(Instruction *Inst) {
     setInsNonSan(StoreCtx);
   }
 };
-
-void AngoraLLVMPass::visitInvokeInst(Instruction *Inst) {
-  InvokeInst *Caller = dyn_cast<InvokeInst>(Inst);
-  Function *Callee = Caller->getCalledFunction();
-
-  if (!Callee)
-    return;
-
-  if (Callee->isIntrinsic() || isa<InlineAsm>(Caller->getCalledValue())) {
-    return;
-  }
-
-  if (!Callee->getName().compare(StringRef("__unfold_branch_fn"))) {
-    if (Caller->use_empty()) {
-      BasicBlock *Dst = Caller->getNormalDest();
-      BranchInst::Create(Dst, Caller);
-      Caller->eraseFromParent();
-    }
-    return;
-  }
-}
 
 void AngoraLLVMPass::visitCompareFunc(Instruction *Inst) {
   // configuration file: custom/exploitation_list.txt  fun:xx=cmpfn
@@ -795,8 +802,6 @@ bool AngoraLLVMPass::runOnModule(Module &M) {
         }
         if (isa<CallInst>(Inst)) {
           visitCallInst(Inst);
-        } else if (isa<InvokeInst>(Inst)) {
-          visitInvokeInst(Inst);
         } else if (isa<BranchInst>(Inst)) {
           visitBranchInst(Inst);
         } else if (isa<SwitchInst>(Inst)) {

@@ -2,6 +2,8 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+// TODO: support multiple thread
+
 #include "cond_stmt.h"
 #include "libdft_api.h"
 #include <set>
@@ -12,14 +14,14 @@
 class LogBuf {
 private:
   char *buffer;
-  u32 cap;
+  size_t cap;
   size_t len;
 
 public:
   void push_bytes(char *bytes, std::size_t size) {
     if (size > 0 && bytes) {
       size_t next = len + size;
-      if (next > BUF_LEN) {
+      if (next > cap) {
         cap *= 2;
         buffer = (char *)realloc(buffer, cap);
       }
@@ -45,6 +47,7 @@ public:
   };
   ~LogBuf() { free(buffer); }
 };
+
 class Logger {
 private:
   u32 num_cond;
@@ -108,9 +111,8 @@ public:
     }
   };
 
-  void save_mb(u32 arg1_len, u32 arg2_len, char *arg1, char *arg2) {
-    if (num_cond > 0) {
-      u32 i = num_cond - 1;
+  void save_mb(u32 i, u32 arg1_len, u32 arg2_len, char *arg1, char *arg2) {
+    if (i > 0) {
       mb_buf.push_bytes((char *)&i, 4);
       mb_buf.push_bytes((char *)&arg1_len, 4);
       mb_buf.push_bytes((char *)&arg2_len, 4);
@@ -120,11 +122,13 @@ public:
     }
   };
 
-  void save_cond(CondStmt &cond) {
+  u32 save_cond(CondStmt &cond) {
+    u32 i = num_cond;
+    num_cond++;
     save_tag(cond.lb1);
     save_tag(cond.lb2);
-    num_cond++;
     cond_buf.push_bytes((char *)&cond, sizeof(CondStmt));
+    return i;
   }
 };
 

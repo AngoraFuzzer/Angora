@@ -129,17 +129,9 @@ static void add_angora_runtime() {
     cc_params[cc_par_cnt++] = alloc_printf("%s/libruntime_fast.a", obj_path);
   }
 
-  // cc_params[cc_par_cnt++] = "-I/home/angora/clang+llvm6/include";
+  // cc_params[cc_par_cnt++] = "-I/${HOME}/clang+llvm/include/c++/v1";
 
   if (clang_type == CLANG_TRACK_TYPE || clang_type == CLANG_DFSAN_TYPE) {
-    if (is_cxx && clang_type == CLANG_TRACK_TYPE) {
-      cc_params[cc_par_cnt++] = alloc_printf("-L%s/libcxx_dfsan/", obj_path);
-      cc_params[cc_par_cnt++] = "-stdlib=libc++";
-      cc_params[cc_par_cnt++] = "-Wl,--start-group";
-      cc_params[cc_par_cnt++] = "-lc++abidfsan";
-      cc_params[cc_par_cnt++] = "-lc++abi";
-      cc_params[cc_par_cnt++] = "-Wl,--end-group";
-    }
     cc_params[cc_par_cnt++] = "-Wl,--whole-archive";
     cc_params[cc_par_cnt++] = alloc_printf("%s/DFSanRT.a", obj_path);
     cc_params[cc_par_cnt++] = "-Wl,--no-whole-archive";
@@ -161,7 +153,8 @@ static void add_angora_runtime() {
 
   if (clang_type != CLANG_FAST_TYPE) {
     // cc_params[cc_par_cnt++] = "-pthread";
-    cc_params[cc_par_cnt++] = "-lstdc++";
+    if (!is_cxx)
+      cc_params[cc_par_cnt++] = "-lstdc++";
     cc_params[cc_par_cnt++] = "-lrt";
   }
 
@@ -357,6 +350,16 @@ static void edit_params(u32 argc, char **argv) {
     "_I(); } while (0)";
   */
 
+  if (is_cxx && clang_type == CLANG_TRACK_TYPE) {
+
+    cc_params[cc_par_cnt++] = alloc_printf("-L%s/libcxx_dfsan/", obj_path);
+    cc_params[cc_par_cnt++] = "-stdlib=libc++";
+    cc_params[cc_par_cnt++] = "-Wl,--start-group";
+    cc_params[cc_par_cnt++] = "-lc++abidfsan";
+    cc_params[cc_par_cnt++] = "-lc++abi";
+    cc_params[cc_par_cnt++] = "-Wl,--end-group";
+  }
+
   if (maybe_linking) {
 
     if (x_set) {
@@ -419,10 +422,10 @@ int main(int argc, char **argv) {
 
   edit_params(argc, argv);
   /*
-    for (int i = 0; i < cc_par_cnt; i++) {
-      printf("%s ", cc_params[i]);
-    }
-    printf("\n");
+  for (int i = 0; i < cc_par_cnt; i++) {
+    printf("%s ", cc_params[i]);
+  }
+  printf("\n");
   */
   execvp(cc_params[0], (char **)cc_params);
 

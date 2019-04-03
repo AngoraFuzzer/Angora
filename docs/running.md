@@ -11,7 +11,7 @@ efficiency.*
 ```
 echo core | sudo tee /proc/sys/kernel/core_pattern
 docker build -t angora ./
-docker run  -v /path-to-code-and-seed:/data -it --rm angora /bin/bash
+docker run --privileged -v /path-to-code-and-seed:/data -it --rm angora /bin/bash
 ```
 
 
