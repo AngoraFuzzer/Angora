@@ -6,6 +6,8 @@ fun:dfsan_mark_signed=uninstrumented
 fun:dfsan_mark_signed=discard
 fun:dfsan_combine_and_ins=uninstrumented
 fun:dfsan_combine_and_ins=discard
+fun:dfsan_infer_shape_in_math_op=uninstrumented
+fun:dfsan_infer_shape_in_math_op=discard
 
 fun:log10=functional
 fun:__ctype_toupper_loc=discard
@@ -80,13 +82,6 @@ fun:dfsan_shadow_for=discard
 # fun:dfsan_fun_init=discard
 # fun:dfsan_fun_fini=uninstrumented
 # fun:dfsan_fun_fini=discard
-
-fun:dfsan_mark_signed=uninstrumented
-fun:dfsan_mark_signed=discard
-fun:dfsan_combine_and_ins=uninstrumented
-fun:dfsan_combine_and_ins=discard
-fun:dfsan_infer_shape_in_math_op=uninstrumented
-fun:dfsan_infer_shape_in_math_op=discard
 
 
 ###############################################################################

@@ -1153,6 +1153,8 @@ Value *DFSanFunction::combineShadows(Value *V1, Value *V2, Instruction *Pos) {
   }
 
   switch (Pos->getOpcode()) {
+  case Instruction::Add:
+  case Instruction::Sub:
   case Instruction::Mul:
   case Instruction::UDiv:
   case Instruction::SDiv:
