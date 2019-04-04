@@ -728,7 +728,8 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
     if (!i.isIntrinsic() && &i != DFSanUnionFn && &i != DFSanCheckedUnionFn &&
         &i != DFSanUnionLoadFn && &i != DFSanUnimplementedFn &&
         &i != DFSanSetLabelFn && &i != DFSanNonzeroLabelFn &&
-        &i != DFSanVarargWrapperFn)
+        &i != DFSanVarargWrapperFn && &i != DFSanMarkSignedFn &&
+        &i != DFSanCombineAndFn && &i != DFSanInferShapeFn)
       FnsToInstrument.push_back(&i);
   }
 
