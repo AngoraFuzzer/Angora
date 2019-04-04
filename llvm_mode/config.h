@@ -51,7 +51,7 @@
 
 #define COND_SIGN_MASK 0x100
 #define COND_BOOL_MASK 0x200
-#define COND_CALL_MASK 0x400
+// #define COND_CALL_MASK 0x400
 // #define COND_BR_MASK 0x800
 
 #define COND_EQ_OP 32

@@ -320,7 +320,7 @@ void AngoraLLVMPass::initVariables(Module &M) {
   ExploitList.set(SpecialCaseList::createOrDie(AllExploitListFiles));
 
   enable_ctx = !getenv(DISABLE_CTX_VAR);
-  direct_fn_ctx = getenv(DIRECT_FN_CTX);
+  direct_fn_ctx = !!getenv(DIRECT_FN_CTX);
   gen_id_random = !!getenv(GEN_ID_RANDOM_VAR);
   output_cond_loc = !!getenv(OUTPUT_COND_LOC_VAR);
 

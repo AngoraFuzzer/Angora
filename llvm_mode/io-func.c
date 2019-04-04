@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <sys/shm.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
@@ -21,7 +20,6 @@
 #include "../runtime/include/len_label.h"
 #include "./config.h"
 #include "./dfsan/dfsan_interface.h"
-
 
 static int granularity = 1; // byte level
 
@@ -578,4 +576,3 @@ __dfsw___lxstat(int vers, const char *path, struct stat *buf,
   *ret_label = 0;
   return ret;
 }
-
