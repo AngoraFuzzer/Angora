@@ -256,8 +256,8 @@ void AngoraLLVMPass::initVariables(Module &M) {
     TraceCmpTy = FunctionType::get(Int32Ty, TraceCmpArgs, false);
     TraceCmp = M.getOrInsertFunction("__angora_trace_cmp", TraceCmpTy);
     if (Function *F = dyn_cast<Function>(TraceCmp)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
       // F->addAttribute(1, Attribute::ZExt);
     }
 
@@ -265,9 +265,9 @@ void AngoraLLVMPass::initVariables(Module &M) {
     TraceSwTy = FunctionType::get(Int64Ty, TraceSwArgs, false);
     TraceSw = M.getOrInsertFunction("__angora_trace_switch", TraceSwTy);
     if (Function *F = dyn_cast<Function>(TraceSw)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
-      // F->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
+      // F->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
       // F->addAttribute(1, Attribute::ZExt);
     }
 
@@ -277,8 +277,8 @@ void AngoraLLVMPass::initVariables(Module &M) {
     TraceCmpTtTy = FunctionType::get(VoidTy, TraceCmpTtArgs, false);
     TraceCmpTT = M.getOrInsertFunction("__angora_trace_cmp_tt", TraceCmpTtTy);
     if (Function *F = dyn_cast<Function>(TraceCmpTT)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
     }
 
     Type *TraceSwTtArgs[6] = {Int32Ty, Int32Ty, Int32Ty,
@@ -286,16 +286,16 @@ void AngoraLLVMPass::initVariables(Module &M) {
     TraceSwTtTy = FunctionType::get(VoidTy, TraceSwTtArgs, false);
     TraceSwTT = M.getOrInsertFunction("__angora_trace_switch_tt", TraceSwTtTy);
     if (Function *F = dyn_cast<Function>(TraceSwTT)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
     }
 
     Type *TraceFnTtArgs[5] = {Int32Ty, Int32Ty, Int32Ty, Int8PtrTy, Int8PtrTy};
     TraceFnTtTy = FunctionType::get(VoidTy, TraceFnTtArgs, false);
     TraceFnTT = M.getOrInsertFunction("__angora_trace_fn_tt", TraceFnTtTy);
     if (Function *F = dyn_cast<Function>(TraceFnTT)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadOnly);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadOnly);
     }
 
     Type *TraceExploitTtArgs[5] = {Int32Ty, Int32Ty, Int32Ty, Int32Ty, Int64Ty};
@@ -303,8 +303,8 @@ void AngoraLLVMPass::initVariables(Module &M) {
     TraceExploitTT = M.getOrInsertFunction("__angora_trace_exploit_val_tt",
                                            TraceExploitTtTy);
     if (Function *F = dyn_cast<Function>(TraceExploitTT)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
     }
   }
 

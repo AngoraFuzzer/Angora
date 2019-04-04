@@ -189,7 +189,6 @@ public:
   /// given category.
   bool isIn(const Function &F, StringRef Category) const {
     return isIn(*F.getParent(), Category) ||
-           // FIXME:
            SCL->inSection("dataflow", "fun", F.getName(), Category);
   }
 
@@ -669,6 +668,7 @@ DataFlowSanitizer::buildWrapperFunction(Function *F, StringRef NewFName,
       AttributeFuncs::typeIncompatible(NewFT->getReturnType()));
 
   BasicBlock *BB = BasicBlock::Create(*Ctx, "entry", NewF);
+
   if (F->isVarArg() && getWrapperKind(F) != WK_Discard) {
     NewF->removeAttributes(AttributeList::FunctionIndex,
                            AttrBuilder().addAttribute("split-stack"));
@@ -813,7 +813,8 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
     if (!i.isIntrinsic() && &i != DFSanUnionFn && &i != DFSanCheckedUnionFn &&
         &i != DFSanUnionLoadFn && &i != DFSanUnimplementedFn &&
         &i != DFSanSetLabelFn && &i != DFSanNonzeroLabelFn &&
-        &i != DFSanVarargWrapperFn)
+        &i != DFSanVarargWrapperFn && &i != DFSanMarkSignedFn &&
+        &i != DFSanCombineAndFn && &i != DFSanInferShapeFn)
       FnsToInstrument.push_back(&i);
   }
 
@@ -1176,8 +1177,9 @@ Value *DFSanFunction::combineShadows(Value *V1, Value *V2, Instruction *Pos) {
   if (V1 == DFS.ZeroShadow)
     return V2;
   if (V2 == DFS.ZeroShadow)
-    if (V1 == V2)
-      return V1;
+    return V1;
+  if (V1 == V2)
+    return V1;
 
   auto V1Elems = ShadowElements.find(V1);
   auto V2Elems = ShadowElements.find(V2);

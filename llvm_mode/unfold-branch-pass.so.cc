@@ -62,13 +62,13 @@ bool UnfoldBranch::doInitialization(Module &M) {
 
   srandom(1851655);
 
-  UnfoldBranchFn =
-      M.getOrInsertFunction("__unfold_branch_fn", VoidTy, Int32Ty, nullptr);
+  Type *FnArgs[1] = {Int32Ty};
+  FunctionType *FnTy = FunctionType::get(VoidTy, FnArgs, /*isVarArg=*/false);
+  UnfoldBranchFn = M.getOrInsertFunction("__unfold_branch_fn", FnTy);
 
   if (Function *F = dyn_cast<Function>(UnfoldBranchFn)) {
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
   }
-
   return true;
 }
 
@@ -79,9 +79,11 @@ bool UnfoldBranch::runOnFunction(Function &F) {
   // if the function is declaration, ignore
   if (F.isDeclaration())
     return false;
+
 #ifndef ENABLE_UNFOLD_BRANCH
   return false;
 #endif
+
   SmallSet<BasicBlock *, 20> VisitedBB;
   LLVMContext &C = F.getContext();
   for (auto &BB : F) {
@@ -134,9 +136,9 @@ bool UnfoldBranch::runOnFunction(Function &F) {
       if (Ret && isa<SExtInst>(Ret)) {
         // errs() << "ret: " << *Ret << "\n";
         // abort();
-        // F.addAttribute(AttributeSet::ReturnIndex, Attribute::SExt);
+        // F.addAttribute(AttributeList::ReturnIndex, Attribute::SExt);
       }
-      // errs() << F.getAttribute(AttributeSet::ReturnIndex,
+      // errs() << F.getAttribute(AttributeList::ReturnIndex,
     Attribute::SExt).getValueAsInt() <<"\n";
     }
     */

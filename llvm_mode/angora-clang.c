@@ -193,6 +193,9 @@ static void edit_params(u32 argc, char **argv) {
 
   cc_params = ck_alloc((argc + 128) * sizeof(u8 *));
 
+  // https: // bugs.llvm.org/show_bug.cgi?id=39321
+  setenv("LD_PRELOAD", alloc_printf("%s/llvm-catch-dlclose.so", obj_path), 1);
+
   name = strrchr(argv[0], '/');
   if (!name)
     name = argv[0];
