@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-LLVM_VERSION=4.0.0
+LLVM_VERSION=7.0.0
 
 NINJA_B=`which ninja 2>/dev/null`
 

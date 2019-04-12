@@ -19,20 +19,10 @@
 #include "dfsan_platform.h"
 
 using __sanitizer::uptr;
-// FIXME
 using __sanitizer::u16;
-//using __sanitizer::u32;
 
 // Copy declarations from public sanitizer/dfsan_interface.h header here.
 #include "../../config.h"
-/*
-struct dfsan_label_info {
-  dfsan_label l1;
-  dfsan_label l2;
-  const char *desc;
-  void *userdata;
-};
-*/
 
 extern "C" {
 void dfsan_add_label(dfsan_label label, void *addr, uptr size);
@@ -52,12 +42,7 @@ namespace __dfsan {
 void InitializeInterceptors();
 
 inline dfsan_label *shadow_for(void *ptr) {
-  // #ifdef LARGE_DFSAN_LABEL
-  // FIXME:
   return (dfsan_label *) ((((uptr) ptr) & ShadowMask()) << 2);
-  // #else
-  // return (dfsan_label *) ((((uptr) ptr) & ShadowMask()) << 1);
-  // #endif
 }
 
 inline const dfsan_label *shadow_for(const void *ptr) {

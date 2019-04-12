@@ -32,8 +32,8 @@ pub const UNREACHABLE: u64 = std::u64::MAX;
 pub const COND_BASIC_MASK: u32 = 0xFF;
 pub const COND_SIGN_MASK: u32 = 0x100;
 pub const COND_BOOL_MASK: u32 = 0x200;
-pub const COND_CALL_MASK: u32 = 0x400;
-pub const COND_CALL_REV_MASK: u32 = 0xFBFF;
+// pub const COND_CALL_MASK: u32 = 0x400;
+// pub const COND_CALL_REV_MASK: u32 = 0xFBFF;
 
 // http://llvm.org/doxygen/InstrTypes_8h_source.html
 // Opcode              U L G E    Intuitive operation

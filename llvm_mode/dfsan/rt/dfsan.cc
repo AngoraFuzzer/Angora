@@ -29,8 +29,6 @@
 
 using namespace __dfsan;
 
-// #include "../../../tag_set/tag_set.h"
-// TagSet* __dfsan_tag_set;
 #include "../../../runtime/include/tag_set.h"
 
 Flags __dfsan::flags_data;
@@ -40,16 +38,10 @@ SANITIZER_INTERFACE_ATTRIBUTE THREADLOCAL dfsan_label __dfsan_arg_tls[64];
 
 SANITIZER_INTERFACE_ATTRIBUTE uptr __dfsan_shadow_ptr_mask;
 
-// typedef dfsan_label dfsan_union_table_t[1<<16][1<<16];
-
 #ifdef DFSAN_RUNTIME_VMA
 // Runtime detected VMA size.
 int __dfsan::vmaSize;
 #endif
-
-// static dfsan_label* union_table(dfsan_label l1, dfsan_label l2) {
-//   return &(*(dfsan_union_table_t *) UnionTableAddr())[l1][l2];
-// }
 
 static uptr UnusedAddr() {
   // return MappingArchImpl<MAPPING_UNION_TABLE_ADDR>() +
@@ -226,25 +218,14 @@ static void InitializePlatformEarly() {
 #endif
 }
 
-void dfsan_clear_label_manually() {
-  // let it free automatically
-  // Modoern OS will do it, you know
-  // if (__dfsan_tag_set) {
-  // delete __dfsan_tag_set;
-  //__dfsan_tag_set = NULL;``
-  // }
-}
-
-static void dfsan_fini() { dfsan_clear_label_manually(); }
-
-static void dfsan_fini_wrap() { dfsan_fini(); }
+static void dfsan_fini() {}
 
 static void dfsan_init(int argc, char **argv, char **envp) {
   InitializeFlags();
 
   InitializePlatformEarly();
 
-  MmapFixedNoReserve(ShadowAddr(), UnusedAddr() - ShadowAddr());
+  if (!MmapFixedNoReserve(ShadowAddr(), UnusedAddr() - ShadowAddr())) Die();
 
   // Protect the region of memory we don't use, to preserve the one-to-one
   // mapping from application to shadow memory. But if ASLR is disabled, Linux
@@ -259,11 +240,8 @@ static void dfsan_init(int argc, char **argv, char **envp) {
 
   // Register the fini callback to run when the program terminates successfully
   // or it is killed by the runtime.
-
-  Atexit(dfsan_fini_wrap);
+  Atexit(dfsan_fini);
   AddDieCallback(dfsan_fini);
-
-  //__dfsan_tag_set = new TagSet();
 }
 
 #if SANITIZER_CAN_USE_PREINIT_ARRAY

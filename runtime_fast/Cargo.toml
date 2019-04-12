@@ -6,7 +6,7 @@ edition = "2018"
 
 [lib]
 name="runtime_fast"
-crate-type = ["staticlib"] # "cdfylib"
+crate-type = ["staticlib"] # "cdylib"
 
 [dependencies]
 libc = "0.2"

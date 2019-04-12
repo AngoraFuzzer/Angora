@@ -14,6 +14,12 @@ ifeq "$(shell uname)" "Darwin"
   CLANG_LFL += -Wl,-flat_namespace -Wl,-undefined,suppress
 endif
 
+# TODO: fix rpc https://github.com/AngoraFuzzer/Angora/commit/b852891e86b57a9b7560a19f26857f55e5f2e907
+
+#append_have_file_definition(rpc/xdr.h HAVE_RPC_XDR_H SANITIZER_COMMON_DEFINITIONS)
+#append_have_file_definition(tirpc/rpc/xdr.h HAVE_TIRPC_RPC_XDR_H SANITIZER_COMMON_DEFINITIONS)
+
+
 #SAN_SOURCES := $(wildcard ./sanitizer_common/*.cc)
 SAN_SOURCES = ./sanitizer_common/sanitizer_allocator.cc ./sanitizer_common/sanitizer_common.cc ./sanitizer_common/sanitizer_deadlock_detector1.cc ./sanitizer_common/sanitizer_deadlock_detector2.cc ./sanitizer_common/sanitizer_flags.cc ./sanitizer_common/sanitizer_flag_parser.cc ./sanitizer_common/sanitizer_libc.cc ./sanitizer_common/sanitizer_libignore.cc ./sanitizer_common/sanitizer_linux.cc ./sanitizer_common/sanitizer_linux_s390.cc ./sanitizer_common/sanitizer_mac.cc ./sanitizer_common/sanitizer_persistent_allocator.cc ./sanitizer_common/sanitizer_platform_limits_linux.cc ./sanitizer_common/sanitizer_platform_limits_posix.cc ./sanitizer_common/sanitizer_posix.cc ./sanitizer_common/sanitizer_printf.cc ./sanitizer_common/sanitizer_procmaps_common.cc ./sanitizer_common/sanitizer_procmaps_freebsd.cc ./sanitizer_common/sanitizer_procmaps_linux.cc ./sanitizer_common/sanitizer_procmaps_mac.cc ./sanitizer_common/sanitizer_stackdepot.cc ./sanitizer_common/sanitizer_stacktrace.cc ./sanitizer_common/sanitizer_stacktrace_printer.cc ./sanitizer_common/sanitizer_suppressions.cc ./sanitizer_common/sanitizer_symbolizer.cc ./sanitizer_common/sanitizer_symbolizer_libbacktrace.cc ./sanitizer_common/sanitizer_symbolizer_mac.cc ./sanitizer_common/sanitizer_symbolizer_win.cc ./sanitizer_common/sanitizer_tls_get_addr.cc ./sanitizer_common/sanitizer_thread_registry.cc ./sanitizer_common/sanitizer_win.cc
 

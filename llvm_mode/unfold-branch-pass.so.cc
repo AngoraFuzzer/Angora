@@ -67,9 +67,8 @@ bool UnfoldBranch::doInitialization(Module &M) {
   UnfoldBranchFn = M.getOrInsertFunction("__unfold_branch_fn", FnTy);
 
   if (Function *F = dyn_cast<Function>(UnfoldBranchFn)) {
-    F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
   }
-
   return true;
 }
 
@@ -88,8 +87,6 @@ bool UnfoldBranch::runOnFunction(Function &F) {
   SmallSet<BasicBlock *, 20> VisitedBB;
   LLVMContext &C = F.getContext();
   for (auto &BB : F) {
-    // for (BasicBlock::iterator I = BB.begin(); I != BB.end(); I++) {
-    //   Instruction *Inst = &(*I);
 
     Instruction *Inst = BB.getTerminator();
     if (isa<BranchInst>(Inst)) {
@@ -103,8 +100,8 @@ bool UnfoldBranch::runOnFunction(Function &F) {
       if (!Cond)
         continue;
 
-      if (BI->getNumSuccessors() > 0) {
-        BasicBlock *B0 = BI->getSuccessor(0);
+      for (unsigned int i = 0; i < BI->getNumSuccessors(); i++) {
+        BasicBlock *B0 = BI->getSuccessor(i);
         if (B0 && VisitedBB.count(B0) == 0) {
           VisitedBB.insert(B0);
           BasicBlock::iterator IP = B0->getFirstInsertionPt();
@@ -115,35 +112,9 @@ bool UnfoldBranch::runOnFunction(Function &F) {
           Call->setMetadata(C.getMDKindID("unfold"), MDNode::get(C, None));
         }
       }
-
-      if (BI->getNumSuccessors() > 1) {
-        BasicBlock *B1 = BI->getSuccessor(1);
-        if (B1 && VisitedBB.count(B1) == 0) {
-          VisitedBB.insert(B1);
-          BasicBlock::iterator IP = B1->getFirstInsertionPt();
-          IRBuilder<> IRB(&(*IP));
-          unsigned int cur_loc = RRR(MAP_SIZE);
-          CallInst *Call = IRB.CreateCall(UnfoldBranchFn,
-                                          {ConstantInt::get(Int32Ty, cur_loc)});
-          Call->setMetadata(C.getMDKindID("unfold"), MDNode::get(C, None));
-        }
-      }
     }
-
-    /*
-    if (isa<ReturnInst>(Inst)) {
-      ReturnInst *RI = dyn_cast<ReturnInst>(Inst);
-      Value* Ret = RI->getReturnValue();
-      if (Ret && isa<SExtInst>(Ret)) {
-        // errs() << "ret: " << *Ret << "\n";
-        // abort();
-        // F.addAttribute(AttributeSet::ReturnIndex, Attribute::SExt);
-      }
-      // errs() << F.getAttribute(AttributeSet::ReturnIndex,
-    Attribute::SExt).getValueAsInt() <<"\n";
-    }
-    */
   }
+
   return true;
 }
 

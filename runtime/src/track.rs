@@ -80,6 +80,11 @@ pub extern "C" fn __dfsw___angora_trace_switch_tt(
 
     infer_shape(lb, size);
 
+    let mut op = defs::COND_SW_OP;
+    if tag_set_wrap::tag_set_get_sign(lb as usize) {
+        op |= defs::COND_SIGN_MASK;
+    }
+
     let cond = CondStmtBase {
         cmpid,
         context,
@@ -87,7 +92,7 @@ pub extern "C" fn __dfsw___angora_trace_switch_tt(
         belong: 0,
         condition: defs::COND_FALSE_ST,
         level: 0,
-        op: defs::COND_SW_OP,
+        op,
         size,
         lb1: lb,
         lb2: 0,
@@ -119,6 +124,7 @@ pub extern "C" fn __dfsw___angora_trace_fn_tt(
     parg1: *mut i8,
     parg2: *mut i8,
     _l0: DfsanLabel,
+    _l1: DfsanLabel,
     _l2: DfsanLabel,
     _l3: DfsanLabel,
     _l4: DfsanLabel,

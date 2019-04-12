@@ -256,8 +256,8 @@ void AngoraLLVMPass::initVariables(Module &M) {
     TraceCmpTy = FunctionType::get(Int32Ty, TraceCmpArgs, false);
     TraceCmp = M.getOrInsertFunction("__angora_trace_cmp", TraceCmpTy);
     if (Function *F = dyn_cast<Function>(TraceCmp)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
       // F->addAttribute(1, Attribute::ZExt);
     }
 
@@ -265,9 +265,9 @@ void AngoraLLVMPass::initVariables(Module &M) {
     TraceSwTy = FunctionType::get(Int64Ty, TraceSwArgs, false);
     TraceSw = M.getOrInsertFunction("__angora_trace_switch", TraceSwTy);
     if (Function *F = dyn_cast<Function>(TraceSw)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
-      // F->addAttribute(AttributeSet::ReturnIndex, Attribute::ZExt);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
+      // F->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
       // F->addAttribute(1, Attribute::ZExt);
     }
 
@@ -277,8 +277,8 @@ void AngoraLLVMPass::initVariables(Module &M) {
     TraceCmpTtTy = FunctionType::get(VoidTy, TraceCmpTtArgs, false);
     TraceCmpTT = M.getOrInsertFunction("__angora_trace_cmp_tt", TraceCmpTtTy);
     if (Function *F = dyn_cast<Function>(TraceCmpTT)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
     }
 
     Type *TraceSwTtArgs[6] = {Int32Ty, Int32Ty, Int32Ty,
@@ -286,16 +286,16 @@ void AngoraLLVMPass::initVariables(Module &M) {
     TraceSwTtTy = FunctionType::get(VoidTy, TraceSwTtArgs, false);
     TraceSwTT = M.getOrInsertFunction("__angora_trace_switch_tt", TraceSwTtTy);
     if (Function *F = dyn_cast<Function>(TraceSwTT)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
     }
 
     Type *TraceFnTtArgs[5] = {Int32Ty, Int32Ty, Int32Ty, Int8PtrTy, Int8PtrTy};
     TraceFnTtTy = FunctionType::get(VoidTy, TraceFnTtArgs, false);
     TraceFnTT = M.getOrInsertFunction("__angora_trace_fn_tt", TraceFnTtTy);
     if (Function *F = dyn_cast<Function>(TraceFnTT)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadOnly);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadOnly);
     }
 
     Type *TraceExploitTtArgs[5] = {Int32Ty, Int32Ty, Int32Ty, Int32Ty, Int64Ty};
@@ -303,8 +303,8 @@ void AngoraLLVMPass::initVariables(Module &M) {
     TraceExploitTT = M.getOrInsertFunction("__angora_trace_exploit_val_tt",
                                            TraceExploitTtTy);
     if (Function *F = dyn_cast<Function>(TraceExploitTT)) {
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::NoUnwind);
-      F->addAttribute(AttributeSet::FunctionIndex, Attribute::ReadNone);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+      F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
     }
   }
 
@@ -320,7 +320,7 @@ void AngoraLLVMPass::initVariables(Module &M) {
   ExploitList.set(SpecialCaseList::createOrDie(AllExploitListFiles));
 
   enable_ctx = !getenv(DISABLE_CTX_VAR);
-  direct_fn_ctx = getenv(DIRECT_FN_CTX);
+  direct_fn_ctx = !!getenv(DIRECT_FN_CTX);
   gen_id_random = !!getenv(GEN_ID_RANDOM_VAR);
   output_cond_loc = !!getenv(OUTPUT_COND_LOC_VAR);
 
@@ -440,15 +440,18 @@ void AngoraLLVMPass::visitCallInst(Instruction *Inst) {
     // by `xor` with the same value.
     LoadInst *CtxVal = IRB.CreateLoad(AngoraContext);
     setInsNonSan(CtxVal);
+
     uint32_t fun_ctx_val = getRandomContextId();
     Value *UpdatedCtx = ConstantInt::get(Int32Ty, fun_ctx_val);
     setValueNonSan(UpdatedCtx);
+
     if (!direct_fn_ctx) {
       // Implementation of function context for AFL by heiko eissfeldt:
       // https://github.com/vanhauser-thc/afl-patches/blob/master/afl-fuzz-context_sensitive.diff
       UpdatedCtx = IRB.CreateXor(CtxVal, UpdatedCtx);
       setValueNonSan(UpdatedCtx);
     }
+
     StoreInst *SaveCtx = IRB.CreateStore(UpdatedCtx, AngoraContext);
     setInsNonSan(SaveCtx);
     StoreInst *StoreCtx = new StoreInst(CtxVal, AngoraContext);
@@ -660,6 +663,7 @@ void AngoraLLVMPass::visitSwitchInst(Module &M, Instruction *Inst) {
   if (!(Cond && Cond->getType()->isIntegerTy() && !isa<ConstantInt>(Cond))) {
     return;
   }
+
   int num_bits = Cond->getType()->getScalarSizeInBits();
   int num_bytes = num_bits / 8;
   if (num_bytes == 0 || num_bits % 8 > 0)
@@ -786,8 +790,8 @@ bool AngoraLLVMPass::runOnModule(Module &M) {
 
     for (auto bi = bb_list.begin(); bi != bb_list.end(); bi++) {
       BasicBlock *BB = *bi;
-
       std::vector<Instruction *> inst_list;
+
       for (auto inst = BB->begin(); inst != BB->end(); inst++) {
         Instruction *Inst = &(*inst);
         inst_list.push_back(Inst);
@@ -808,13 +812,10 @@ bool AngoraLLVMPass::runOnModule(Module &M) {
           visitSwitchInst(M, Inst);
         } else if (isa<CmpInst>(Inst)) {
           visitCmpInst(Inst);
-        } else if (isa<SelectInst>(Inst)) {
-          // errs() << "S: " << *Inst << "\n";
         } else {
           visitExploitation(Inst);
         }
       }
-      // CurCid = NULL;
     }
   }
 
