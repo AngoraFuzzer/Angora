@@ -109,7 +109,7 @@ For more information, please refer to the documentation under the
 - [Exploit attack points](./docs/exploitation.md)
 - [Usage](./docs/usage.md)
 - [Configuration Files](./docs/configuration.md)
-- [Environment variables in compiling](./docs/environment_variables.md)
+- [Environment variables](./docs/environment_variables.md)
 - [UI Terminology](./docs/ui.md)
 - [Troubleshoot](./docs/troubleshoot.md)
 

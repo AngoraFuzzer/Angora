@@ -6,7 +6,7 @@
 #define MAX_FUNCALL_LEVEL 25
 #define ENABLE_UNFOLD_BRANCH 1
 
-#define VERSION "0.00"
+#define VERSION "1.10"
 
 // Without taint tracking
 #define CLANG_FAST_TYPE 0

@@ -440,15 +440,18 @@ void AngoraLLVMPass::visitCallInst(Instruction *Inst) {
     // by `xor` with the same value.
     LoadInst *CtxVal = IRB.CreateLoad(AngoraContext);
     setInsNonSan(CtxVal);
+
     uint32_t fun_ctx_val = getRandomContextId();
     Value *UpdatedCtx = ConstantInt::get(Int32Ty, fun_ctx_val);
     setValueNonSan(UpdatedCtx);
+
     if (!direct_fn_ctx) {
       // Implementation of function context for AFL by heiko eissfeldt:
       // https://github.com/vanhauser-thc/afl-patches/blob/master/afl-fuzz-context_sensitive.diff
       UpdatedCtx = IRB.CreateXor(CtxVal, UpdatedCtx);
       setValueNonSan(UpdatedCtx);
     }
+
     StoreInst *SaveCtx = IRB.CreateStore(UpdatedCtx, AngoraContext);
     setInsNonSan(SaveCtx);
     StoreInst *StoreCtx = new StoreInst(CtxVal, AngoraContext);
@@ -660,6 +663,7 @@ void AngoraLLVMPass::visitSwitchInst(Module &M, Instruction *Inst) {
   if (!(Cond && Cond->getType()->isIntegerTy() && !isa<ConstantInt>(Cond))) {
     return;
   }
+
   int num_bits = Cond->getType()->getScalarSizeInBits();
   int num_bytes = num_bits / 8;
   if (num_bytes == 0 || num_bits % 8 > 0)
@@ -786,8 +790,8 @@ bool AngoraLLVMPass::runOnModule(Module &M) {
 
     for (auto bi = bb_list.begin(); bi != bb_list.end(); bi++) {
       BasicBlock *BB = *bi;
-
       std::vector<Instruction *> inst_list;
+
       for (auto inst = BB->begin(); inst != BB->end(); inst++) {
         Instruction *Inst = &(*inst);
         inst_list.push_back(Inst);
@@ -808,13 +812,10 @@ bool AngoraLLVMPass::runOnModule(Module &M) {
           visitSwitchInst(M, Inst);
         } else if (isa<CmpInst>(Inst)) {
           visitCmpInst(Inst);
-        } else if (isa<SelectInst>(Inst)) {
-          // errs() << "S: " << *Inst << "\n";
         } else {
           visitExploitation(Inst);
         }
       }
-      // CurCid = NULL;
     }
   }
 
