@@ -24,6 +24,7 @@
 #include "./alloc-inl.h"
 #include "./config.h"
 #include "./debug.h"
+#include "./version.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -193,8 +194,10 @@ static void edit_params(u32 argc, char **argv) {
 
   cc_params = ck_alloc((argc + 128) * sizeof(u8 *));
 
-  // https: // bugs.llvm.org/show_bug.cgi?id=39321
+// https: // bugs.llvm.org/show_bug.cgi?id=39321
+#if LLVM_VERSION_CODE >= LLVM_VERSION(5, 0)
   setenv("LD_PRELOAD", alloc_printf("%s/llvm-catch-dlclose.so", obj_path), 1);
+#endif
 
   name = strrchr(argv[0], '/');
   if (!name)

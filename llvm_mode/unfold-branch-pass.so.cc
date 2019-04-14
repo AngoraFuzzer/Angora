@@ -10,6 +10,7 @@
 
 #include "./config.h"
 #include "./debug.h"
+#include "./version.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,7 +68,7 @@ bool UnfoldBranch::doInitialization(Module &M) {
   UnfoldBranchFn = M.getOrInsertFunction("__unfold_branch_fn", FnTy);
 
   if (Function *F = dyn_cast<Function>(UnfoldBranchFn)) {
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::NoUnwind);
   }
   return true;
 }
