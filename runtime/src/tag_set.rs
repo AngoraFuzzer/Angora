@@ -217,11 +217,12 @@ impl TagSet {
             return;
         }
         let mut cur_lb = lb;
-        for _ in 0..len {
+        for _ in 0..(len - 1) {
+            cur_lb = self.nodes[cur_lb].parent;
+
             if cur_lb == ROOT {
                 return;
             }
-            cur_lb = self.nodes[cur_lb].parent;
         }
         if self.nodes[cur_lb].parent == ROOT {
             if self.nodes[cur_lb].seg.begin + len as u32 == self.nodes[lb].seg.end {
