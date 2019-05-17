@@ -119,6 +119,12 @@ fun:pow=functional
 fun:round=functional
 fun:sqrt=functional
 fun:wctob=functional
+fun:lrint=functional
+fun:lrintf=functional
+fun:lrintl=functional
+fun:llrint=functional
+fun:llrintf=functional
+fun:llrintl=functional
 
 # Functions that produce an output that does not depend on the input (shadow is
 # zeroed automatically).
