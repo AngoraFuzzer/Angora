@@ -65,7 +65,9 @@ pub fn fuzz_main(
     depot::sync_depot(&mut executor, running.clone(), &depot.dirs.seeds_dir);
 
     if depot.empty() {
-        error!("Failed to find any branches during dry run.\nPlease ensure that the binary has been instrumented and/or input directory is populated. \nPlease ensure that seed directory - {:?} has any file.", depot.dirs.seeds_dir);
+        error!("Failed to find any branches during dry run.");
+        error!("Please ensure that the binary has been instrumented and/or input directory is populated.");
+        error!("Please ensure that seed directory - {:?} has any file.", depot.dirs.seeds_dir);
         panic!();
     }
 
