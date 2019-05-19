@@ -1,12 +1,8 @@
-use chrono::prelude::Local;
+use angora_common::defs;
 use std::{
     fs,
     path::{Path, PathBuf},
 };
-
-static CRASHES_DIR: &str = "crashes";
-static HANGS_DIR: &str = "hangs";
-static INPUTS_DIR: &str = "queue";
 
 #[derive(Debug)]
 pub struct DepotDir {
@@ -17,21 +13,11 @@ pub struct DepotDir {
 }
 
 impl DepotDir {
-    pub fn new(in_dir: &str, out_dir: &Path) -> Self {
-        let restart = in_dir == "-";
+    pub fn new(seeds_dir: PathBuf, out_dir: &Path) -> Self {
 
-        let inputs_dir = out_dir.join(INPUTS_DIR);
-        let hangs_dir = out_dir.join(HANGS_DIR);
-        let crashes_dir = out_dir.join(CRASHES_DIR);
-
-        let seeds_dir = if restart {
-            let orig_out_dir = out_dir.with_extension(Local::now().to_rfc3339());
-            fs::rename(&out_dir, orig_out_dir.clone()).unwrap();
-            fs::create_dir(&out_dir).unwrap();
-            PathBuf::from(orig_out_dir).join(INPUTS_DIR)
-        } else {
-            PathBuf::from(in_dir)
-        };
+        let inputs_dir = out_dir.join(defs::INPUTS_DIR);
+        let hangs_dir = out_dir.join(defs::HANGS_DIR);
+        let crashes_dir = out_dir.join(defs::CRASHES_DIR);
 
         fs::create_dir(&crashes_dir).unwrap();
         fs::create_dir(&hangs_dir).unwrap();

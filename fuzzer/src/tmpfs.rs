@@ -30,7 +30,10 @@ pub fn create_tmpfs_dir(target: &Path) {
     }
 }
 
-pub fn clear_tmpfs_dir() {
+pub fn clear_tmpfs_dir(target: &Path) {
+    if target.exists() {
+        fs::remove_file(target).unwrap();
+    }
     let shm_dir = Path::new(LINUX_TMPFS_DIR);
     if shm_dir.is_dir() {
         // support tmpfs

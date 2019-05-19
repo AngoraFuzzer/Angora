@@ -1,5 +1,6 @@
 use crate::stats::*;
 use angora_common::defs;
+use chrono::prelude::Local;
 use std::{
     collections::HashMap,
     fs,
@@ -33,7 +34,7 @@ pub fn fuzz_main(
 ) {
     pretty_env_logger::init();
 
-    let angora_out_dir = initialize_directories(in_dir, out_dir, sync_afl);
+    let (seeds_dir, angora_out_dir) = initialize_directories(in_dir, out_dir, sync_afl);
     let command_option = command::CommandOpt::new(
         mode,
         track_target,
@@ -46,9 +47,12 @@ pub fn fuzz_main(
         enable_exploitation,
     );
     info!("{:?}", command_option);
+
     check_dep::check_dep(in_dir, out_dir, &command_option);
 
-    let depot = Arc::new(depot::Depot::new(in_dir, &angora_out_dir));
+    let depot = Arc::new(depot::Depot::new(seeds_dir, &angora_out_dir));
+    info!("{:?}", depot.dirs);
+
     let stats = Arc::new(RwLock::new(stats::ChartStats::new()));
     let global_branches = Arc::new(branches::GlobalBranches::new());
     let fuzzer_stats = create_stats_file_and_write_pid(&angora_out_dir);
@@ -67,7 +71,10 @@ pub fn fuzz_main(
     if depot.empty() {
         error!("Failed to find any branches during dry run.");
         error!("Please ensure that the binary has been instrumented and/or input directory is populated.");
-        error!("Please ensure that seed directory - {:?} has any file.", depot.dirs.seeds_dir);
+        error!(
+            "Please ensure that seed directory - {:?} has any file.",
+            depot.dirs.seeds_dir
+        );
         panic!();
     }
 
@@ -111,7 +118,7 @@ pub fn fuzz_main(
     };
 }
 
-fn initialize_directories(in_dir: &str, out_dir: &str, sync_afl: bool) -> PathBuf {
+fn initialize_directories(in_dir: &str, out_dir: &str, sync_afl: bool) -> (PathBuf, PathBuf) {
     let angora_out_dir = if sync_afl {
         gen_path_afl(out_dir)
     } else {
@@ -123,7 +130,17 @@ fn initialize_directories(in_dir: &str, out_dir: &str, sync_afl: bool) -> PathBu
         fs::create_dir(&angora_out_dir).expect("Output directory has existed!");
     }
 
-    angora_out_dir
+    let out_dir = &angora_out_dir;
+    let seeds_dir = if restart {
+        let orig_out_dir = out_dir.with_extension(Local::now().to_rfc3339());
+        fs::rename(&out_dir, orig_out_dir.clone()).unwrap();
+        fs::create_dir(&out_dir).unwrap();
+        PathBuf::from(orig_out_dir).join(defs::INPUTS_DIR)
+    } else {
+        PathBuf::from(in_dir)
+    };
+
+    (seeds_dir, angora_out_dir)
 }
 
 fn gen_path_afl(out_dir: &str) -> PathBuf {

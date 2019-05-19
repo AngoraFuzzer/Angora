@@ -14,6 +14,11 @@ pub const MSAN_ERROR_CODE: i32 = 86;
 pub static MSAN_OPTIONS_CONTENT: &str =
     "exit_code=86:symbolize=0:abort_on_error=1:allocator_may_return_null=1:msan_track_origins=0";
 
+// depot.rs
+pub static CRASHES_DIR: &str = "crashes";
+pub static HANGS_DIR: &str = "hangs";
+pub static INPUTS_DIR: &str = "queue";
+
 // forksrv.rs
 pub static ENABLE_FORKSRV: &str = "ANGORA_ENABLE_FORKSRV";
 pub static FORKSRV_SOCKET_PATH_VAR: &str = "ANGORA_FORKSRV_SOCKET_PATH";
