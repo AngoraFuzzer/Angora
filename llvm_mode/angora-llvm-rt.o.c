@@ -25,4 +25,3 @@ __attribute__((constructor(0))) void __angora_auto_init(void) {
     init_done = 1;
   }
 }
-__attribute__((destructor(0))) void __angora_auto_fini(void) { }

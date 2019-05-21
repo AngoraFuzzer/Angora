@@ -1,5 +1,5 @@
 PREFIX     = ../bin/
-PROGS      = ${PREFIX}angora-clang ${PREFIX}angora-llvm-pass.so ${PREFIX}unfold-branch-pass.so ${PREFIX}angora-llvm-rt.o  ${PREFIX}io-func.o ${PREFIX}globals.o ${PREFIX}stdalloc.o ${PREFIX}alloc-preload.so ${PREFIX}pin_stub.o ${PREFIX}llvm-catch-dlclose.so
+PROGS      = ${PREFIX}angora-clang ${PREFIX}angora-llvm-pass.so ${PREFIX}unfold-branch-pass.so  ${PREFIX}io-func.o ${PREFIX}stdalloc.o ${PREFIX}pin_stub.o ${PREFIX}llvm-catch-dlclose.so
 
 all: test_deps $(PROGS) rule_list ext_lib dfsan_lib
 
@@ -29,20 +29,11 @@ ${PREFIX}angora-llvm-pass.so: angora-llvm-pass.so.cc abilist.h config.h
 ${PREFIX}unfold-branch-pass.so: unfold-branch-pass.so.cc config.h
 	$(CXX) $(CLANG_CFL) -shared $< -o $@ $(CLANG_LFL)
 
-${PREFIX}angora-llvm-rt.o: angora-llvm-rt.o.c config.h
-	$(CC) $(CFLAGS) -fPIC -c $< -o $@
-
 ${PREFIX}io-func.o: io-func.c config.h
-	$(CC) $(CFLAGS) -fPIC -c $< -o $@
-
-${PREFIX}globals.o: globals.c config.h
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
 
 ${PREFIX}stdalloc.o: stdalloc.c config.h
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@
-
-${PREFIX}alloc-preload.so: alloc-preload.so.c
-	${CC} -shared -fPIC -ldl $< -o $@
 
 ${PREFIX}pin_stub.o: pin_stub.c
 	$(CC) $(CFLAGS) -fPIC -c $< -o $@

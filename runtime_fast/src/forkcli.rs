@@ -6,7 +6,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use libc;
 use std::{io::prelude::*, os::unix::net::UnixStream, process, time::Duration};
 
-fn start_forkcli() {
+pub fn start_forkcli() {
     match env::var(defs::FORKSRV_SOCKET_PATH_VAR) {
         Ok(socket_path) => {
             let mut socket = match UnixStream::connect(socket_path) {
@@ -68,7 +68,3 @@ fn start_forkcli() {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn __angora_start_forkcli() {
-    start_forkcli();
-}

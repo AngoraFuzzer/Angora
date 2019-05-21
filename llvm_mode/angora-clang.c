@@ -124,14 +124,11 @@ static void add_angora_pass() {
 }
 
 static void add_angora_runtime() {
-  cc_params[cc_par_cnt++] = alloc_printf("%s/globals.o", obj_path);
   if (clang_type == CLANG_FAST_TYPE) {
-    cc_params[cc_par_cnt++] = alloc_printf("%s/angora-llvm-rt.o", obj_path);
     cc_params[cc_par_cnt++] = alloc_printf("%s/libruntime_fast.a", obj_path);
   }
 
   // cc_params[cc_par_cnt++] = "-I/${HOME}/clang+llvm/include/c++/v1";
-
   if (clang_type == CLANG_TRACK_TYPE || clang_type == CLANG_DFSAN_TYPE) {
     cc_params[cc_par_cnt++] = "-Wl,--whole-archive";
     cc_params[cc_par_cnt++] = alloc_printf("%s/DFSanRT.a", obj_path);
@@ -427,12 +424,12 @@ int main(int argc, char **argv) {
   find_obj(argv[0]);
 
   edit_params(argc, argv);
-  /*
+
   for (int i = 0; i < cc_par_cnt; i++) {
     printf("%s ", cc_params[i]);
   }
   printf("\n");
-  */
+
   execvp(cc_params[0], (char **)cc_params);
 
   FATAL("Oops, failed to execute '%s' - check your PATH", cc_params[0]);

@@ -510,7 +510,7 @@ mod tests {
             }
         );
 
-        let l5 = tag_set.combine(l3, l4);
+        let _l5 = tag_set.combine(l3, l4);
         let list = tag_set.find(l3);
         assert_eq!(list.len(), 1);
         assert_eq!(
