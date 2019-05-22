@@ -124,12 +124,10 @@ static void add_angora_pass() {
 }
 
 static void add_angora_runtime() {
+  // cc_params[cc_par_cnt++] = "-I/${HOME}/clang+llvm/include/c++/v1";
   if (clang_type == CLANG_FAST_TYPE) {
     cc_params[cc_par_cnt++] = alloc_printf("%s/libruntime_fast.a", obj_path);
-  }
-
-  // cc_params[cc_par_cnt++] = "-I/${HOME}/clang+llvm/include/c++/v1";
-  if (clang_type == CLANG_TRACK_TYPE || clang_type == CLANG_DFSAN_TYPE) {
+  } else if (clang_type == CLANG_TRACK_TYPE || clang_type == CLANG_DFSAN_TYPE) {
     cc_params[cc_par_cnt++] = "-Wl,--whole-archive";
     cc_params[cc_par_cnt++] = alloc_printf("%s/DFSanRT.a", obj_path);
     cc_params[cc_par_cnt++] = "-Wl,--no-whole-archive";
@@ -143,9 +141,7 @@ static void add_angora_runtime() {
     if (rule_obj) {
       cc_params[cc_par_cnt++] = rule_obj;
     }
-  }
-
-  if (clang_type == CLANG_PIN_TYPE) {
+  } else if (clang_type == CLANG_PIN_TYPE) {
     cc_params[cc_par_cnt++] = alloc_printf("%s/pin_stub.o", obj_path);
   }
 

@@ -718,7 +718,6 @@ void AngoraLLVMPass::visitSwitchInst(Module &M, Instruction *Inst) {
     CallInst *ProxyCall = IRB.CreateCall(
         TraceSwTT, {Cid, CurCtx, SizeArg, CondExt, SwNum, ArrPtr});
     setInsNonSan(ProxyCall);
-    ProxyCall->setMetadata(NoSanMetaId, NoneMetaNode);
   }
 }
 
