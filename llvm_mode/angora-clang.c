@@ -349,14 +349,25 @@ static void edit_params(u32 argc, char **argv) {
     "_I(); } while (0)";
   */
 
-  if (is_cxx && clang_type == CLANG_TRACK_TYPE) {
-
-    cc_params[cc_par_cnt++] = alloc_printf("-L%s/libcxx_dfsan/", obj_path);
-    cc_params[cc_par_cnt++] = "-stdlib=libc++";
-    cc_params[cc_par_cnt++] = "-Wl,--start-group";
-    cc_params[cc_par_cnt++] = "-lc++abidfsan";
-    cc_params[cc_par_cnt++] = "-lc++abi";
-    cc_params[cc_par_cnt++] = "-Wl,--end-group";
+  if (is_cxx) {
+    // FIXME: or use the same header
+    // cc_params[cc_par_cnt++] = "-I/path-to-llvm/include/c++/v1";
+    if (clang_type == CLANG_FAST_TYPE) {
+      cc_params[cc_par_cnt++] = alloc_printf("-L%s/libcxx_fast/", obj_path);
+      cc_params[cc_par_cnt++] = "-stdlib=libc++";
+      cc_params[cc_par_cnt++] = "-Wl,--start-group";
+      cc_params[cc_par_cnt++] = "-lc++abifast";
+      cc_params[cc_par_cnt++] = "-lc++abi";
+      cc_params[cc_par_cnt++] = "-Wl,--end-group";
+    }
+    else if (clang_type == CLANG_TRACK_TYPE) {
+      cc_params[cc_par_cnt++] = alloc_printf("-L%s/libcxx_track/", obj_path);
+      cc_params[cc_par_cnt++] = "-stdlib=libc++";
+      cc_params[cc_par_cnt++] = "-Wl,--start-group";
+      cc_params[cc_par_cnt++] = "-lc++abitrack";
+      cc_params[cc_par_cnt++] = "-lc++abi";
+      cc_params[cc_par_cnt++] = "-Wl,--end-group";
+    }
   }
 
   if (maybe_linking) {

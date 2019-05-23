@@ -11,10 +11,15 @@ rule_list:
 
 ext_lib:
 	cd external_lib && make
-	rm -rf ${PREFIX}/libcxx_dfsan
-	mkdir ${PREFIX}/libcxx_dfsan
-	cp libcxx_dfsan/libc++.a ${PREFIX}/libcxx_dfsan
-	cp libcxx_dfsan/libc++abidfsan.a ${PREFIX}/libcxx_dfsan
+	rm -rf ${PREFIX}/libcxx_*
+
+	mkdir ${PREFIX}/libcxx_fast
+	cp libcxx_dfsan/build_fast/lib/libc++.a ${PREFIX}/libcxx_fast
+	cp libcxx_dfsan/build_fast/lib/libc++abi.a ${PREFIX}/libcxx_fast/libc++abifast.a
+
+	mkdir ${PREFIX}/libcxx_track
+	cp libcxx_dfsan/build_track/lib/libc++.a ${PREFIX}/libcxx_track
+	cp libcxx_dfsan/build_track/lib/libc++abi.a ${PREFIX}/libcxx_track/libc++abitrack.a
 
 dfsan_lib:
 	cd dfsan && make

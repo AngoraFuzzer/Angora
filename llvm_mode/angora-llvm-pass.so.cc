@@ -135,6 +135,7 @@ public:
   void processBoolCmp(Value *Cond, Constant *Cid, Instruction *InsertPoint);
   void visitSwitchInst(Module &M, Instruction *Inst);
   void visitExploitation(Instruction *Inst);
+  void addFnWrap(Function &F);
 };
 
 } // namespace

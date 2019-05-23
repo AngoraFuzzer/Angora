@@ -52,8 +52,15 @@ fi
 
 cd $CUR_DIR
 
-rm -rf build
-mkdir build && cd build/
+rm -rf build_*
+
+mkdir build_fast && cd build_fast/
+CC=clang CXX=clang++ cmake -G Ninja ../llvm_src  -DLIBCXXABI_ENABLE_SHARED=NO -DLIBCXX_ENABLE_SHARED=NO -DLIBCXX_CXX_ABI=libcxxabi 
+#-DLLVM_FORCE_USE_OLD_TOOLCHAIN=YES 
+ninja cxx cxxabi
+
+cd ..
+mkdir build_track && cd build_track/
 
 CC=~/angora/bin/angora-clang CXX=~/angora/bin/angora-clang++ cmake -G Ninja ../llvm_src  -DLIBCXXABI_ENABLE_SHARED=NO -DLIBCXX_ENABLE_SHARED=NO -DLIBCXX_CXX_ABI=libcxxabi 
 #-DLLVM_FORCE_USE_OLD_TOOLCHAIN=YES 
@@ -61,5 +68,5 @@ USE_DFSAN=1 ninja cxx cxxabi
 
 # @echo "if cxxabi.h not found, try: cp ./libcxxabi/include/*  ./libcxx/include, or -I"
 
-cp $CUR_DIR/build/lib/libc++.a $CUR_DIR/.
-cp $CUR_DIR/build/lib/libc++abi.a $CUR_DIR/libc++abidfsan.a
+# cp $CUR_DIR/build/lib/libc++.a $CUR_DIR/.
+# cp $CUR_DIR/build/lib/libc++abi.a $CUR_DIR/libc++abidfsan.a
