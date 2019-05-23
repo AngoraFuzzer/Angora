@@ -90,6 +90,7 @@ public:
   GlobalVariable *AngoraPrevLoc;
   GlobalVariable *AngoraContext;
   GlobalVariable *AngoraCondId;
+  GlobalVariable *AngoraCallSite;
 
   Constant *TraceCmp;
   Constant *TraceSw;
@@ -135,6 +136,7 @@ public:
   void processBoolCmp(Value *Cond, Constant *Cid, Instruction *InsertPoint);
   void visitSwitchInst(Module &M, Instruction *Inst);
   void visitExploitation(Instruction *Inst);
+  void processCall(Instruction *Inst);
   void addFnWrap(Function &F);
 };
 
@@ -244,6 +246,11 @@ void AngoraLLVMPass::initVariables(Module &M) {
       new GlobalVariable(M, Int32Ty, false, GlobalValue::CommonLinkage,
                          ConstantInt::get(Int32Ty, 0), "__angora_context", 0,
                          GlobalVariable::GeneralDynamicTLSModel, 0, false);
+
+  AngoraCallSite = new GlobalVariable(
+      M, Int32Ty, false, GlobalValue::CommonLinkage, 
+      ConstantInt::get(Int32Ty, 0), "__angora_call_site", 0, 
+      GlobalVariable::GeneralDynamicTLSModel, 0, false);
 
   if (FastMode) {
     AngoraMapPtr = new GlobalVariable(M, PointerType::get(Int8Ty, 0), false,
@@ -412,15 +419,71 @@ void AngoraLLVMPass::countEdge(Module &M, BasicBlock &BB) {
   setInsNonSan(Store);
 };
 
+
+void AngoraLLVMPass::addFnWrap(Function &F) {
+  // *** Pre Fn ***
+  BasicBlock *BB = &F.getEntryBlock();
+  Instruction *InsertPoint = &(*(BB->getFirstInsertionPt()));
+  IRBuilder<> IRB(InsertPoint);
+
+  Value *CallSite = IRB.CreateLoad(AngoraCallSite);
+  setValueNonSan(CallSite);
+
+  Value *OriCtxVal =IRB.CreateLoad(AngoraContext);
+  setValueNonSan(OriCtxVal);
+
+  // ***** Add Context *****
+  // instrument code before and after each function call to add context
+  // We did `xor` simply.
+  // This can avoid recursion. The effect of call in recursion will be removed
+  // by `xor` with the same value
+  // Implementation of function context for AFL by heiko eissfeldt:
+  // https://github.com/vanhauser-thc/afl-patches/blob/master/afl-fuzz-context_sensitive.diff
+  if (direct_fn_ctx) {
+    OriCtxVal = IRB.CreateLShr(OriCtxVal, 6);
+    setValueNonSan(OriCtxVal);
+  }
+
+  Value *UpdatedCtx = IRB.CreateXor(OriCtxVal, CallSite);
+  setValueNonSan(UpdatedCtx);
+
+  StoreInst *SaveCtx = IRB.CreateStore(UpdatedCtx, AngoraContext);
+  setInsNonSan(SaveCtx);
+
+
+  // *** Post Fn ***
+  for (auto bb = F.begin(); bb != F.end(); bb++) {
+    BasicBlock *BB = &(*bb);
+    Instruction *Inst = BB->getTerminator();
+    if (isa<ReturnInst>(Inst) || isa<ResumeInst>(Inst)) {
+      // ***** Reload Context *****
+      IRBuilder<> Post_IRB(Inst);
+      Post_IRB.CreateStore(OriCtxVal, AngoraContext)
+           ->setMetadata(NoSanMetaId, NoneMetaNode);
+    }
+  }
+}
+
+void AngoraLLVMPass::processCall(Instruction *Inst) {
+  
+  visitCompareFunc(Inst);
+  visitExploitation(Inst);
+
+  //  if (ABIList.isIn(*Callee, "uninstrumented"))
+  //  return;
+
+  IRBuilder<> IRB(Inst);
+  Constant* CallSite = ConstantInt::get(Int32Ty, getRandomContextId());
+  IRB.CreateStore(CallSite, AngoraCallSite)->setMetadata(NoSanMetaId, NoneMetaNode);
+
+}
+
 void AngoraLLVMPass::visitCallInst(Instruction *Inst) {
 
   CallInst *Caller = dyn_cast<CallInst>(Inst);
   Function *Callee = Caller->getCalledFunction();
 
-  if (!Callee)
-    return;
-
-  if (Callee->isIntrinsic() || isa<InlineAsm>(Caller->getCalledValue())) {
+  if (!Callee || Callee->isIntrinsic() || isa<InlineAsm>(Caller->getCalledValue())) {
     return;
   }
 
@@ -432,40 +495,21 @@ void AngoraLLVMPass::visitCallInst(Instruction *Inst) {
     return;
   }
 
-  visitCompareFunc(Inst);
-  visitExploitation(Inst);
-
-  if (ABIList.isIn(*Callee, "uninstrumented"))
-    return;
-
-  IRBuilder<> IRB(Inst);
-
-  if (enable_ctx) { // Call-based context
-    // instrument code before and after each function call to add context
-    // We did `xor` simply.
-    // This can avoid recursion. The effect of call in recursion will be removed
-    // by `xor` with the same value.
-    LoadInst *CtxVal = IRB.CreateLoad(AngoraContext);
-    setInsNonSan(CtxVal);
-
-    uint32_t fun_ctx_val = getRandomContextId();
-    Value *UpdatedCtx = ConstantInt::get(Int32Ty, fun_ctx_val);
-    setValueNonSan(UpdatedCtx);
-
-    if (!direct_fn_ctx) {
-      // Implementation of function context for AFL by heiko eissfeldt:
-      // https://github.com/vanhauser-thc/afl-patches/blob/master/afl-fuzz-context_sensitive.diff
-      UpdatedCtx = IRB.CreateXor(CtxVal, UpdatedCtx);
-      setValueNonSan(UpdatedCtx);
-    }
-
-    StoreInst *SaveCtx = IRB.CreateStore(UpdatedCtx, AngoraContext);
-    setInsNonSan(SaveCtx);
-    StoreInst *StoreCtx = new StoreInst(CtxVal, AngoraContext);
-    StoreCtx->insertAfter(Inst);
-    setInsNonSan(StoreCtx);
-  }
+  processCall(Inst);
 };
+
+void AngoraLLVMPass::visitInvokeInst(Instruction *Inst) {
+
+  InvokeInst *Caller = dyn_cast<InvokeInst>(Inst);
+  Function *Callee = Caller->getCalledFunction();
+
+  if (!Callee || Callee->isIntrinsic() ||
+      isa<InlineAsm>(Caller->getCalledValue())) {
+    return;
+  }
+
+  processCall(Inst);
+}
 
 void AngoraLLVMPass::visitCompareFunc(Instruction *Inst) {
   // configuration file: custom/exploitation_list.txt  fun:xx=cmpfn
@@ -790,6 +834,8 @@ bool AngoraLLVMPass::runOnModule(Module &M) {
     if (F.isDeclaration())
       continue;
 
+    addFnWrap(F);
+
     std::vector<BasicBlock *> bb_list;
     for (auto bb = F.begin(); bb != F.end(); bb++)
       bb_list.push_back(&(*bb));
@@ -812,6 +858,8 @@ bool AngoraLLVMPass::runOnModule(Module &M) {
         }
         if (isa<CallInst>(Inst)) {
           visitCallInst(Inst);
+        } else if (isa<InvokeInst>(Inst)) {
+          visitInvokeInst(Inst);
         } else if (isa<BranchInst>(Inst)) {
           visitBranchInst(Inst);
         } else if (isa<SwitchInst>(Inst)) {

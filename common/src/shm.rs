@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn test_shm_fail() {
-        let arr = SHM::<[u8; 10]>::from_id(0);
+        let arr = SHM::<[u8; 10]>::from_id(88888888);
         assert!(arr.is_fail());
 
         let arr = SHM::<[u8; 10]>::new();
