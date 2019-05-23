@@ -49,7 +49,7 @@ endif
 
 LLVM_VERSION_MAJOR=`${LLVM_CONFIG} --version | cut -f1 -d.`
 LLVM_VERSION_MINOR=`${LLVM_CONFIG} --version | cut -f2 -d.`
-VAILD_LLVM_VERSION=$(shell expr ${LLVM_VERSION_MAJOR} \>= 4 \& ${LLVM_VERSION_MAJOR} \<= 7)
+VALID_LLVM_VERSION=$(shell expr ${LLVM_VERSION_MAJOR} \>= 4 \& ${LLVM_VERSION_MAJOR} \<= 7)
 
 test_deps:
 	if [ ! -d ${PREFIX} ]; then mkdir -p ${PREFIX}; fi;
@@ -58,8 +58,8 @@ test_deps:
 	@which $(LLVM_CONFIG) >/dev/null 2>&1 || ( echo "[-] Oops, can't find 'llvm-config'. Install clang or set \$$LLVM_CONFIG or \$$PATH beforehand."; echo "    (Sometimes, the binary will be named llvm-config-4 or something like that.)"; exit 1 )
 	@echo "#define LLVM_VERSION_MAJOR ${LLVM_VERSION_MAJOR}\n#define LLVM_VERSION_MINOR ${LLVM_VERSION_MINOR}\n" > ${ROOT_DIR}/version.config
 
-ifeq "$(VAILD_LLVM_VERSION)" "0"
-	@echo "[-] LLVM version is `${LLVM_CONFIG} --version`, please use LLVM 4.0.0 - 7.0.0"
+ifeq "$(VALID_LLVM_VERSION)" "0"
+	@echo "[-] LLVM version is `${LLVM_CONFIG} --version`, please use LLVM 4.0.0 - 7.1.0"
 	@exit 1
 endif
 
