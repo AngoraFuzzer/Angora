@@ -54,6 +54,7 @@ VAILD_LLVM_VERSION=$(shell expr ${LLVM_VERSION_MAJOR} \>= 4 \& ${LLVM_VERSION_MA
 test_deps:
 	if [ ! -d ${PREFIX} ]; then mkdir -p ${PREFIX}; fi;
 	@echo "[*] Checking for working 'llvm-config'..."
+
 	@which $(LLVM_CONFIG) >/dev/null 2>&1 || ( echo "[-] Oops, can't find 'llvm-config'. Install clang or set \$$LLVM_CONFIG or \$$PATH beforehand."; echo "    (Sometimes, the binary will be named llvm-config-4 or something like that.)"; exit 1 )
 	@echo "#define LLVM_VERSION_MAJOR ${LLVM_VERSION_MAJOR}\n#define LLVM_VERSION_MINOR ${LLVM_VERSION_MINOR}\n" > ${ROOT_DIR}/version.config
 
@@ -61,6 +62,7 @@ ifeq "$(VAILD_LLVM_VERSION)" "0"
 	@echo "[-] LLVM version is `${LLVM_CONFIG} --version`, please use LLVM 4.0.0 - 7.0.0"
 	@exit 1
 endif
+
 	@echo "[*] Checking for working '$(CC)'..."
 	@which $(CC) >/dev/null 2>&1 || ( echo "[-] Oops, can't find '$(CC)'. Make sure that it's in your \$$PATH (or set \$$CC and \$$CXX)."; exit 1 )
 	@echo "[+] All set and ready to build."
