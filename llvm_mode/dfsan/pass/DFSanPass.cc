@@ -48,6 +48,8 @@
 //===----------------------------------------------------------------------===//
 
 #include "../../config.h"
+#include "../../version.h"
+
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/DepthFirstIterator.h"
@@ -189,7 +191,7 @@ public:
   /// given category.
   bool isIn(const Function &F, StringRef Category) const {
     return isIn(*F.getParent(), Category) ||
-           SCL->inSection("dataflow", "fun", F.getName(), Category);
+           SCL_INSECTION(SCL, "dataflow", "fun", F.getName(), Category);
   }
 
   /// Returns whether this global alias is listed in the given category.
@@ -201,16 +203,17 @@ public:
       return true;
 
     if (isa<FunctionType>(GA.getValueType()))
-      return SCL->inSection("dataflow", "fun", GA.getName(), Category);
+      return SCL_INSECTION(SCL, "dataflow", "fun", GA.getName(), Category);
 
-    return SCL->inSection("dataflow", "global", GA.getName(), Category) ||
-           SCL->inSection("dataflow", "type", GetGlobalTypeString(GA),
-                          Category);
+    return SCL_INSECTION(SCL, "dataflow", "global", GA.getName(), Category) ||
+           SCL_INSECTION(SCL, "dataflow", "type", GetGlobalTypeString(GA),
+                         Category);
   }
 
   /// Returns whether this module is listed in the given category.
   bool isIn(const Module &M, StringRef Category) const {
-    return SCL->inSection("dataflow", "src", M.getModuleIdentifier(), Category);
+    return SCL_INSECTION(SCL, "dataflow", "src", M.getModuleIdentifier(),
+                         Category);
   }
 };
 
@@ -245,12 +248,14 @@ struct TransformedFunction {
   std::vector<unsigned> ArgumentIndexMapping;
 };
 
+#if LLVM_VERSION_CODE >= LLVM_VERSION(6, 0)
 /// Given function attributes from a call site for the original function,
 /// return function attributes appropriate for a call to the transformed
 /// function.
-AttributeList
+LLVM_ATTRIBUTE_LIST
 TransformFunctionAttributes(const TransformedFunction &TransformedFunction,
-                            LLVMContext &Ctx, AttributeList CallSiteAttrs) {
+                            LLVMContext &Ctx,
+                            LLVM_ATTRIBUTE_LIST CallSiteAttrs) {
 
   // Construct a vector of AttributeSet for each function argument.
   std::vector<llvm::AttributeSet> ArgumentAttributes(
@@ -272,10 +277,11 @@ TransformFunctionAttributes(const TransformedFunction &TransformedFunction,
     ArgumentAttributes.push_back(CallSiteAttrs.getParamAttributes(i));
   }
 
-  return AttributeList::get(Ctx, CallSiteAttrs.getFnAttributes(),
-                            CallSiteAttrs.getRetAttributes(),
-                            llvm::makeArrayRef(ArgumentAttributes));
+  return LLVM_ATTRIBUTE_LIST::get(Ctx, CallSiteAttrs.getFnAttributes(),
+                                  CallSiteAttrs.getRetAttributes(),
+                                  llvm::makeArrayRef(ArgumentAttributes));
 }
+#endif
 
 class DataFlowSanitizer : public ModulePass {
   friend struct DFSanFunction;
@@ -493,8 +499,13 @@ FunctionType *DataFlowSanitizer::getArgsFunctionType(FunctionType *T) {
   if (T->isVarArg())
     ArgTypes.push_back(ShadowPtrTy);
   Type *RetType = T->getReturnType();
-  if (!RetType->isVoidTy())
+  if (!RetType->isVoidTy()) {
+#if LLVM_VERSION_CODE >= LLVM_VERSION(5, 0)
     RetType = StructType::get(RetType, ShadowTy);
+#else
+    RetType = StructType::get(RetType, ShadowTy, (Type *)nullptr);
+#endif
+  }
   return FunctionType::get(RetType, ArgTypes, T->isVarArg());
 }
 
@@ -547,7 +558,9 @@ TransformedFunction DataFlowSanitizer::getCustomFunctionType(FunctionType *T) {
 bool DataFlowSanitizer::doInitialization(Module &M) {
   Triple TargetTriple(M.getTargetTriple());
   bool IsX86_64 = TargetTriple.getArch() == Triple::x86_64;
-  bool IsMIPS64 = TargetTriple.isMIPS64();
+  // bool IsMIPS64 argetTriple.isMIPS64();
+  bool IsMIPS64 = TargetTriple.getArch() == llvm::Triple::mips64 ||
+                  TargetTriple.getArch() == llvm::Triple::mips64el;
   bool IsAArch64 = TargetTriple.getArch() == Triple::aarch64 ||
                    TargetTriple.getArch() == Triple::aarch64_be;
 
@@ -663,15 +676,15 @@ DataFlowSanitizer::buildWrapperFunction(Function *F, StringRef NewFName,
   FunctionType *FT = F->getFunctionType();
   Function *NewF = Function::Create(NewFT, NewFLink, NewFName, F->getParent());
   NewF->copyAttributesFrom(F);
-  NewF->removeAttributes(
-      AttributeList::ReturnIndex,
+  LLVM_REMOVE_ATTRIBUTE(
+      NewF, LLVM_ATTRIBUTE_LIST::ReturnIndex,
       AttributeFuncs::typeIncompatible(NewFT->getReturnType()));
 
   BasicBlock *BB = BasicBlock::Create(*Ctx, "entry", NewF);
 
   if (F->isVarArg() && getWrapperKind(F) != WK_Discard) {
-    NewF->removeAttributes(AttributeList::FunctionIndex,
-                           AttrBuilder().addAttribute("split-stack"));
+    LLVM_REMOVE_ATTRIBUTE(NewF, LLVM_ATTRIBUTE_LIST::FunctionIndex,
+                          AttrBuilder().addAttribute("split-stack"));
     CallInst::Create(DFSanVarargWrapperFn,
                      IRBuilder<>(BB).CreateGlobalStringPtr(F->getName()), "",
                      BB);
@@ -746,9 +759,9 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
   DFSanMarkSignedFn =
       Mod->getOrInsertFunction("dfsan_mark_signed", DFSanUnionFnTy);
   if (Function *F = dyn_cast<Function>(DFSanMarkSignedFn)) {
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
-    F->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::ReadNone);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::ReturnIndex, Attribute::ZExt);
     F->addAttribute(0, Attribute::ZExt);
     F->addAttribute(1, Attribute::ZExt);
   }
@@ -757,16 +770,16 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
   DFSanCombineAndFn =
       Mod->getOrInsertFunction("dfsan_combine_and_ins", DFSanCombineAndFnTy);
   if (Function *F = dyn_cast<Function>(DFSanCombineAndFn)) {
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::ReadNone);
     F->addAttribute(0, Attribute::ZExt);
   }
 
   DFSanInferShapeFn = Mod->getOrInsertFunction("dfsan_infer_shape_in_math_op",
                                                DFSanInferShapeFnTy);
   if (Function *F = dyn_cast<Function>(DFSanInferShapeFn)) {
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::ReadNone);
     F->addAttribute(0, Attribute::ZExt);
     F->addAttribute(1, Attribute::ZExt);
     F->addAttribute(2, Attribute::ZExt);
@@ -774,33 +787,33 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
 
   DFSanUnionFn = Mod->getOrInsertFunction("__dfsan_union", DFSanUnionFnTy);
   if (Function *F = dyn_cast<Function>(DFSanUnionFn)) {
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
-    F->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
-    F->addParamAttr(0, Attribute::ZExt);
-    F->addParamAttr(1, Attribute::ZExt);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::ReadNone);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::ReturnIndex, Attribute::ZExt);
+    LLVM_ADD_PARAM_ATTR(F, 0, Attribute::ZExt);
+    LLVM_ADD_PARAM_ATTR(F, 1, Attribute::ZExt);
   }
   DFSanCheckedUnionFn = Mod->getOrInsertFunction("dfsan_union", DFSanUnionFnTy);
   if (Function *F = dyn_cast<Function>(DFSanCheckedUnionFn)) {
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadNone);
-    F->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
-    F->addParamAttr(0, Attribute::ZExt);
-    F->addParamAttr(1, Attribute::ZExt);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::ReadNone);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::ReturnIndex, Attribute::ZExt);
+    LLVM_ADD_PARAM_ATTR(F, 0, Attribute::ZExt);
+    LLVM_ADD_PARAM_ATTR(F, 1, Attribute::ZExt);
   }
   DFSanUnionLoadFn =
       Mod->getOrInsertFunction("__dfsan_union_load", DFSanUnionLoadFnTy);
   if (Function *F = dyn_cast<Function>(DFSanUnionLoadFn)) {
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::NoUnwind);
-    F->addAttribute(AttributeList::FunctionIndex, Attribute::ReadOnly);
-    F->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::NoUnwind);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::ReadOnly);
+    F->addAttribute(LLVM_ATTRIBUTE_LIST::ReturnIndex, Attribute::ZExt);
   }
   DFSanUnimplementedFn =
       Mod->getOrInsertFunction("__dfsan_unimplemented", DFSanUnimplementedFnTy);
   DFSanSetLabelFn =
       Mod->getOrInsertFunction("__dfsan_set_label", DFSanSetLabelFnTy);
   if (Function *F = dyn_cast<Function>(DFSanSetLabelFn)) {
-    F->addParamAttr(0, Attribute::ZExt);
+    LLVM_ADD_PARAM_ATTR(F, 0, Attribute::ZExt);
   }
   DFSanNonzeroLabelFn =
       Mod->getOrInsertFunction("__dfsan_nonzero_label", DFSanNonzeroLabelFnTy);
@@ -864,8 +877,8 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
         FunctionType *NewFT = getArgsFunctionType(FT);
         Function *NewF = Function::Create(NewFT, F.getLinkage(), "", &M);
         NewF->copyAttributesFrom(&F);
-        NewF->removeAttributes(
-            AttributeList::ReturnIndex,
+        LLVM_REMOVE_ATTRIBUTE(
+            NewF, LLVM_ATTRIBUTE_LIST::ReturnIndex,
             AttributeFuncs::typeIncompatible(NewFT->getReturnType()));
         for (Function::arg_iterator FArg = F.arg_begin(),
                                     NewFArg = NewF->arg_begin(),
@@ -911,7 +924,8 @@ bool DataFlowSanitizer::runOnModule(Module &M) {
           &F, std::string("dfsw$") + std::string(F.getName()), wrapperLinkage,
           NewFT);
       if (getInstrumentedABI() == IA_TLS)
-        NewF->removeAttributes(AttributeList::FunctionIndex, ReadOnlyNoneAttrs);
+        LLVM_REMOVE_ATTRIBUTE(NewF, LLVM_ATTRIBUTE_LIST::FunctionIndex,
+                              ReadOnlyNoneAttrs);
 
       Value *WrappedFnCst =
           ConstantExpr::getBitCast(NewF, PointerType::getUnqual(FT));
@@ -1147,7 +1161,7 @@ Value *DFSanFunction::combineShadows(Value *V1, Value *V2, Instruction *Pos) {
   if (is_signed) {
     IRBuilder<> IRB(Pos);
     CallInst *Call = IRB.CreateCall(DFS.DFSanMarkSignedFn, {V1, V2});
-    Call->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
+    Call->addAttribute(LLVM_ATTRIBUTE_LIST::ReturnIndex, Attribute::ZExt);
     Call->addAttribute(0, Attribute::ZExt);
     Call->addAttribute(1, Attribute::ZExt);
   }
@@ -1211,9 +1225,9 @@ Value *DFSanFunction::combineShadows(Value *V1, Value *V2, Instruction *Pos) {
   IRBuilder<> IRB(Pos);
   if (AvoidNewBlocks) {
     CallInst *Call = IRB.CreateCall(DFS.DFSanCheckedUnionFn, {V1, V2});
-    Call->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
-    Call->addParamAttr(0, Attribute::ZExt);
-    Call->addParamAttr(1, Attribute::ZExt);
+    Call->addAttribute(LLVM_ATTRIBUTE_LIST::ReturnIndex, Attribute::ZExt);
+    LLVM_ADD_PARAM_ATTR(Call, 0, Attribute::ZExt);
+    LLVM_ADD_PARAM_ATTR(Call, 1, Attribute::ZExt);
 
     CCS.Block = Pos->getParent();
     CCS.Shadow = Call;
@@ -1224,9 +1238,9 @@ Value *DFSanFunction::combineShadows(Value *V1, Value *V2, Instruction *Pos) {
         Ne, Pos, /*Unreachable=*/false, DFS.ColdCallWeights, &DT));
     IRBuilder<> ThenIRB(BI);
     CallInst *Call = ThenIRB.CreateCall(DFS.DFSanUnionFn, {V1, V2});
-    Call->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
-    Call->addParamAttr(0, Attribute::ZExt);
-    Call->addParamAttr(1, Attribute::ZExt);
+    Call->addAttribute(LLVM_ATTRIBUTE_LIST::ReturnIndex, Attribute::ZExt);
+    LLVM_ADD_PARAM_ATTR(Call, 0, Attribute::ZExt);
+    LLVM_ADD_PARAM_ATTR(Call, 1, Attribute::ZExt);
 
     BasicBlock *Tail = BI->getSuccessor(0);
     PHINode *Phi = PHINode::Create(DFS.ShadowTy, 2, "", &Tail->front());
@@ -1265,7 +1279,7 @@ Value *DFSanFunction::combineOperandShadows(Instruction *Inst) {
     IRBuilder<> IRB(Inst);
     CallInst *Call =
         IRB.CreateCall(DFS.DFSanMarkSignedFn, {Shadow, DFS.ZeroShadow});
-    Call->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
+    Call->addAttribute(LLVM_ATTRIBUTE_LIST::ReturnIndex, Attribute::ZExt);
     Call->addAttribute(0, Attribute::ZExt);
     Call->addAttribute(1, Attribute::ZExt);
   }
@@ -1338,7 +1352,8 @@ Value *DFSanFunction::loadShadow(Value *Addr, uint64_t Size, uint64_t Align,
     CallInst *FallbackCall = FallbackIRB.CreateCall(
         DFS.DFSanUnionLoadFn,
         {ShadowAddr, ConstantInt::get(DFS.IntptrTy, Size)});
-    FallbackCall->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
+    FallbackCall->addAttribute(LLVM_ATTRIBUTE_LIST::ReturnIndex,
+                               Attribute::ZExt);
 
     // Compare each of the shadows stored in the loaded 64 bits to each
     // other, by computing (WideShadow rotl ShadowWidth) == WideShadow.
@@ -1395,7 +1410,7 @@ Value *DFSanFunction::loadShadow(Value *Addr, uint64_t Size, uint64_t Align,
   IRBuilder<> IRB(Pos);
   CallInst *FallbackCall = IRB.CreateCall(
       DFS.DFSanUnionLoadFn, {ShadowAddr, ConstantInt::get(DFS.IntptrTy, Size)});
-  FallbackCall->addAttribute(AttributeList::ReturnIndex, Attribute::ZExt);
+  FallbackCall->addAttribute(LLVM_ATTRIBUTE_LIST::ReturnIndex, Attribute::ZExt);
   return FallbackCall;
 }
 
@@ -1594,6 +1609,22 @@ void DFSanVisitor::visitMemTransferInst(MemTransferInst &I) {
   Value *LenShadow =
       IRB.CreateMul(I.getLength(), ConstantInt::get(I.getLength()->getType(),
                                                     DFSF.DFS.ShadowWidth / 8));
+#if LLVM_VERSION_CODE < LLVM_VERSION(7, 0)
+  Value *AlignShadow;
+  if (ClPreserveAlignment) {
+    AlignShadow = IRB.CreateMul(I.getAlignmentCst(),
+                                ConstantInt::get(I.getAlignmentCst()->getType(),
+                                                 DFSF.DFS.ShadowWidth / 8));
+  } else {
+    AlignShadow = ConstantInt::get(I.getAlignmentCst()->getType(),
+                                   DFSF.DFS.ShadowWidth / 8);
+  }
+  Type *Int8Ptr = Type::getInt8PtrTy(*DFSF.DFS.Ctx);
+  DestShadow = IRB.CreateBitCast(DestShadow, Int8Ptr);
+  SrcShadow = IRB.CreateBitCast(SrcShadow, Int8Ptr);
+  IRB.CreateCall(I.getCalledValue(), {DestShadow, SrcShadow, LenShadow,
+                                      AlignShadow, I.getVolatileCst()});
+#else
   Type *Int8Ptr = Type::getInt8PtrTy(*DFSF.DFS.Ctx);
   DestShadow = IRB.CreateBitCast(DestShadow, Int8Ptr);
   SrcShadow = IRB.CreateBitCast(SrcShadow, Int8Ptr);
@@ -1608,6 +1639,7 @@ void DFSanVisitor::visitMemTransferInst(MemTransferInst &I) {
     MTI->setDestAlignment(DFSF.DFS.ShadowWidth / 8);
     MTI->setSourceAlignment(DFSF.DFS.ShadowWidth / 8);
   }
+#endif
 }
 
 void DFSanVisitor::visitReturnInst(ReturnInst &RI) {
@@ -1683,8 +1715,8 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
           // Custom functions returning non-void will write to the return
           // label.
           if (!FT->getReturnType()->isVoidTy()) {
-            CustomFn->removeAttributes(AttributeList::FunctionIndex,
-                                       DFSF.DFS.ReadOnlyNoneAttrs);
+            LLVM_REMOVE_ATTRIBUTE(CustomFn, LLVM_ATTRIBUTE_LIST::FunctionIndex,
+                                  DFSF.DFS.ReadOnlyNoneAttrs);
           }
         }
 
@@ -1718,9 +1750,8 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
         if (FT->isVarArg()) {
           auto *LabelVATy = ArrayType::get(DFSF.DFS.ShadowTy,
                                            CS.arg_size() - FT->getNumParams());
-          auto *LabelVAAlloca =
-              new AllocaInst(LabelVATy, getDataLayout().getAllocaAddrSpace(),
-                             "labelva", &DFSF.F->getEntryBlock().front());
+          auto *LabelVAAlloca = LLVM_NEW_ALLOCINST(
+              LabelVATy, "labelva", &DFSF.F->getEntryBlock().front());
 
           for (unsigned n = 0; i != CS.arg_end(); ++i, ++n) {
             auto LabelVAPtr = IRB.CreateStructGEP(LabelVATy, LabelVAAlloca, n);
@@ -1732,9 +1763,9 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
 
         if (!FT->getReturnType()->isVoidTy()) {
           if (!DFSF.LabelReturnAlloca) {
-            DFSF.LabelReturnAlloca = new AllocaInst(
-                DFSF.DFS.ShadowTy, getDataLayout().getAllocaAddrSpace(),
-                "labelreturn", &DFSF.F->getEntryBlock().front());
+            DFSF.LabelReturnAlloca =
+                LLVM_NEW_ALLOCINST(DFSF.DFS.ShadowTy, "labelreturn",
+                                   &DFSF.F->getEntryBlock().front());
           }
           Args.push_back(DFSF.LabelReturnAlloca);
         }
@@ -1744,6 +1775,9 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
 
         CallInst *CustomCI = IRB.CreateCall(CustomF, Args);
         CustomCI->setCallingConv(CI->getCallingConv());
+#if LLVM_VERSION_CODE <= LLVM_VERSION(5, 0)
+        CustomCI->setAttributes(CI->getAttributes());
+#else
         CustomCI->setAttributes(TransformFunctionAttributes(
             CustomFn, CI->getContext(), CI->getAttributes()));
 
@@ -1755,7 +1789,7 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
           if (CustomCI->getArgOperand(ArgNo)->getType() == DFSF.DFS.ShadowTy)
             CustomCI->addParamAttr(ArgNo, Attribute::ZExt);
         }
-
+#endif
         if (!FT->getReturnType()->isVoidTy()) {
           LoadInst *LabelLoad = IRB.CreateLoad(DFSF.LabelReturnAlloca);
           DFSF.setShadow(CustomCI, LabelLoad);
@@ -1821,9 +1855,8 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
     if (FT->isVarArg()) {
       unsigned VarArgSize = CS.arg_size() - FT->getNumParams();
       ArrayType *VarArgArrayTy = ArrayType::get(DFSF.DFS.ShadowTy, VarArgSize);
-      AllocaInst *VarArgShadow =
-          new AllocaInst(VarArgArrayTy, getDataLayout().getAllocaAddrSpace(),
-                         "", &DFSF.F->getEntryBlock().front());
+      AllocaInst *VarArgShadow = LLVM_NEW_ALLOCINST(
+          VarArgArrayTy, "", &DFSF.F->getEntryBlock().front());
       Args.push_back(IRB.CreateConstGEP2_32(VarArgArrayTy, VarArgShadow, 0, 0));
       for (unsigned n = 0; i != e; ++i, ++n) {
         IRB.CreateStore(
@@ -1842,7 +1875,7 @@ void DFSanVisitor::visitCallSite(CallSite CS) {
     }
     NewCS.setCallingConv(CS.getCallingConv());
     NewCS.setAttributes(CS.getAttributes().removeAttributes(
-        *DFSF.DFS.Ctx, AttributeList::ReturnIndex,
+        *DFSF.DFS.Ctx, LLVM_ATTRIBUTE_LIST::ReturnIndex,
         AttributeFuncs::typeIncompatible(NewCS.getInstruction()->getType())));
 
     if (Next) {

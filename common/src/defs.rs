@@ -14,6 +14,11 @@ pub const MSAN_ERROR_CODE: i32 = 86;
 pub static MSAN_OPTIONS_CONTENT: &str =
     "exit_code=86:symbolize=0:abort_on_error=1:allocator_may_return_null=1:msan_track_origins=0";
 
+// depot.rs
+pub static CRASHES_DIR: &str = "crashes";
+pub static HANGS_DIR: &str = "hangs";
+pub static INPUTS_DIR: &str = "queue";
+
 // forksrv.rs
 pub static ENABLE_FORKSRV: &str = "ANGORA_ENABLE_FORKSRV";
 pub static FORKSRV_SOCKET_PATH_VAR: &str = "ANGORA_FORKSRV_SOCKET_PATH";
@@ -32,8 +37,8 @@ pub const UNREACHABLE: u64 = std::u64::MAX;
 pub const COND_BASIC_MASK: u32 = 0xFF;
 pub const COND_SIGN_MASK: u32 = 0x100;
 pub const COND_BOOL_MASK: u32 = 0x200;
-pub const COND_CALL_MASK: u32 = 0x400;
-pub const COND_CALL_REV_MASK: u32 = 0xFBFF;
+// pub const COND_CALL_MASK: u32 = 0x400;
+// pub const COND_CALL_REV_MASK: u32 = 0xFBFF;
 
 // http://llvm.org/doxygen/InstrTypes_8h_source.html
 // Opcode              U L G E    Intuitive operation

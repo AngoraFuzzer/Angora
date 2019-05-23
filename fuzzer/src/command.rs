@@ -65,6 +65,7 @@ impl CommandOpt {
         enable_exploitation: bool,
     ) -> Self {
         let mode = InstrumentationMode::from(mode);
+        
         let tmp_dir = out_dir.join(TMP_DIR);
         tmpfs::create_tmpfs_dir(&tmp_dir);
 
@@ -185,7 +186,7 @@ impl CommandOpt {
 impl Drop for CommandOpt {
     fn drop(&mut self) {
         if self.is_raw {
-            tmpfs::clear_tmpfs_dir();
+            tmpfs::clear_tmpfs_dir(&self.tmp_dir);
         }
     }
 }

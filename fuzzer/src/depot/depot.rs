@@ -5,7 +5,7 @@ use std::{
     fs,
     io::prelude::*,
     mem,
-    path::Path,
+    path::{Path, PathBuf},
     sync::{
         atomic::{AtomicUsize, Ordering},
         Mutex,
@@ -24,7 +24,7 @@ pub struct Depot {
 }
 
 impl Depot {
-    pub fn new(in_dir: &str, out_dir: &Path) -> Self {
+    pub fn new(in_dir: PathBuf, out_dir: &Path) -> Self {
         Self {
             queue: Mutex::new(PriorityQueue::new()),
             num_inputs: AtomicUsize::new(0),

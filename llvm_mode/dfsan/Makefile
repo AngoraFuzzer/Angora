@@ -2,7 +2,7 @@ PREFIX      ?= ../../bin/
 CC         = clang
 CXX        = clang++
 AR         = ar
-LLVM_CONFIG ?= ${LLVM_DIR}llvm-config
+LLVM_CONFIG ?= llvm-config
 CXXFLAGS    += -std=c++14 -Wall -fpic -O3 -g
 
 CLANG_CFL    = `$(LLVM_CONFIG) --cxxflags` -funroll-loops -O3 -Wall -D_FORTIFY_SOURCE=2 -g -Wno-pointer-sign -Wno-variadic-macros -fno-rtti -fpic

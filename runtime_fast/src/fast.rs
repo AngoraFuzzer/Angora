@@ -1,5 +1,16 @@
-use crate::shm_conds::*;
+use super::{shm_conds, forkcli, shm_branches};
 use std::ops::DerefMut;
+
+use std::sync::{Once, ONCE_INIT};
+static START: Once = ONCE_INIT;
+
+#[ctor]
+fn fast_init() {
+    START.call_once(|| {
+        shm_branches::map_branch_counting_shm();
+        forkcli::start_forkcli();
+    });
+}
 
 #[no_mangle]
 pub extern "C" fn __angora_trace_cmp(
@@ -9,8 +20,7 @@ pub extern "C" fn __angora_trace_cmp(
     arg1: u64,
     arg2: u64,
 ) -> u32 {
-    //println!("[CMP] id: {}, ctx: {}", cmpid, get_context());
-    let mut conds = SHM_CONDS.lock().expect("SHM mutex poisoned.");
+    let mut conds = shm_conds::SHM_CONDS.lock().expect("SHM mutex poisoned.");
     match conds.deref_mut() {
         &mut Some(ref mut c) => {
             if c.check_match(cmpid, context) {
@@ -24,7 +34,7 @@ pub extern "C" fn __angora_trace_cmp(
 
 #[no_mangle]
 pub extern "C" fn __angora_trace_switch(cmpid: u32, context: u32, condition: u64) -> u64 {
-    let mut conds = SHM_CONDS.lock().expect("SHM mutex poisoned.");
+    let mut conds = shm_conds::SHM_CONDS.lock().expect("SHM mutex poisoned.");
     match conds.deref_mut() {
         &mut Some(ref mut c) => {
             if c.check_match(cmpid, context) {

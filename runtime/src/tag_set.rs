@@ -217,15 +217,16 @@ impl TagSet {
             return;
         }
         let mut cur_lb = lb;
-        for _ in 0..len {
+        for _ in 0..(len - 1) {
+            cur_lb = self.nodes[cur_lb].parent;
+
             if cur_lb == ROOT {
                 return;
             }
-            cur_lb = self.nodes[cur_lb].parent;
         }
         if self.nodes[cur_lb].parent == ROOT {
             if self.nodes[cur_lb].seg.begin + len as u32 == self.nodes[lb].seg.end {
-                self.nodes[cur_lb].seg.end = self.nodes[lb].seg.end;
+                self.nodes[lb].seg.begin = self.nodes[cur_lb].seg.begin;
             }
         }
     }
@@ -509,7 +510,7 @@ mod tests {
             }
         );
 
-        let l5 = tag_set.combine(l3, l4);
+        let _l5 = tag_set.combine(l3, l4);
         let list = tag_set.find(l3);
         assert_eq!(list.len(), 1);
         assert_eq!(
@@ -677,6 +678,67 @@ mod tests {
                 sign: false,
                 begin: 0,
                 end: 4
+            }
+        );
+    }
+
+      #[test]
+    fn tag_set_tests_infer_shape() {
+        let mut tag_set = TagSet::new();
+        let mut lbs = vec![];
+        for i in 2..6 {
+            let lb = tag_set.insert(i);
+            lbs.push(lb);
+        }
+
+        let l1 = tag_set.combine_n(lbs, true);
+        let list = tag_set.find(l1);
+
+        assert_eq!(list.len(), 1);
+        assert_eq!(
+            list[0],
+            TagSeg {
+                sign: false,
+                begin: 2,
+                end: 6
+            }
+        );
+    }
+
+    #[test]
+    fn tag_set_tests_infer_shape2() {
+        // https://github.com/AngoraFuzzer/Angora/pull/50
+        let mut tag_set = TagSet::new();
+        let mut lbs = vec![];
+        for i in 2..6 {
+            let lb = tag_set.insert(i);
+            lbs.push(lb);
+        }
+
+        let l1 = tag_set.combine_n(lbs, false);
+
+        let list = tag_set.find(l1);
+
+        assert_eq!(list.len(), 4);
+        assert_eq!(
+            list[3],
+            TagSeg {
+                sign: false,
+                begin: 5,
+                end: 6
+            }
+        );
+
+        tag_set.infer_shape2(l1, 4);
+        let list = tag_set.find(l1);
+
+        assert_eq!(list.len(), 1);
+        assert_eq!(
+            list[0],
+            TagSeg {
+                sign: false,
+                begin: 2,
+                end: 6
             }
         );
     }

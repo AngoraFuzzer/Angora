@@ -1,4 +1,5 @@
-/// Logic carried over from C/C++
+// Specail case for input length relative labels
+
 use super::*;
 use angora_common::{cond_stmt_base::CondStmtBase, defs};
 use lazy_static::lazy_static;
@@ -79,7 +80,7 @@ pub fn get_len_cond(cond: &mut CondStmtBase) -> Option<CondStmtBase> {
 #[cfg(test)]
 mod test {
     use super::*;
-    //#[test]
+    /*
     fn get_label_normal() {
         let test_offset = 3_u32;
         let test_size = 4_u32;
@@ -89,6 +90,7 @@ mod test {
         assert!(info_arr[0].1 == test_size);
         assert!(result_label == 1);
     }
+    */
 
     #[test]
     fn get_label_mult() {

@@ -1,3 +1,4 @@
+#include "./version.h"
 #include "llvm/Support/SpecialCaseList.h"
 
 using namespace llvm;
@@ -23,16 +24,16 @@ public:
   /// given category.
   bool isIn(const Function &F, StringRef Category) const {
     return isIn(*F.getParent(), Category) ||
-           SCL->inSection("angora", "fun", F.getName(), Category);
+           SCL_INSECTION(SCL, "angora", "fun", F.getName(), Category);
   }
 
   bool isIn(Instruction &Inst, StringRef Category) const {
     if (isa<CallInst>(&Inst)) {
       CallInst *Caller = dyn_cast<CallInst>(&Inst);
-      return SCL->inSection("angora", "fun",
-                            Caller->getCalledFunction()->getName(), Category);
+      return SCL_INSECTION(SCL, "angora", "fun",
+                           Caller->getCalledFunction()->getName(), Category);
     }
-    return SCL->inSection("angora", "ins", Inst.getOpcodeName(), Category);
+    return SCL_INSECTION(SCL, "angora", "ins", Inst.getOpcodeName(), Category);
   }
 
   /// Returns whether this global alias is listed in the given category.
@@ -44,14 +45,16 @@ public:
       return true;
 
     if (isa<FunctionType>(GA.getValueType()))
-      return SCL->inSection("angora", "fun", GA.getName(), Category);
+      return SCL_INSECTION(SCL, "angora", "fun", GA.getName(), Category);
 
-    return SCL->inSection("angora", "global", GA.getName(), Category) ||
-           SCL->inSection("angora", "type", GetGlobalTypeString(GA), Category);
+    return SCL_INSECTION(SCL, "angora", "global", GA.getName(), Category) ||
+           SCL_INSECTION(SCL, "angora", "type", GetGlobalTypeString(GA),
+                         Category);
   }
 
   /// Returns whether this module is listed in the given category.
   bool isIn(const Module &M, StringRef Category) const {
-    return SCL->inSection("angora", "src", M.getModuleIdentifier(), Category);
+    return SCL_INSECTION(SCL, "angora", "src", M.getModuleIdentifier(),
+                         Category);
   }
 };

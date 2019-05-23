@@ -24,7 +24,7 @@ if [ "$NM" = "" ]; then
     exit 1
 fi
 
-echo "$1" |grep 'so$'
+echo "# $1" | grep 'so$'
 if [ $? -eq 0 ]
 then
     # echo "dynamic library.."

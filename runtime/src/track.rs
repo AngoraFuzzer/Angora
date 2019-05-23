@@ -27,6 +27,19 @@ fn infer_shape(lb: u32, size: u32) {
 }
 
 #[no_mangle]
+pub extern "C" fn __angora_trace_cmp_tt(
+    _a: u32,
+    _b: u32,
+    _c: u32,
+    _d: u32,
+    _e: u64,
+    _f: u64,
+    _g: u32,
+) {
+    panic!("Forbid calling __angora_trace_cmp_tt directly");
+}
+
+#[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_cmp_tt(
     cmpid: u32,
     context: u32,
@@ -57,6 +70,19 @@ pub extern "C" fn __dfsw___angora_trace_cmp_tt(
 
     log_cmp(cmpid, context, condition, op, size, lb1, lb2, arg1, arg2);
 }
+
+#[no_mangle]
+pub extern "C" fn __angora_trace_switch_tt(
+    _a: u32,
+    _b: u32,
+    _c: u32,
+    _d: u64,
+    _e: u32,
+    _f: *mut u64
+) {
+    panic!("Forbid calling __angora_trace_switch_tt directly");
+}
+
 
 #[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_switch_tt(
@@ -117,6 +143,17 @@ pub extern "C" fn __dfsw___angora_trace_switch_tt(
 }
 
 #[no_mangle]
+pub extern "C" fn __angora_trace_fn_tt(
+    _a: u32,
+    _b: u32,
+    _c: u32,
+    _d: *mut i8,
+    _e: *mut i8
+) {
+    panic!("Forbid calling __angora_trace_fn_tt directly");
+}
+
+#[no_mangle]
 pub extern "C" fn __dfsw___angora_trace_fn_tt(
     cmpid: u32,
     context: u32,
@@ -172,6 +209,17 @@ pub extern "C" fn __dfsw___angora_trace_fn_tt(
         lc.save(cond);
         lc.save_magic_bytes((arg1, arg2));
     }
+}
+
+#[no_mangle]
+pub extern "C" fn __angora_trace_exploit_val_tt(
+    _a: u32,
+    _b: u32,
+    _c: u32,
+    _d: u32,
+    _e: u64
+) {
+    panic!("Forbid calling __angora_trace_exploit_val_tt directly");
 }
 
 #[no_mangle]

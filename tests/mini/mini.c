@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
       z != -100000003 && y >= 987654321 && y <= 987654325 && a == 123456789) {
 
     printf("hey, you hit it \n");
-    // abort();
+    abort();
   }
   return 7;
 }

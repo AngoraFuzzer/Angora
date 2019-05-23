@@ -18,7 +18,7 @@ Arxiv: [Angora: Efficient Fuzzing by Principled Search](https://arxiv.org/abs/18
 
 - Linux-amd64 (Tested on Ubuntu 16.04/18.04 and Debian Buster)
 - Rust stable (>= 1.31), can be obtained using [rustup](https://rustup.rs)
-- [LLVM 7.0.0](http://llvm.org/docs/index.html) : run `PREFIX=/path-to-install ./build/llvm.sh`.
+- [LLVM 4.0.0 - 7.0.0](http://llvm.org/docs/index.html) : run `PREFIX=/path-to-install ./build/llvm.sh`.
 
 ### Environment Variables
 
@@ -109,7 +109,7 @@ For more information, please refer to the documentation under the
 - [Exploit attack points](./docs/exploitation.md)
 - [Usage](./docs/usage.md)
 - [Configuration Files](./docs/configuration.md)
-- [Environment variables in compiling](./docs/environment_variables.md)
+- [Environment variables](./docs/environment_variables.md)
 - [UI Terminology](./docs/ui.md)
 - [Troubleshoot](./docs/troubleshoot.md)
 

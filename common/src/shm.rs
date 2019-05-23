@@ -44,20 +44,14 @@ impl<T> SHM<T> {
         self.id
     }
 
-    // pub fn get_ptr(&self) -> *mut T {
-    //     self.ptr
-    // }
-    // pub fn get_size(&self) -> usize {
-    //     self.size
-    // }
-    // ptr::read_volatile, write_volatile is buggy: https://github.com/cesarb/clear_on_drop/issues/2
-    // Has a slow and slow time in compile for larget struct of T.
-    // pub fn set_volatile(&self, src: T) {
-    //     unsafe {std::ptr::write_volatile(self.ptr, src)};
-    // }
-    // pub fn get_volatile(&self) -> T {
-    //     unsafe {std::ptr::read_volatile(self.ptr)}
-    // }
+    pub fn get_ptr(&self) -> *mut T {
+        self.ptr
+    }
+
+    pub fn is_fail(&self) -> bool {
+        -1 == self.ptr as isize
+    }
+
 }
 
 impl<T> Deref for SHM<T> {
@@ -104,5 +98,16 @@ mod tests {
         assert_eq!(0, sl[4]);
         sl[4] = 33;
         assert_eq!(33, sl[4]);
+    }
+
+    #[test]
+    fn test_shm_fail() {
+        let arr = SHM::<[u8; 10]>::from_id(0);
+        assert!(arr.is_fail());
+
+        let arr = SHM::<[u8; 10]>::new();
+        assert!(!arr.is_fail());
+        let arr2 = SHM::<[u8; 10]>::from_id(arr.get_id());
+        assert!(!arr2.is_fail());
     }
 }

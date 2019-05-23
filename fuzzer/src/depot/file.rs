@@ -19,7 +19,7 @@ pub fn read_from_file(path: &Path) -> Vec<u8> {
                 break;
             }
             Err(e) => {
-                error!("fail to read from file : {:?}", e);
+                error!("fail to read from file : ({:?}) -- {:?}", path, e);
             }
         };
         i += 1;

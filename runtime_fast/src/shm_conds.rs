@@ -1,21 +1,17 @@
 // corresponding to fuzzer/src/cond_stmt/shm_conds.rs
 
 use angora_common::{cond_stmt_base::CondStmtBase, defs, shm};
-
-use std::{env, ops::DerefMut, sync::Mutex};
-
+use std::{env, process, ops::DerefMut, sync::Mutex};
+use super::context;
 use lazy_static::lazy_static;
 
-extern "C" {
-    // static __angora_cond_cmpid: u32;
-    fn __angora_set_cmpid(cid: u32);
-    fn __angora_reset_globals();
-}
+#[no_mangle]
+static mut __angora_cond_cmpid: u32 = 0;
 
 #[inline(always)]
 fn set_cmpid(cid: u32) {
     unsafe {
-        __angora_set_cmpid(cid);
+        __angora_cond_cmpid = cid;
     }
 }
 
@@ -36,6 +32,9 @@ impl ShmConds {
             Ok(val) => {
                 let shm_id = val.parse::<i32>().expect("Could not parse i32 value.");
                 let cond = shm::SHM::<CondStmtBase>::from_id(shm_id);
+                if cond.is_fail() {
+                    process::exit(1);
+                }
                 Some(Self { cond, rt_order: 0 })
             }
             Err(_) => None,
@@ -95,6 +94,6 @@ pub fn reset_shm_conds() {
     }
 
     unsafe {
-        __angora_reset_globals();
+        context::reset_context();
     }
 }
