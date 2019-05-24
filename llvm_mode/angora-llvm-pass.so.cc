@@ -407,7 +407,7 @@ void AngoraLLVMPass::countEdge(Module &M, BasicBlock &BB) {
   IRB.CreateStore(IncRet, MapPtrIdx)->setMetadata(NoSanMetaId, NoneMetaNode);
 
   Value *NewPrevLoc = NULL;
-  if (num_fn_ctx == 0) { // Call-based context
+  if (num_fn_ctx != 0) { // Call-based context
     // Load ctx
     LoadInst *CtxVal = IRB.CreateLoad(AngoraContext);
     setInsNonSan(CtxVal);
@@ -417,7 +417,7 @@ void AngoraLLVMPass::countEdge(Module &M, BasicBlock &BB) {
     // Udate PrevLoc
     NewPrevLoc =
         IRB.CreateXor(CtxValCasted, ConstantInt::get(Int32Ty, cur_loc >> 1));
-  } else {
+  } else { // disable context
     NewPrevLoc = ConstantInt::get(Int32Ty, cur_loc >> 1);
   }
   setValueNonSan(NewPrevLoc);
