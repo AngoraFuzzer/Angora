@@ -41,6 +41,8 @@ target=${name}/${name}
 
 rm -f ${target}.fast ${target}.cmp ${target}.taint 
 
+#export ANGORA_CUSTOM_FN_CONTEXT=10
+
 bin_dir=../bin/
 ANGORA_USE_ASAN=1 USE_FAST=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.fast
 USE_TRACK=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.taint

@@ -68,10 +68,9 @@ public:
   DenseSet<u32> UniqCidSet;
 
   // Configurations
-  bool enable_ctx;
   bool gen_id_random;
   bool output_cond_loc;
-  bool direct_fn_ctx;
+  int num_fn_ctx;
 
   MDNode *ColdCallWeights;
 
@@ -333,17 +332,25 @@ void AngoraLLVMPass::initVariables(Module &M) {
                              ClExploitListFiles.end());
   ExploitList.set(SpecialCaseList::createOrDie(AllExploitListFiles));
 
-  enable_ctx = !getenv(DISABLE_CTX_VAR);
-  direct_fn_ctx = !!getenv(DIRECT_FN_CTX);
   gen_id_random = !!getenv(GEN_ID_RANDOM_VAR);
   output_cond_loc = !!getenv(OUTPUT_COND_LOC_VAR);
 
-  if (!enable_ctx) {
-    errs() << "disable context\n";
+  num_fn_ctx = -1;
+  char* custom_fn_ctx = getenv(CUSTOM_FN_CTX);
+  if (custom_fn_ctx) {
+    num_fn_ctx = atoi(custom_fn_ctx);
+    if (num_fn_ctx < 0 || num_fn_ctx > 32) {
+      errs() << "custom context should be: >= 0 && <=32 \n"; 
+      exit(1);
+    }
   }
 
-  if (direct_fn_ctx) {
-    errs() << "use direct function call context\n";
+  if (num_fn_ctx == 0) {
+    errs() << "disable context\n";
+  } 
+
+  if (num_fn_ctx > 0) {
+    errs() << "use custom function call context: " << num_fn_ctx << "\n";
   }
 
   if (gen_id_random) {
@@ -400,7 +407,7 @@ void AngoraLLVMPass::countEdge(Module &M, BasicBlock &BB) {
   IRB.CreateStore(IncRet, MapPtrIdx)->setMetadata(NoSanMetaId, NoneMetaNode);
 
   Value *NewPrevLoc = NULL;
-  if (enable_ctx) { // Call-based context
+  if (num_fn_ctx == 0) { // Call-based context
     // Load ctx
     LoadInst *CtxVal = IRB.CreateLoad(AngoraContext);
     setInsNonSan(CtxVal);
@@ -421,6 +428,9 @@ void AngoraLLVMPass::countEdge(Module &M, BasicBlock &BB) {
 
 
 void AngoraLLVMPass::addFnWrap(Function &F) {
+
+  if (num_fn_ctx == 0) return;
+
   // *** Pre Fn ***
   BasicBlock *BB = &F.getEntryBlock();
   Instruction *InsertPoint = &(*(BB->getFirstInsertionPt()));
@@ -439,8 +449,8 @@ void AngoraLLVMPass::addFnWrap(Function &F) {
   // by `xor` with the same value
   // Implementation of function context for AFL by heiko eissfeldt:
   // https://github.com/vanhauser-thc/afl-patches/blob/master/afl-fuzz-context_sensitive.diff
-  if (direct_fn_ctx) {
-    OriCtxVal = IRB.CreateLShr(OriCtxVal, 6);
+  if (num_fn_ctx > 0) {
+    OriCtxVal = IRB.CreateLShr(OriCtxVal, 32 / num_fn_ctx);
     setValueNonSan(OriCtxVal);
   }
 
@@ -471,11 +481,11 @@ void AngoraLLVMPass::processCall(Instruction *Inst) {
 
   //  if (ABIList.isIn(*Callee, "uninstrumented"))
   //  return;
-
-  IRBuilder<> IRB(Inst);
-  Constant* CallSite = ConstantInt::get(Int32Ty, getRandomContextId());
-  IRB.CreateStore(CallSite, AngoraCallSite)->setMetadata(NoSanMetaId, NoneMetaNode);
-
+  if (num_fn_ctx != 0) {
+    IRBuilder<> IRB(Inst);
+    Constant* CallSite = ConstantInt::get(Int32Ty, getRandomContextId());
+    IRB.CreateStore(CallSite, AngoraCallSite)->setMetadata(NoSanMetaId, NoneMetaNode);
+  }
 }
 
 void AngoraLLVMPass::visitCallInst(Instruction *Inst) {
