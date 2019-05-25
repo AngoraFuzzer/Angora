@@ -14,6 +14,9 @@ impl<'a> FnFuzz<'a> {
         let last = self.handler.cond.offsets.last().unwrap();
         let off = last.begin as usize;
         let mut end = last.end;
+        if self.handler.buf.len() <= last.end as usize {
+            self.handler.buf.resize(last.end as usize + 1_usize, 0);
+        }
         let v = self.handler.buf[off];
         for _ in 0..n {
             self.handler.buf.insert(off, v);
