@@ -18,3 +18,4 @@ auto/
 /bin/
 obj-intel64/
 .DS_Store
+llvm_mode/version.config
