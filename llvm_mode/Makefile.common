@@ -38,15 +38,6 @@ ifeq "$(shell uname)" "Darwin"
   CLANG_LFL += -Wl,-flat_namespace -Wl,-undefined,suppress
 endif
 
-# We were using llvm-config --bindir to get the location of clang, but
-# this seems to be busted on some distros, so using the one in $PATH is
-# probably better.
-
-ifeq "$(origin CC)" "default"
-  CC         = clang
-  CXX        = clang++
-endif
-
 LLVM_VERSION_MAJOR=`${LLVM_CONFIG} --version | cut -f1 -d.`
 LLVM_VERSION_MINOR=`${LLVM_CONFIG} --version | cut -f2 -d.`
 VALID_LLVM_VERSION=$(shell expr ${LLVM_VERSION_MAJOR} \>= 4 \& ${LLVM_VERSION_MAJOR} \<= 7)

@@ -1,7 +1,4 @@
 PREFIX      ?= ../../bin/
-CC         = clang
-CXX        = clang++
-AR         = ar
 LLVM_CONFIG ?= llvm-config
 CXXFLAGS    += -std=c++14 -Wall -fpic -O3 -g
 
