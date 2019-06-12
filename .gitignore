@@ -11,11 +11,13 @@ Cargo.lock
 GPATH
 GRTAGS
 GTAGS
+GSYMS
 output*/
 *.tar.gz
 *.tar.xz
 auto/
 /bin/
+/lib/
+angora-clang
 obj-intel64/
 .DS_Store
-llvm_mode/version.config

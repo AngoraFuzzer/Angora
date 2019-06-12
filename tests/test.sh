@@ -46,7 +46,7 @@ rm -f ${target}.fast ${target}.cmp ${target}.taint
 bin_dir=../bin/
 ANGORA_USE_ASAN=1 USE_FAST=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.fast
 USE_TRACK=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.taint
-USE_PIN=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.pin
+# USE_PIN=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.pin
 #LLVM_COMPILER=clang wllvm -O0 -g ${target}.c -lz -o ${target}
 #extract-bc ${target}
 #opt -load ../bin/unfold-branch-pass.so -unfold_branch_pass < ${target}.bc > ${target}2.bc
