@@ -22,9 +22,8 @@ if [ ! -z ${PIN_MODE+x} ]; then
     MODE="pin"
 fi
 
-
-envs="RUST_BACKTRACE=1 RUST_LOG=${LOG_TYPE}"
-fuzzer="../target/${BUILD_TYPE}/fuzzer"
+envs="BUILD_TYPE=${BUILD_TYPE} LOG_TYPE=${LOG_TYPE}"
+fuzzer="../angora_fuzzer"
 input="./input"
 output="./output"
 

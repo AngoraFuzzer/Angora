@@ -1,4 +1,5 @@
 use crate::{check_dep, search, tmpfs};
+use angora_common::defs;
 use std::{
     env,
     path::{Path, PathBuf},
@@ -105,27 +106,19 @@ impl CommandOpt {
         let track_bin;
         let mut track_args = Vec::<String>::new();
         if mode.is_pin_mode() {
-            // ugly
-            let exe_path = env::current_exe().unwrap();
-            let project_dir = exe_path
-                .parent()
-                .unwrap()
-                .parent()
-                .unwrap()
-                .parent()
-                .unwrap();
-
+            let project_bin_dir = env::var(defs::ANGORA_BIN_DIR).expect("Please set ANGORA_PROJ_DIR");
+            
             let pin_root =
                 env::var(PIN_ROOT_VAR).expect("You should set the environment of PIN_ROOT!");
             let pin_bin = format!("{}/{}", pin_root, "pin");
             track_bin = pin_bin.to_string();
-            let pin_tool = project_dir
-                .join("pin_mode")
-                .join("obj-intel64")
+            let pin_tool = Path::new(&project_bin_dir)
+                .join("lib")
                 .join("pin_track.so")
                 .to_str()
                 .unwrap()
                 .to_owned();
+
             track_args.push(String::from("-t"));
             track_args.push(pin_tool);
             track_args.push(String::from("--"));

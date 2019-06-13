@@ -141,7 +141,7 @@ static void add_angora_runtime() {
       cc_params[cc_par_cnt++] = rule_obj;
     }
   } else if (clang_type == CLANG_PIN_TYPE) {
-    cc_params[cc_par_cnt++] = alloc_printf("%s/pin_stub.o", obj_path);
+    cc_params[cc_par_cnt++] = alloc_printf("%s/lib/pin_stub.o", obj_path);
   }
 
   if (clang_type != CLANG_FAST_TYPE) {

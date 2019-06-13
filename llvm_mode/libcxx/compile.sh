@@ -68,5 +68,4 @@ USE_DFSAN=1 ninja cxx cxxabi
 
 # @echo "if cxxabi.h not found, try: cp ./libcxxabi/include/*  ./libcxx/include, or -I"
 
-# cp $CUR_DIR/build/lib/libc++.a $CUR_DIR/.
-# cp $CUR_DIR/build/lib/libc++abi.a $CUR_DIR/libc++abidfsan.a
+@echo "Please install them again to overwrite old ones (by CMake).

@@ -9,7 +9,7 @@ if [ -z ${LOG_TYPE} ]
 then LOG_TYPE="info"
 fi
 
-envs="RUST_BACKTRACE=1 RUST_LOG=${LOG_TYPE}"
+envs="RUST_BACKTRACE=1 RUST_LOG=${LOG_TYPE} ANGORA_BIN_DIR=${FUZZ_DIR}/bin"
 fuzzer="${FUZZ_DIR}/target/${BUILD_TYPE}/fuzzer"
 
 cmd="$envs $fuzzer $*"

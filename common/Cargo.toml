@@ -1,6 +1,6 @@
 [package]
 name = "angora_common"
-version = "1.2.0"
+version = "1.2.1"
 authors = ["sp1npx <spinpx@gmail.com>"]
 edition = "2018"
 

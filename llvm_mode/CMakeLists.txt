@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4)
 
-project(angora_llvm_mode VERSION 1.2.0 LANGUAGES C CXX ASM)
+project(angora_llvm_mode VERSION 1.2.1 LANGUAGES C CXX ASM)
 
 include_directories(include)
 include_directories(dfsan_rt)

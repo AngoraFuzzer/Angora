@@ -2,6 +2,7 @@
 set -eux
 
 BUILD_TYPE="debug"
+# BUILD_TYPE="release"
 num_jobs=1
 #sync_afl="--sync_afl"
 sync_afl=""
@@ -22,8 +23,8 @@ if [ ! -z ${PIN_MODE+x} ]; then
 fi
 
 
-envs="RUST_BACKTRACE=1 RUST_LOG=${LOG_TYPE}"
-fuzzer="../target/${BUILD_TYPE}/fuzzer"
+envs="BUILD_TYPE=${BUILD_TYPE} LOG_TYPE=${LOG_TYPE}"
+fuzzer="../angora_fuzzer"
 input="./input"
 output="./output"
 
@@ -46,7 +47,7 @@ rm -f ${target}.fast ${target}.cmp ${target}.taint
 bin_dir=../bin/
 ANGORA_USE_ASAN=1 USE_FAST=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.fast
 USE_TRACK=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.taint
-# USE_PIN=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.pin
+USE_PIN=1 ${bin_dir}/angora-clang ${target}.c -lz -o ${target}.pin
 #LLVM_COMPILER=clang wllvm -O0 -g ${target}.c -lz -o ${target}
 #extract-bc ${target}
 #opt -load ../bin/unfold-branch-pass.so -unfold_branch_pass < ${target}.bc > ${target}2.bc

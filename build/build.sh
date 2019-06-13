@@ -12,8 +12,9 @@ if ! [ -x "$(command -v llvm-config)"  ]; then
     export CXX=clang++
 fi
 
-PREFIX=`pwd`
+PREFIX=${PREFIX:-${ROOT_DIR}}
 
+cargo build
 cargo build --release
 
 rm -rf ${PREFIX}/bin
@@ -28,6 +29,6 @@ mkdir -p build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=${PREFIX} -DCMAKE_BUILD_TYPE=Release ..
 make clean
-make #VERBOSE=1 
-make install #VERBOSE=1
+make # VERBOSE=1 
+make install # VERBOSE=1
 

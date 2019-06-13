@@ -19,4 +19,4 @@ directory is populated. Otherwise no branches can be found.
 
 - Multiple inconsistent warnings. It caused by the fast and track programs has different behaviors. If most constraints are inconsistent, ensure they are compiled with the same environment. Otherwise, report us.
 
-- Density is too large (> 10%). Please increase `MAP_SIZE_POW2` in `llvm_mode/config.h` and `MAP_LENGTH` in `common/src/config.rs`. Or disable function-call context by compiling with `ANGORA_DISABLE_CONTEXT=1` or `ANGORA_DIRECT_FN_CONTEXT=1` environment variable.
+- Density is too large (> 10%). Please increase `MAP_SIZE_POW2` in `llvm_mode/config.h` and `MAP_LENGTH` in `common/src/config.rs`. Or disable function-call context(density > 50%) by compiling with `ANGORA_CUSTOM_FN_CONTEXT=k` (k is an integer and 0 <= k <= 32) environment variable. Angora disables context if k is 0.
