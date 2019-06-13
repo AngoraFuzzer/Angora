@@ -126,7 +126,7 @@ impl ChartStats {
 impl fmt::Display for ChartStats {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.density.0 > 10.0 {
-            warn!("Density is too large (> 10%). Please increase `MAP_SIZE_POW2` in `llvm_mode/config.h` and `MAP_LENGTH` in `common/src/config.rs`. Or disable function-call context(density > 50%) by compiling with `ANGORA_CUSTOM_FN_CONTEXT=k` (k is an integer and 0 <= k <= 32) environment variable. Angora disables context if k is 0.");
+            warn!("Density is too large (> 10%). Please increase `MAP_SIZE_POW2` in and `common/src/config.rs`. Or disable function-call context(density > 50%) by compiling with `ANGORA_CUSTOM_FN_CONTEXT=k` (k is an integer and 0 <= k <= 32) environment variable. Angora disables context if k is 0.");
         }
 
         if self.search.multiple_inconsist() {

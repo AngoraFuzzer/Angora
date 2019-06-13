@@ -2,7 +2,7 @@ FROM ubuntu:16.04
 
 RUN apt-get update && \
     apt-get -y upgrade && \
-    apt-get install -y git build-essential wget zlib1g-dev golang-go python-pip python-dev build-essential && \
+    apt-get install -y git build-essential wget zlib1g-dev golang-go python-pip python-dev build-essential cmake && \
     apt-get clean
 
 

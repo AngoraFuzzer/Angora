@@ -347,7 +347,7 @@ static void edit_params(u32 argc, char **argv) {
     // FIXME: or use the same header
     // cc_params[cc_par_cnt++] = "-I/path-to-llvm/include/c++/v1";
     if (clang_type == CLANG_FAST_TYPE) {
-      cc_params[cc_par_cnt++] = alloc_printf("-L%s/libcxx_fast/", obj_path);
+      cc_params[cc_par_cnt++] = alloc_printf("-L%s/lib/libcxx_fast/", obj_path);
       cc_params[cc_par_cnt++] = "-stdlib=libc++";
       cc_params[cc_par_cnt++] = "-Wl,--start-group";
       cc_params[cc_par_cnt++] = "-lc++abifast";
@@ -355,7 +355,7 @@ static void edit_params(u32 argc, char **argv) {
       cc_params[cc_par_cnt++] = "-Wl,--end-group";
     }
     else if (clang_type == CLANG_TRACK_TYPE) {
-      cc_params[cc_par_cnt++] = alloc_printf("-L%s/libcxx_track/", obj_path);
+      cc_params[cc_par_cnt++] = alloc_printf("-L%s/lib/libcxx_track/", obj_path);
       cc_params[cc_par_cnt++] = "-stdlib=libc++";
       cc_params[cc_par_cnt++] = "-Wl,--start-group";
       cc_params[cc_par_cnt++] = "-lc++abitrack";

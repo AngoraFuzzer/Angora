@@ -36,12 +36,6 @@ pub const UNREACHABLE: u64 = std::u64::MAX;
 
 // ** Cond Type
 // < 0xFF: simple if
-pub const COND_BASIC_MASK: u32 = 0xFF;
-pub const COND_SIGN_MASK: u32 = 0x100;
-pub const COND_BOOL_MASK: u32 = 0x200;
-// pub const COND_CALL_MASK: u32 = 0x400;
-// pub const COND_CALL_REV_MASK: u32 = 0xFBFF;
-
 // http://llvm.org/doxygen/InstrTypes_8h_source.html
 // Opcode              U L G E    Intuitive operation
 pub const COND_FCMP_FALSE: u32 = 0;
@@ -88,6 +82,12 @@ pub const COND_ICMP_SGE_OP: u32 = 39;
 pub const COND_ICMP_SLT_OP: u32 = 40;
 pub const COND_ICMP_SLE_OP: u32 = 41;
 pub const COND_SW_OP: u32 = 0x00FF;
+
+pub const COND_BASIC_MASK: u32 = 0xFF;
+pub const COND_SIGN_MASK: u32 = 0x100;
+pub const COND_BOOL_MASK: u32 = 0x200;
+// pub const COND_CALL_MASK: u32 = 0x400;
+// pub const COND_CALL_REV_MASK: u32 = 0xFBFF;
 
 pub const COND_MAX_EXPLORE_OP: u32 = 0x4000 - 1;
 pub const COND_MAX_EXPLOIT_OP: u32 = 0x5000 - 1;

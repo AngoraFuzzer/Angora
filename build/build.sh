@@ -27,8 +27,7 @@ cd llvm_mode
 rm -rf build
 mkdir -p build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=${PREFIX} -DCMAKE_BUILD_TYPE=Release ..
-make clean
+cmake -DCMAKE_INSTALL_PREFIX=${PREFIX}/bin/ -DCMAKE_BUILD_TYPE=Release ..
 make # VERBOSE=1 
 make install # VERBOSE=1
 
