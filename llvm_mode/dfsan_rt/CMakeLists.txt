@@ -50,6 +50,8 @@ set_property(
 include(AddCompilerRT)
 include(SanitizerUtils)
 
+set(CMAKE_CXX_STANDARD 11)
+
 add_subdirectory(sanitizer_common)
 add_subdirectory(interception)
 add_subdirectory(dfsan)
