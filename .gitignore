@@ -17,7 +17,5 @@ output*/
 *.tar.xz
 auto/
 /bin/
-/lib/
-angora-clang
 obj-intel64/
 .DS_Store

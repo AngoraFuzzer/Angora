@@ -32,6 +32,7 @@ if (NOT TARGET LLVMPassConfig)
         INTERFACE_LINK_DIRECTORIES "${LLVM_LIBRARY_DIRS}"
         INTERFACE_LINK_OPTIONS "-Wl,-znodelete"
         INTERFACE_COMPILE_DEFINITIONS "LLVM_VERSION_MAJOR=${LLVM_VERSION_MAJOR};LLVM_VERSION_MINOR=${LLVM_VERSION_MINOR};MAP_SIZE_POW2=${MAP_SIZE_POW2}"
+        # INTERFACE_COMPILE_FEATURES "cxx_std_11"
     )
     if(APPLE)
         set_target_properties(LLVMPassConfig PROPERTIES
@@ -40,6 +41,8 @@ if (NOT TARGET LLVMPassConfig)
     )
     endif(APPLE)
 endif()
+
+set(CMAKE_CXX_STANDARD 11)
 
 add_library(UnfoldBranchPass MODULE UnfoldBranchPass.cc)
 target_link_libraries(UnfoldBranchPass LLVMPassConfig)
