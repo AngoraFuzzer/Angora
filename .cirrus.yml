@@ -5,8 +5,8 @@ angora_build_task:
         folder: $CARGO_HOME/registry
         #    fingerprint_script: cat Cargo.lock
     build_script: 
-        - sudo apt-get update
-        - sudo apt-get install -y cmake
+        - apt-get update
+        - apt-get install -y cmake
         - cmake --version
         - ./build/build.sh
     test_script: cargo test
