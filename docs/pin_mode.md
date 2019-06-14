@@ -15,7 +15,7 @@ export LIBDFT_PATH=/path-to-libdft64
 ## Build Pin mode
 ```
 cd pin_mode
-make
+make OBJDIR=../bin/lib/
 ```
 
 ## Build a target program

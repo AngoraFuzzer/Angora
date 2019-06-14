@@ -1,6 +1,6 @@
 [package]
 name = "angora"
-version = "1.2.0"
+version = "1.2.1"
 authors = ["spinpx <spinpx@gmail.com>"]
 edition = "2018"
 
@@ -19,7 +19,7 @@ byteorder = "1.2"
 chrono = "0.4"
 priority-queue = "0.6"
 num_cpus = "1.0"
-derive_more = "0.14"
+derive_more = "0.15"
 colored = "1.6"
 serde="1.0"
 serde_derive = "1.0"

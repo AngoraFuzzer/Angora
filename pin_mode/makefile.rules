@@ -42,7 +42,7 @@ SA_TOOL_ROOTS :=
 APP_ROOTS := 
 
 # This defines any additional object files that need to be compiled.
-OBJECT_ROOTS := 
+OBJECT_ROOTS := pin_stub
 
 # This defines any additional dlls (shared objects), other than the pintools, that need to be compiled.
 DLL_ROOTS :=
@@ -90,3 +90,6 @@ endif
 LOGGING_FLAGS = -DNO_PINTOOL_LOG
 TOOL_CXXFLAGS += $(LOGGING_FLAGS) -I$(LIBDFT_INC_PATH) -L$(LIBDFT_LIB_PATH)
 TOOL_LIBS += -L$(LIBDFT_LIB_PATH) -ldft
+
+$(OBJDIR)pin_stub$(OBJ_SUFFIX): pin_stub.c
+	$(CC) -fPIC -c $< -o $@

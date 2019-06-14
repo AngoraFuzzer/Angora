@@ -27,7 +27,7 @@ base and bound information for allcoations. This only requires modifications to
 the `__dfsw_*alloc()` functions. The HashMap insertion, deletion and querying 
 operations are implemented in Rust. The HashMap uses base pointer values as the
 key and bound values as the value. Minimal instrumentation is required for this 
-approach. The source code can be found in the repository under the `llvm_mode`
+approach. The source code can be found in the repository under the `llvm_mode/external_lib`
 directory. 
 
 ## Path Coverage (Unsolved)

@@ -102,7 +102,7 @@ Example: how to custom `crc32` function in `zlib` library. (see `llvm_mode/exter
 ./angora/tools/gen_library_abilist.sh /usr/lib/x86_64-linux-gnu/libz.so  custom > zlib_abilist.txt
 
 export ANGORA_TAINT_RULE_LIST=/path-to/zlib_abilist.txt
-# write your custom function, e.g. llvm_mode/external_lib/zlib-func.c
+# write your custom function, e.g. llvm_mode/external_lib/zlib-func.c and llvm_mode/external_lib/zlib_abilist.txt 
 # compile it and 
 export ANGORA_TAINT_CUSTOM_RULE=/path-to/zlib-func.o
 ```
@@ -113,15 +113,15 @@ Use `USE_DFSAN=1 make` to build them.
 
 ## Build C++ program and C++ standard library
 - C++ program: CXX=/path-to-angora/bin/angora-clang++ or -DCMAKE_CXX_COMPILER=...
-- C++ standard library: we have built one under ubuntu 16.04 64bits in llvm_mode/libcxx_dfsan. You can built it by yourself with the following commands and move the libraries to llvm_mode/libcxx_dfsan directory and bin/. (run libcxx_dfsan/compile.sh)
+- C++ standard library: we have built one under ubuntu 16.04 64bits in llvm_mode/libcxx. You can built it by yourself with the following commands and move the libraries to llvm_mode/libcxx directory and bin/lib. (run libcxx_dfsan/compile.sh)
 
 ```
 # http://lists.llvm.org/pipermail/cfe-dev/2015-January/040876.html
 # install cmake ninja and download LLVM&CLANG source code
 CC=~/angora/bin/angora-clang CXX=~/angora/bin/angora-clang++ cmake -G Ninja ../llvm  -DLIBCXXABI_ENABLE_SHARED=NO -DLIBCXX_ENABLE_SHARED=NO -DLLVM_FORCE_USE_OLD_TOOLCHAIN=YES -DLIBCXX_CXX_ABI=libcxxabi
 USE_DFSAN=1 ninja cxx cxxabi
-# move them to llvm_mode/libcxx_dfsan
+# move them to llvm_mode/libcxx and bin/lib
 ```
 
 ## Add taints in input functions
-Angora models most input functions in `llvm_mode/io-func.c`. But it doesn't support some input functions like `scanf` or other input function in external libraries. You can add taints by yourself by the approach described in *Model an external library*. For example, program `who` use `getutxent` to read input, and we add taints in `__dfsw_getutxent` in `io-func.c` file.
+Angora models most input functions in `llvm_mode/external_lib/io-func.c`. But it doesn't support some input functions like `scanf` or other input function in external libraries. You can add taints by yourself by the approach described in *Model an external library*. For example, program `who` use `getutxent` to read input, and we add taints in `__dfsw_getutxent` in `io-func.c` file.

@@ -34,6 +34,7 @@ and precise input generation which significantly increases input coverage.
   - `src/stats`: Statistical chart.
   - `src/branches`: Branch counting.
 - `llvm_mode`: Includes source code for instrumenting compilers and DFSan, the taint tracking framework.
+- `pin_mode`: Includes source code for instrumenting based on Intel Pin.
 - `runtime`: Taint tracking runtime library for target program.
 - `runtime_fast`: Branch and constraint information collection library for target program.
 - `tests`: Sample tests to evaluate fuzzer performance.

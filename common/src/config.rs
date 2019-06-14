@@ -10,8 +10,8 @@ pub const PREFER_FAST_COND: bool = true;
 
 // ************ Resources ****************
 // branch.rs
-pub const MAP_LENGTH: usize = 20;
-pub const BRANCHES_SIZE: usize = 1 << MAP_LENGTH;
+pub const MAP_SIZE_POW2: usize = 20;
+pub const BRANCHES_SIZE: usize = 1 << MAP_SIZE_POW2;
 
 // executor.rs:
 pub const TMOUT_SKIP: usize = 3;

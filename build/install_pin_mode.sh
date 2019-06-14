@@ -9,4 +9,4 @@ PREFIX=/ ./install_pin.sh
 make
 cp env.init /opt/
 cd ..
-make
+make OBJDIR=../bin/lib/
