@@ -394,13 +394,25 @@ void AngoraLLVMPass::countEdge(Module &M, BasicBlock &BB) {
   LoadInst *Counter = IRB.CreateLoad(MapPtrIdx);
   setInsNonSan(Counter);
 
-  // Avoid overflow
-  Value *CmpOF = IRB.CreateICmpNE(Counter, ConstantInt::get(Int8Ty, -1));
-  setValueNonSan(CmpOF);
+  // Implementation of saturating counter.
+  // Value *CmpOF = IRB.CreateICmpNE(Counter, ConstantInt::get(Int8Ty, -1));
+  // setValueNonSan(CmpOF);
+  // Value *IncVal = IRB.CreateZExt(CmpOF, Int8Ty);
+  // setValueNonSan(IncVal);
+  // Value *IncRet = IRB.CreateAdd(Counter, IncVal);
+  // setValueNonSan(IncRet);
 
-  Value *IncVal = IRB.CreateZExt(CmpOF, Int8Ty);
+  // Implementation of Never-zero counter
+  // The idea is from Marc and Heiko in AFLPlusPlus
+  // Reference: : https://github.com/vanhauser-thc/AFLplusplus/blob/master/llvm_mode/README.neverzero and https://github.com/vanhauser-thc/AFLplusplus/issues/10
+    
+  Value *IncRet = IRB.CreateAdd(Counter, ConstantInt::get(Int8Ty, 1));
+  setValueNonSan(IncRet);
+  Value *IsZero = IRB.CreateICmpEQ(IncRet, ConstantInt::get(Int8Ty, 0));
+  setValueNonSan(IsZero);
+  Value *IncVal = IRB.CreateZExt(IsZero, Int8Ty);
   setValueNonSan(IncVal);
-  Value *IncRet = IRB.CreateAdd(Counter, IncVal);
+  IncRet = IRB.CreateAdd(IncRet, IncVal);
   setValueNonSan(IncRet);
 
   // Store Back Map[idx]
