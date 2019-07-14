@@ -8,6 +8,7 @@
 - `ANGORA_OUTPUT_COND_LOC=1` : (Debug option) Output the location of each predicate during compiling.
 - `ANGORA_TAINT_CUSTOM_RULE=/path/to/object` : object contains those proxy function (how to propagate taints), e.g. `ANGORA_TAINT_CUSTOM_RULE=~/angora/bin/lib/zlib-func.o` . You should add it as custom type in the file passed by `ANGORA_TAINT_RULE_LIST` first.
 - `ANGORA_TAINT_RULE_LIST=/path/to/list` : DataFlowSanitizer’s [ABI list](https://clang.llvm.org/docs/DataFlowSanitizer.html), e.g. `ANGORA_TAINT_RULE_LIST=~/angora/bin/rules/zlib_abilist.txt`.
+- `ANGORA_INST_RATIO`: 
 
 # Environment variables for running
 

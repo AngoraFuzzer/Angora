@@ -63,6 +63,7 @@ public:
   u32 CidCounter;
   unsigned long int RandSeed = 1;
   bool is_bc;
+  unsigned int inst_ratio = 100;
 
   // Const Variables
   DenseSet<u32> UniqCidSet;
@@ -117,6 +118,7 @@ public:
   bool runOnModule(Module &M) override;
   u32 getInstructionId(Instruction *Inst);
   u32 getRandomBasicBlockId();
+  bool skipBasicBlock();
   u32 getRandomNum();
   void setRandomNumSeed(u32 seed);
   u32 getRandomContextId();
@@ -144,6 +146,8 @@ public:
 char AngoraLLVMPass::ID = 0;
 
 u32 AngoraLLVMPass::getRandomBasicBlockId() { return random() % MAP_SIZE; }
+
+bool AngoraLLVMPass::skipBasicBlock() { return (random() % 100) >= inst_ratio; }
 
 // http://pubs.opengroup.org/onlinepubs/009695399/functions/rand.html
 u32 AngoraLLVMPass::getRandomNum() {
@@ -221,6 +225,14 @@ void AngoraLLVMPass::initVariables(Module &M) {
   if (is_bc) {
     errs() << "Input is LLVM bitcode\n";
   }
+
+  char* inst_ratio_str = getenv("ANGORA_INST_RATIO");
+  if (inst_ratio_str) {
+    if (sscanf(inst_ratio_str, "%u", &inst_ratio) != 1 || !inst_ratio ||
+        inst_ratio > 100)
+      FATAL("Bad value of ANGORA_INST_RATIO (must be between 1 and 100)");
+  }
+  errs() << "inst_ratio: " << inst_ratio << "\n";
 
   // set seed
   srandom(ModId);
@@ -365,9 +377,9 @@ void AngoraLLVMPass::initVariables(Module &M) {
 // Coverage statistics: AFL's Branch count
 // Angora enable function-call context.
 void AngoraLLVMPass::countEdge(Module &M, BasicBlock &BB) {
-  if (!FastMode)
+  if (!FastMode || skipBasicBlock())
     return;
-
+  
   // LLVMContext &C = M.getContext();
   unsigned int cur_loc = getRandomBasicBlockId();
   ConstantInt *CurLoc = ConstantInt::get(Int32Ty, cur_loc);
