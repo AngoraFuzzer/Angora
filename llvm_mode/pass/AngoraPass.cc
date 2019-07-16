@@ -351,8 +351,8 @@ void AngoraLLVMPass::initVariables(Module &M) {
   char* custom_fn_ctx = getenv(CUSTOM_FN_CTX);
   if (custom_fn_ctx) {
     num_fn_ctx = atoi(custom_fn_ctx);
-    if (num_fn_ctx < 0 || num_fn_ctx > 32) {
-      errs() << "custom context should be: >= 0 && <=32 \n"; 
+    if (num_fn_ctx < 0 || num_fn_ctx >= 32) {
+      errs() << "custom context should be: >= 0 && < 32 \n"; 
       exit(1);
     }
   }
@@ -631,10 +631,12 @@ void AngoraLLVMPass::processCmp(Instruction *Cond, Constant *Cid,
     OpArg[1] = castArgType(IRB, OpArg[1]);
     Value *CondExt = IRB.CreateZExt(Cond, Int32Ty);
     setValueNonSan(CondExt);
+    LoadInst *CurCtx = IRB.CreateLoad(AngoraContext);
+    setInsNonSan(CurCtx);
     CallInst *ProxyCall =
-        IRB.CreateCall(TraceCmp, {CondExt, Cid, OpArg[0], OpArg[1]});
+        IRB.CreateCall(TraceCmp, {CondExt, Cid, CurCtx, OpArg[0], OpArg[1]});
     setInsNonSan(ProxyCall);
-        */
+    */
     LoadInst *CurCid = IRB.CreateLoad(AngoraCondId);
     setInsNonSan(CurCid);
     Value *CmpEq = IRB.CreateICmpEQ(Cid, CurCid);
@@ -865,7 +867,7 @@ bool AngoraLLVMPass::runOnModule(Module &M) {
     return true;
 
   for (auto &F : M) {
-    if (F.isDeclaration())
+    if (F.isDeclaration() || F.getName().startswith(StringRef("asan.module")))
       continue;
 
     addFnWrap(F);
