@@ -378,12 +378,12 @@ static void edit_params(u32 argc, char **argv) {
       break;
     case 32:
       /* if (access(cc_params[cc_par_cnt - 1], R_OK)) */
-      FATAL("-m32 is not supported by your compiler");
+      // FATAL("-m32 is not supported by your compiler");
       break;
 
     case 64:
       /* if (access(cc_params[cc_par_cnt - 1], R_OK)) */
-      FATAL("-m64 is not supported by your compiler");
+      // FATAL("-m64 is not supported by your compiler");
       break;
     }
   }

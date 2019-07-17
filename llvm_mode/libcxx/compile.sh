@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+BIN_PATH=$(readlink -f "$0")
+ROOT_DIR=$(dirname $(dirname $(dirname $BIN_PATH)))
+
 LLVM_VERSION=7.0.0
 
 NINJA_B=`which ninja 2>/dev/null`
@@ -62,7 +65,7 @@ ninja cxx cxxabi
 cd ..
 mkdir build_track && cd build_track/
 
-CC=~/angora/bin/angora-clang CXX=~/angora/bin/angora-clang++ cmake -G Ninja ../llvm_src  -DLIBCXXABI_ENABLE_SHARED=NO -DLIBCXX_ENABLE_SHARED=NO -DLIBCXX_CXX_ABI=libcxxabi 
+CC=${ROOT_DIR}/bin/angora-clang CXX=${ROOT_DIR}/bin/angora-clang++ cmake -G Ninja ../llvm_src  -DLIBCXXABI_ENABLE_SHARED=NO -DLIBCXX_ENABLE_SHARED=NO -DLIBCXX_CXX_ABI=libcxxabi 
 #-DLLVM_FORCE_USE_OLD_TOOLCHAIN=YES 
 USE_DFSAN=1 ninja cxx cxxabi
 

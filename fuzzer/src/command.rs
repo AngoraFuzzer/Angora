@@ -84,7 +84,7 @@ impl CommandOpt {
         let clang_lib = Command::new("llvm-config")
             .arg("--libdir")
             .output()
-            .unwrap()
+            .expect("Can't find llvm-config")
             .stdout;
         let clang_lib = String::from_utf8(clang_lib).unwrap();
         let ld_library = "$LD_LIBRARY_PATH:".to_string() + clang_lib.trim();

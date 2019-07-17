@@ -63,6 +63,7 @@ public:
   u32 CidCounter;
   unsigned long int RandSeed = 1;
   bool is_bc;
+  unsigned int inst_ratio = 100;
 
   // Const Variables
   DenseSet<u32> UniqCidSet;
@@ -117,6 +118,7 @@ public:
   bool runOnModule(Module &M) override;
   u32 getInstructionId(Instruction *Inst);
   u32 getRandomBasicBlockId();
+  bool skipBasicBlock();
   u32 getRandomNum();
   void setRandomNumSeed(u32 seed);
   u32 getRandomContextId();
@@ -144,6 +146,8 @@ public:
 char AngoraLLVMPass::ID = 0;
 
 u32 AngoraLLVMPass::getRandomBasicBlockId() { return random() % MAP_SIZE; }
+
+bool AngoraLLVMPass::skipBasicBlock() { return (random() % 100) >= inst_ratio; }
 
 // http://pubs.opengroup.org/onlinepubs/009695399/functions/rand.html
 u32 AngoraLLVMPass::getRandomNum() {
@@ -221,6 +225,14 @@ void AngoraLLVMPass::initVariables(Module &M) {
   if (is_bc) {
     errs() << "Input is LLVM bitcode\n";
   }
+
+  char* inst_ratio_str = getenv("ANGORA_INST_RATIO");
+  if (inst_ratio_str) {
+    if (sscanf(inst_ratio_str, "%u", &inst_ratio) != 1 || !inst_ratio ||
+        inst_ratio > 100)
+      FATAL("Bad value of ANGORA_INST_RATIO (must be between 1 and 100)");
+  }
+  errs() << "inst_ratio: " << inst_ratio << "\n";
 
   // set seed
   srandom(ModId);
@@ -339,8 +351,8 @@ void AngoraLLVMPass::initVariables(Module &M) {
   char* custom_fn_ctx = getenv(CUSTOM_FN_CTX);
   if (custom_fn_ctx) {
     num_fn_ctx = atoi(custom_fn_ctx);
-    if (num_fn_ctx < 0 || num_fn_ctx > 32) {
-      errs() << "custom context should be: >= 0 && <=32 \n"; 
+    if (num_fn_ctx < 0 || num_fn_ctx >= 32) {
+      errs() << "custom context should be: >= 0 && < 32 \n"; 
       exit(1);
     }
   }
@@ -365,9 +377,9 @@ void AngoraLLVMPass::initVariables(Module &M) {
 // Coverage statistics: AFL's Branch count
 // Angora enable function-call context.
 void AngoraLLVMPass::countEdge(Module &M, BasicBlock &BB) {
-  if (!FastMode)
+  if (!FastMode || skipBasicBlock())
     return;
-
+  
   // LLVMContext &C = M.getContext();
   unsigned int cur_loc = getRandomBasicBlockId();
   ConstantInt *CurLoc = ConstantInt::get(Int32Ty, cur_loc);
@@ -394,13 +406,25 @@ void AngoraLLVMPass::countEdge(Module &M, BasicBlock &BB) {
   LoadInst *Counter = IRB.CreateLoad(MapPtrIdx);
   setInsNonSan(Counter);
 
-  // Avoid overflow
-  Value *CmpOF = IRB.CreateICmpNE(Counter, ConstantInt::get(Int8Ty, -1));
-  setValueNonSan(CmpOF);
+  // Implementation of saturating counter.
+  // Value *CmpOF = IRB.CreateICmpNE(Counter, ConstantInt::get(Int8Ty, -1));
+  // setValueNonSan(CmpOF);
+  // Value *IncVal = IRB.CreateZExt(CmpOF, Int8Ty);
+  // setValueNonSan(IncVal);
+  // Value *IncRet = IRB.CreateAdd(Counter, IncVal);
+  // setValueNonSan(IncRet);
 
-  Value *IncVal = IRB.CreateZExt(CmpOF, Int8Ty);
+  // Implementation of Never-zero counter
+  // The idea is from Marc and Heiko in AFLPlusPlus
+  // Reference: : https://github.com/vanhauser-thc/AFLplusplus/blob/master/llvm_mode/README.neverzero and https://github.com/vanhauser-thc/AFLplusplus/issues/10
+    
+  Value *IncRet = IRB.CreateAdd(Counter, ConstantInt::get(Int8Ty, 1));
+  setValueNonSan(IncRet);
+  Value *IsZero = IRB.CreateICmpEQ(IncRet, ConstantInt::get(Int8Ty, 0));
+  setValueNonSan(IsZero);
+  Value *IncVal = IRB.CreateZExt(IsZero, Int8Ty);
   setValueNonSan(IncVal);
-  Value *IncRet = IRB.CreateAdd(Counter, IncVal);
+  IncRet = IRB.CreateAdd(IncRet, IncVal);
   setValueNonSan(IncRet);
 
   // Store Back Map[idx]
@@ -607,10 +631,12 @@ void AngoraLLVMPass::processCmp(Instruction *Cond, Constant *Cid,
     OpArg[1] = castArgType(IRB, OpArg[1]);
     Value *CondExt = IRB.CreateZExt(Cond, Int32Ty);
     setValueNonSan(CondExt);
+    LoadInst *CurCtx = IRB.CreateLoad(AngoraContext);
+    setInsNonSan(CurCtx);
     CallInst *ProxyCall =
-        IRB.CreateCall(TraceCmp, {CondExt, Cid, OpArg[0], OpArg[1]});
+        IRB.CreateCall(TraceCmp, {CondExt, Cid, CurCtx, OpArg[0], OpArg[1]});
     setInsNonSan(ProxyCall);
-        */
+    */
     LoadInst *CurCid = IRB.CreateLoad(AngoraCondId);
     setInsNonSan(CurCid);
     Value *CmpEq = IRB.CreateICmpEQ(Cid, CurCid);
@@ -841,7 +867,7 @@ bool AngoraLLVMPass::runOnModule(Module &M) {
     return true;
 
   for (auto &F : M) {
-    if (F.isDeclaration())
+    if (F.isDeclaration() || F.getName().startswith(StringRef("asan.module")))
       continue;
 
     addFnWrap(F);
