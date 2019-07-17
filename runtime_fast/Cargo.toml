@@ -1,6 +1,6 @@
 [package]
 name = "runtime_fast"
-version = "1.2.1"
+version = "1.2.2"
 authors = ["sp1npx <spinpx@gmail.com>"]
 edition = "2018"
 
