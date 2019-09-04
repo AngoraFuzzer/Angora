@@ -585,12 +585,12 @@ Value *AngoraLLVMPass::castArgType(IRBuilder<> &IRB, Value *V) {
   Type *OpType = V->getType();
   Value *NV = V;
   if (OpType->isFloatTy()) {
-    NV = IRB.CreateIntCast(V, Int32Ty, false);
+    NV = IRB.CreateFPToUI(V, Int32Ty);
     setValueNonSan(NV);
     NV = IRB.CreateIntCast(NV, Int64Ty, false);
     setValueNonSan(NV);
   } else if (OpType->isDoubleTy()) {
-    NV = IRB.CreateIntCast(V, Int64Ty, false);
+    NV = IRB.CreateFPToUI(V, Int64Ty);
     setValueNonSan(NV);
   } else if (OpType->isPointerTy()) {
     NV = IRB.CreatePtrToInt(V, Int64Ty);
