@@ -82,6 +82,21 @@ static void check_type(char *name) {
   }
 }
 
+static u8 check_if_assembler(u32 argc, const char **argv) {
+  /* Check if a file with an assembler extension ("s" or "S") appears in argv */
+
+  while (--argc) {
+    u8 *cur = *(++argv);
+
+    const u8 *ext = strrchr(cur, '.');
+    if (ext && (!strcmp(ext + 1, "s") || !strcmp(ext + 1, "S"))) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 static void add_angora_pass() {
   if (clang_type != CLANG_DFSAN_TYPE) {
     cc_params[cc_par_cnt++] = "-Xclang";
@@ -182,6 +197,7 @@ static void add_dfsan_pass() {
 static void edit_params(u32 argc, char **argv) {
 
   u8 fortify_set = 0, asan_set = 0, x_set = 0, maybe_linking = 1, bit_mode = 0;
+  u8 maybe_assembler = 0;
   u8 *name;
 
   cc_params = ck_alloc((argc + 128) * sizeof(u8 *));
@@ -200,6 +216,9 @@ static void edit_params(u32 argc, char **argv) {
     u8 *alt_cc = getenv("ANGORA_CC");
     cc_params[0] = alt_cc ? alt_cc : (u8 *)"clang";
   }
+
+  maybe_assembler = check_if_assembler(argc, argv);
+
   /* Detect stray -v calls from ./configure scripts. */
   if (argc == 1 && !strcmp(argv[1], "-v"))
     maybe_linking = 0;
@@ -236,8 +255,10 @@ static void edit_params(u32 argc, char **argv) {
     cc_params[cc_par_cnt++] = cur;
   }
 
-  add_angora_pass();
-  add_dfsan_pass();
+  if (!maybe_assembler) {
+    add_angora_pass();
+    add_dfsan_pass();
+  }
 
   cc_params[cc_par_cnt++] = "-pie";
   cc_params[cc_par_cnt++] = "-fpic";
