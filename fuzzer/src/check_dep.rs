@@ -17,7 +17,8 @@ fn check_crash_handling() {
     let mut f = File::open(CORE_PATTERN_FILE).unwrap();
     let mut buffer = String::new();
     f.read_to_string(&mut buffer).unwrap();
-    if buffer.trim() != "core" {
+    // if buffer.trim() != "core" {
+    if buffer.starts_with('|') {
         panic!(CHECK_CRASH_MSG);
     }
 }
