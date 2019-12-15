@@ -1,8 +1,9 @@
 use super::{shm_conds, forkcli, shm_branches};
 use std::ops::DerefMut;
 
-use std::sync::{Once, ONCE_INIT};
-static START: Once = ONCE_INIT;
+use std::sync::Once;
+
+static START: Once = Once::new();
 
 #[ctor]
 fn fast_init() {
