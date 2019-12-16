@@ -40,7 +40,7 @@ impl SetLimit for Command {
             Ok(())
         };
 
-        self.before_exec(func)
+        unsafe { self.pre_exec(func) }
     }
 
     fn setsid(&mut self) -> &mut Self {
@@ -50,7 +50,7 @@ impl SetLimit for Command {
             };
             Ok(())
         };
-        self.before_exec(func)
+        unsafe { self.pre_exec(func) }
     }
 
     fn pipe_stdin(&mut self, fd: RawFd, is_stdin: bool) -> &mut Self {
@@ -65,7 +65,7 @@ impl SetLimit for Command {
                 }
                 Ok(())
             };
-            self.before_exec(func)
+            unsafe { self.pre_exec(func) }
         } else {
             self
         }

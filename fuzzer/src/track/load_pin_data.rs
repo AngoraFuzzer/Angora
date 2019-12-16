@@ -4,38 +4,26 @@ use angora_common::tag::TagSeg;
 use std::fs::File;
 use std::io::{self, Read};
 use std::{collections::HashMap, path::Path};
+use std::mem::MaybeUninit;
+use std;
 
 fn read_struct<T, R: Read>(mut read: R) -> io::Result<T> {
-    let num_bytes = ::std::mem::size_of::<T>();
-    unsafe {
-        let mut s = ::std::mem::uninitialized();
-        let buffer = ::std::slice::from_raw_parts_mut(&mut s as *mut T as *mut u8, num_bytes);
-        match read.read_exact(buffer) {
-            Ok(()) => Ok(s),
-            Err(e) => {
-                ::std::mem::forget(s);
-                Err(e)
-            }
-        }
-    }
+    let mut obj = MaybeUninit::<T>::uninit();
+    let num_bytes = std::mem::size_of::<T>();
+    let buffer = unsafe{ std::slice::from_raw_parts_mut(obj.as_mut_ptr() as *mut u8, num_bytes) };
+    read.read_exact(buffer)?;
+    Ok(unsafe { obj.assume_init() })
 }
 
 fn read_vector<T, R: Read>(mut read: R, size: usize) -> io::Result<Vec<T>> {
     let mut vec = Vec::<T>::with_capacity(size);
     if size > 0 {
-        unsafe {
-            vec.set_len(size);
-            let num_bytes = ::std::mem::size_of::<T>() * size;
-            let buffer =
-                ::std::slice::from_raw_parts_mut((&mut vec[..]).as_ptr() as *mut u8, num_bytes);
-            match read.read_exact(buffer) {
-                Ok(()) => Ok(vec),
-                Err(e) => Err(e),
-            }
-        }
-    } else {
-        Ok(vec)
-    }
+        let num_bytes = std::mem::size_of::<T>() * size;
+        unsafe { vec.set_len(size) };
+        let buffer = unsafe {std::slice::from_raw_parts_mut((&mut vec[..]).as_mut_ptr() as *mut u8, num_bytes) } ;
+        read.read_exact(buffer)?;
+    } 
+    Ok(vec)
 }
 
 pub fn get_log_data_pin(out_f: &Path) -> io::Result<LogData> {
