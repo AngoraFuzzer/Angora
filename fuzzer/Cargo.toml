@@ -17,7 +17,7 @@ wait-timeout = "0.2"
 ctrlc = { version = "3.1", features = ["termination"] }
 byteorder = "1.2"
 chrono = "0.4"
-priority-queue = "0.6"
+priority-queue = "0.7"
 num_cpus = "1.0"
 derive_more = "0.99"
 colored = "1.6"
