@@ -3,11 +3,16 @@
 // inputs directory and .cur_input, .socket file
 
 use libc;
-use std::{fs, os::unix::fs::symlink, path::Path};
+use std::{fs, os::unix::fs::symlink, path::Path, env};
+use angora_common::defs;
 
 static LINUX_TMPFS_DIR: &str = "/dev/shm";
 
 pub fn create_tmpfs_dir(target: &Path) {
+    if env::var(defs::PERSIST_TRACK_FILES).is_ok() {
+        fs::create_dir(&target).unwrap();
+        return;
+    }
     let shm_dir = Path::new(LINUX_TMPFS_DIR);
     if shm_dir.is_dir() {
         // support tmpfs
@@ -31,6 +36,9 @@ pub fn create_tmpfs_dir(target: &Path) {
 }
 
 pub fn clear_tmpfs_dir(target: &Path) {
+    if env::var(defs::PERSIST_TRACK_FILES).is_ok() {
+        return;
+    }
     if target.exists() {
         fs::remove_file(target).unwrap();
     }
