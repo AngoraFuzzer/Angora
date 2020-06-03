@@ -221,7 +221,7 @@ impl<'a> GdSearch<'a> {
             ),
             (true, false) => (
                 false,
-                f_minus != f0 && f0 - f_minus == f_plus - f0,
+                f_plus != f0 && f0 - f_minus == f_plus - f0,
                 f0 - f_minus,
             ),
             (true, true) => {
