@@ -1,5 +1,5 @@
 mod cond_state;
-mod cond_stmt;
+pub mod cond_stmt;
 mod output;
 mod shm_conds;
 
