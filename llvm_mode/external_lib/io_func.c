@@ -72,11 +72,16 @@ __attribute__((visibility("default"))) int
 __dfsw_open(const char *path, int oflags, dfsan_label path_label,
             dfsan_label flag_label, dfsan_label *va_labels,
             dfsan_label *ret_label, ...) {
+  int mode = 0;
 
-  va_list args;
-  va_start(args, ret_label);
-  int fd = open(path, oflags, args);
-  va_end(args);
+  if (__OPEN_NEEDS_MODE(oflags)) {
+    va_list arg;
+    va_start(arg, ret_label);
+    mode = va_arg(arg, int);
+    va_end(arg);
+  }
+
+  int fd = open(path, oflags, mode);
 
 #ifdef DEBUG_INFO
   fprintf(stderr, "### open, filename is : %s, fd is %d \n", path, fd);
