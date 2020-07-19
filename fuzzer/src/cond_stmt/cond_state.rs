@@ -1,8 +1,9 @@
 use crate::{cond_stmt::CondStmt, mut_input::offsets::*};
 use angora_common::{config, defs};
 use std;
+use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub enum CondState {
     Offset,
     OffsetOpt,

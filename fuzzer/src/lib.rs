@@ -6,7 +6,7 @@ extern crate log;
 extern crate derive_more;
 
 mod branches;
-mod cond_stmt;
+pub mod cond_stmt;
 mod depot;
 pub mod executor;
 mod mut_input;
