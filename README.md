@@ -112,3 +112,4 @@ For more information, please refer to the documentation under the
 - [Environment variables](./docs/environment_variables.md)
 - [UI Terminology](./docs/ui.md)
 - [Troubleshoot](./docs/troubleshoot.md)
+- [Related works](./docs/related_works.md)
