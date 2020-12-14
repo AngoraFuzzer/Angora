@@ -1,5 +1,7 @@
 use crate::executor::StatusType;
 use angora_common::{config::BRANCHES_SIZE, shm::SHM};
+#[cfg(feature = "unstable")]
+use std::intrinsics::unlikely;
 use std::{
     self,
     sync::{
@@ -7,8 +9,6 @@ use std::{
         Arc, RwLock,
     },
 };
-#[cfg(feature = "unstable")]
-use std::intrinsics::unlikely;
 
 pub type BranchBuf = [u8; BRANCHES_SIZE];
 #[cfg(target_pointer_width = "32")]
@@ -91,16 +91,18 @@ impl Branches {
         let buf_plus: &BranchBufPlus = cast!(&*self.trace);
         let buf: &BranchBuf = &*self.trace;
         for (i, &v) in buf_plus.iter().enumerate() {
-            macro_rules! run_loop { () => {{
-                let base = i * ENTRY_SIZE;
-                for j in 0..ENTRY_SIZE {
-                    let idx = base + j;
-                    let new_val = buf[idx];
-                    if new_val > 0 {
-                        path.push((idx, COUNT_LOOKUP[new_val as usize]))
+            macro_rules! run_loop {
+                () => {{
+                    let base = i * ENTRY_SIZE;
+                    for j in 0..ENTRY_SIZE {
+                        let idx = base + j;
+                        let new_val = buf[idx];
+                        if new_val > 0 {
+                            path.push((idx, COUNT_LOOKUP[new_val as usize]))
+                        }
                     }
-                }
-            }}}
+                }};
+            }
             #[cfg(feature = "unstable")]
             {
                 if unsafe { unlikely(v > 0) } {

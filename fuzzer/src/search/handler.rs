@@ -37,8 +37,8 @@ impl<'a> SearchHandler<'a> {
         match status {
             StatusType::Skip => {
                 self.skip = true;
-            }
-            _ => {}
+            },
+            _ => {},
         }
 
         // bonus

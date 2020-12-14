@@ -55,6 +55,13 @@ fn main() {
              .value_name("TIME")
              .help("time limit for programs, default is 1(s), the tracking timeout is 12 * TIME")
              .takes_value(true))
+          .arg(Arg::with_name("bind")
+          .short("b")
+          .long("bind").value_name("BIND").help("\
+               Bind Angora to cores starting from the id specified. \
+               We assume all cores after the specified core are free. \
+               If the cores specified are not enough, we won't bind at all.")
+          .takes_value(true))
         .arg(Arg::with_name("thread_jobs")
              .short("j")
              .long("jobs")
@@ -87,6 +94,7 @@ fn main() {
         matches.value_of("output_dir").unwrap(),
         matches.value_of("track_target").unwrap_or("-"),
         matches.values_of_lossy("pargs").unwrap(),
+        value_t!(matches, "bind", usize).ok(),
         value_t!(matches, "thread_jobs", usize).unwrap_or(1),
         value_t!(matches, "memory_limit", u64).unwrap_or(angora_common::config::MEM_LIMIT),
         value_t!(matches, "time_limit", u64).unwrap_or(angora_common::config::TIME_LIMIT),

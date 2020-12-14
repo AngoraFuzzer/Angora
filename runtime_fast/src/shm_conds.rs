@@ -1,9 +1,9 @@
 // corresponding to fuzzer/src/cond_stmt/shm_conds.rs
 
-use angora_common::{cond_stmt_base::CondStmtBase, defs, shm};
-use std::{env, process, ops::DerefMut, sync::Mutex};
 use super::context;
+use angora_common::{cond_stmt_base::CondStmtBase, defs, shm};
 use lazy_static::lazy_static;
+use std::{env, ops::DerefMut, process, sync::Mutex};
 
 #[no_mangle]
 static mut __angora_cond_cmpid: u32 = 0;
@@ -36,7 +36,7 @@ impl ShmConds {
                     process::exit(1);
                 }
                 Some(Self { cond, rt_order: 0 })
-            }
+            },
             Err(_) => None,
         }
     }
@@ -89,8 +89,8 @@ pub fn reset_shm_conds() {
     match conds.deref_mut() {
         &mut Some(ref mut c) => {
             c.reset();
-        }
-        _ => {}
+        },
+        _ => {},
     }
 
     unsafe {

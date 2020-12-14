@@ -1,8 +1,8 @@
 use super::CondState;
 use crate::fuzz_type::FuzzType;
 use angora_common::{cond_stmt_base::CondStmtBase, defs, tag::TagSeg};
-use std::hash::{Hash, Hasher};
 use serde_derive::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]
 pub struct CondStmt {

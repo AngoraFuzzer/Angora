@@ -14,7 +14,6 @@ pub struct DepotDir {
 
 impl DepotDir {
     pub fn new(seeds_dir: PathBuf, out_dir: &Path) -> Self {
-
         let inputs_dir = out_dir.join(defs::INPUTS_DIR);
         let hangs_dir = out_dir.join(defs::HANGS_DIR);
         let crashes_dir = out_dir.join(defs::CRASHES_DIR);

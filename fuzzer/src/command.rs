@@ -66,7 +66,7 @@ impl CommandOpt {
         enable_exploitation: bool,
     ) -> Self {
         let mode = InstrumentationMode::from(mode);
-        
+
         let tmp_dir = out_dir.join(TMP_DIR);
         tmpfs::create_tmpfs_dir(&tmp_dir);
 
@@ -106,8 +106,9 @@ impl CommandOpt {
         let track_bin;
         let mut track_args = Vec::<String>::new();
         if mode.is_pin_mode() {
-            let project_bin_dir = env::var(defs::ANGORA_BIN_DIR).expect("Please set ANGORA_PROJ_DIR");
-            
+            let project_bin_dir =
+                env::var(defs::ANGORA_BIN_DIR).expect("Please set ANGORA_PROJ_DIR");
+
             let pin_root =
                 env::var(PIN_ROOT_VAR).expect("You should set the environment of PIN_ROOT!");
             let pin_bin = format!("{}/{}", pin_root, "pin");

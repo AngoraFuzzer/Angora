@@ -51,7 +51,6 @@ impl<T> SHM<T> {
     pub fn is_fail(&self) -> bool {
         -1 == self.ptr as isize
     }
-
 }
 
 impl<T> Deref for SHM<T> {

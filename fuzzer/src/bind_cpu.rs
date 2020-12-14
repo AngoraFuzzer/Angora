@@ -1,8 +1,7 @@
 use angora_common::defs;
 use libc;
 use num_cpus;
-use std::env;
-use std::{fs::File, io::prelude::*, mem, path::Path};
+use std::{env, fs::File, io::prelude::*, mem, path::Path};
 
 #[cfg(target_os = "linux")]
 fn get_info_from_status(p: &Path) -> Option<usize> {

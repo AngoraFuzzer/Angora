@@ -99,7 +99,7 @@ impl MutInput {
             Ok(v) => v,
             Err(_) => {
                 panic!("meta: {:?}", self.meta);
-            }
+            },
         }
     }
 
@@ -190,19 +190,19 @@ impl MutInput {
                     let byte_idx: u32 = rng.gen_range(0, byte_len);
                     let bit_idx: u32 = rng.gen_range(0, 8);
                     self.value[byte_idx as usize] ^= 128 >> bit_idx;
-                }
+                },
                 2 => {
                     //add
                     let entry_idx: u32 = rng.gen_range(0, entry_len);
                     let v: u32 = rng.gen_range(1, config::MUTATE_ARITH_MAX);
                     self.update(entry_idx as usize, true, v as u64);
-                }
+                },
                 3 => {
                     // sub
                     let entry_idx: u32 = rng.gen_range(0, entry_len);
                     let v: u32 = rng.gen_range(1, config::MUTATE_ARITH_MAX);
                     self.update(entry_idx as usize, false, v as u64);
-                }
+                },
                 4 => {
                     // set interesting value
                     let entry_idx: u32 = rng.gen_range(0, entry_len as u32);
@@ -210,14 +210,14 @@ impl MutInput {
                     let vals = search::get_interesting_bytes(n);
                     let wh = rng.gen_range(0, vals.len() as u32);
                     self.set(entry_idx as usize, vals[wh as usize]);
-                }
+                },
                 5 => {
                     // random byte
                     let byte_idx: u32 = rng.gen_range(0, byte_len);
                     // self.randomize_one_byte(byte_idx as usize);
                     self.value[byte_idx as usize] = rng.gen();
-                }
-                _ => {}
+                },
+                _ => {},
             }
         }
     }
