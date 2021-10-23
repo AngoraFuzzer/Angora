@@ -66,10 +66,10 @@ impl Executor {
         );
         envs.insert(
             defs::LD_LIBRARY_PATH_VAR.to_string(),
-            cmd.ld_library.clone(),
+            cmd.ld_library_path.clone(),
         );
 
-        let fd = pipe_fd::PipeFd::new(&cmd.out_file);
+        let fd = pipe_fd::PipeFd::new(&cmd.input_path);
         let forksrv = Some(forksrv::Forksrv::new(
             &cmd.forksrv_socket_path,
             &cmd.main,

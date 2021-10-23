@@ -67,10 +67,6 @@ fn main() {
              .value_name("SearchMethod")
              .help("Which search method to run the program in?")
              .possible_values(&["gd", "random", "mb"]))
-        .arg(Arg::with_name("sync_afl")
-             .short("S")
-             .long("sync_afl")
-             .help("Sync the seeds with AFL. Output directory should be in AFL's directory structure."))
         .arg(Arg::with_name("disable_afl_mutation")
              .short("A")
              .long("disable_afl_mutation")
@@ -91,7 +87,6 @@ fn main() {
         value_t!(matches, "memory_limit", u64).unwrap_or(angora_common::config::MEM_LIMIT),
         value_t!(matches, "time_limit", u64).unwrap_or(angora_common::config::TIME_LIMIT),
         matches.value_of("search_method").unwrap_or("gd"),
-        matches.occurrences_of("sync_afl") > 0,
         matches.occurrences_of("disable_afl_mutation") == 0,
         matches.occurrences_of("disable_exploitation") == 0,
     );

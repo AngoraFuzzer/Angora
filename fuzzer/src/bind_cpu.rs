@@ -1,8 +1,5 @@
-use angora_common::defs;
-use libc;
-use num_cpus;
-use std::env;
-use std::{fs::File, io::prelude::*, mem, path::Path};
+//! Binding fuzzing task at specific CPU
+//! TODO: implement binding in Mac OSX
 
 #[cfg(target_os = "linux")]
 fn get_info_from_status(p: &Path) -> Option<usize> {
@@ -46,6 +43,11 @@ pub fn find_free_cpus(_ask_num: usize) -> Vec<usize> {
 
 #[cfg(target_os = "linux")]
 pub fn find_free_cpus(ask_num: usize) -> Vec<usize> {
+    use angora_common::defs;
+    use num_cpus;
+    use std::env;
+    use std::{fs::File, io::prelude::*, mem, path::Path};
+
     let mut free_cpus = vec![];
     if env::var(defs::DISABLE_CPU_BINDING_VAR).is_ok() {
         return free_cpus;
@@ -94,6 +96,7 @@ pub fn bind_thread_to_cpu_core(_cid: usize) {
 
 #[cfg(target_os = "linux")]
 pub fn bind_thread_to_cpu_core(cid: usize) {
+    use libc;
     unsafe {
         let mut c: libc::cpu_set_t = mem::zeroed();
         libc::CPU_ZERO(&mut c);

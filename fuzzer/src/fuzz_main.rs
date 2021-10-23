@@ -4,7 +4,6 @@ use chrono::prelude::Local;
 use std::{
     collections::HashMap,
     fs,
-    io::prelude::*,
     path::{Path, PathBuf},
     sync::{
         atomic::{AtomicBool, AtomicUsize, Ordering},
@@ -15,7 +14,6 @@ use std::{
 
 use crate::{bind_cpu, branches, check_dep, command, depot, executor, fuzz_loop, stats};
 use ctrlc;
-use libc;
 use pretty_env_logger;
 
 pub fn fuzz_main(
@@ -28,13 +26,13 @@ pub fn fuzz_main(
     mem_limit: u64,
     time_limit: u64,
     search_method: &str,
-    sync_afl: bool,
     enable_afl: bool,
     enable_exploitation: bool,
 ) {
     pretty_env_logger::init();
 
-    let (seeds_dir, angora_out_dir) = initialize_directories(in_dir, out_dir, sync_afl);
+    let (seeds_dir, angora_out_dir) = initialize_directories(in_dir, out_dir);
+
     let command_option = command::CommandOpt::new(
         mode,
         track_target,
@@ -50,31 +48,26 @@ pub fn fuzz_main(
 
     check_dep::check_dep(in_dir, out_dir, &command_option);
 
-    let depot = Arc::new(depot::Depot::new(seeds_dir, &angora_out_dir));
-    info!("{:?}", depot.dirs);
-
-    let stats = Arc::new(RwLock::new(stats::ChartStats::new()));
-    let global_branches = Arc::new(branches::GlobalBranches::new());
-    let fuzzer_stats = create_stats_file_and_write_pid(&angora_out_dir);
     let running = Arc::new(AtomicBool::new(true));
     set_sigint_handler(running.clone());
+    let stats = Arc::new(RwLock::new(stats::ChartStats::new()));
+    let _pid_file = stats::FuzzerPidFile::new(&angora_out_dir); 
+    let global_branches = Arc::new(branches::GlobalBranches::new());
 
+    let depot = Arc::new(depot::Depot::new(seeds_dir, &angora_out_dir));
+    info!("{:?}", depot.dirs);
+    // sync initial seeds
     let mut executor = executor::Executor::new(
         command_option.specify(0),
         global_branches.clone(),
         depot.clone(),
         stats.clone(),
     );
-
     depot::sync_depot(&mut executor, running.clone(), &depot.dirs.seeds_dir);
-
     if depot.empty() {
         error!("Failed to find any branches during dry run.");
         error!("Please ensure that the binary has been instrumented and/or input directory is populated.");
-        error!(
-            "Please ensure that seed directory - {:?} has any file.",
-            depot.dirs.seeds_dir
-        );
+        error!("Please ensure that seed directory - {:?} has any file.",depot.dirs.seeds_dir);
         panic!();
     }
 
@@ -97,7 +90,6 @@ pub fn fuzz_main(
     main_thread_sync_and_log(
         log_file,
         out_dir,
-        sync_afl,
         running.clone(),
         &mut executor,
         &depot,
@@ -112,29 +104,26 @@ pub fn fuzz_main(
         }
     }
 
-    match fs::remove_file(&fuzzer_stats) {
-        Ok(_) => (),
-        Err(e) => warn!("Could not remove fuzzer stats file: {:?}", e),
-    };
 }
 
-fn initialize_directories(in_dir: &str, out_dir: &str, sync_afl: bool) -> (PathBuf, PathBuf) {
-    let angora_out_dir = if sync_afl {
-        gen_path_afl(out_dir)
-    } else {
-        PathBuf::from(out_dir)
+fn initialize_directories(in_dir: &str, out_dir: &str) -> (PathBuf, PathBuf) {
+    let angora_out_dir = {
+        let base_path = PathBuf::from(out_dir);
+        if fs::create_dir(&base_path).is_err() {
+            warn!("dir has existed. {:?}", base_path);
+        }
+        base_path.join(defs::ANGORA_DIR_NAME)
     };
 
     let restart = in_dir == "-";
     if !restart {
-        fs::create_dir(&angora_out_dir).expect("Output directory has existed!");
+        fs::create_dir(&angora_out_dir).expect("Output directory of seeds has existed!");
     }
 
-    let out_dir = &angora_out_dir;
     let seeds_dir = if restart {
-        let orig_out_dir = out_dir.with_extension(Local::now().to_rfc3339());
-        fs::rename(&out_dir, orig_out_dir.clone()).unwrap();
-        fs::create_dir(&out_dir).unwrap();
+        let orig_out_dir = angora_out_dir.with_extension(Local::now().to_rfc3339());
+        fs::rename(&angora_out_dir, orig_out_dir.clone()).unwrap();
+        fs::create_dir(&angora_out_dir).unwrap();
         PathBuf::from(orig_out_dir).join(defs::INPUTS_DIR)
     } else {
         PathBuf::from(in_dir)
@@ -143,36 +132,13 @@ fn initialize_directories(in_dir: &str, out_dir: &str, sync_afl: bool) -> (PathB
     (seeds_dir, angora_out_dir)
 }
 
-fn gen_path_afl(out_dir: &str) -> PathBuf {
-    let base_path = PathBuf::from(out_dir);
-    let create_dir_result = fs::create_dir(&base_path);
-    if create_dir_result.is_err() {
-        warn!("dir has existed. {:?}", base_path);
-    }
-    base_path.join(defs::ANGORA_DIR_NAME)
-}
-
+/// Handle CTRL-C for cancel fuzzing tasks
 fn set_sigint_handler(r: Arc<AtomicBool>) {
     ctrlc::set_handler(move || {
         warn!("Ending Fuzzing.");
         r.store(false, Ordering::SeqCst);
     })
     .expect("Error setting SIGINT handler!");
-}
-
-fn create_stats_file_and_write_pid(angora_out_dir: &PathBuf) -> PathBuf {
-    // To be compatible with AFL.
-    let fuzzer_stats = angora_out_dir.join("fuzzer_stats");
-    let pid = unsafe { libc::getpid() as usize };
-    let mut buffer = match fs::File::create(&fuzzer_stats) {
-        Ok(a) => a,
-        Err(e) => {
-            error!("Could not create stats file: {:?}", e);
-            panic!();
-        }
-    };
-    write!(buffer, "fuzzer_pid : {}", pid).expect("Could not write to stats file");
-    fuzzer_stats
 }
 
 fn init_cpus_and_run_fuzzing_threads(
@@ -216,7 +182,6 @@ fn init_cpus_and_run_fuzzing_threads(
 fn main_thread_sync_and_log(
     mut log_file: fs::File,
     out_dir: &str,
-    sync_afl: bool,
     running: Arc<AtomicBool>,
     executor: &mut executor::Executor,
     depot: &Arc<depot::Depot>,
@@ -227,15 +192,15 @@ fn main_thread_sync_and_log(
     let mut last_explore_num = stats.read().unwrap().get_explore_num();
     let sync_dir = Path::new(out_dir);
     let mut synced_ids = HashMap::new();
-    if sync_afl {
-        depot::sync_afl(executor, running.clone(), sync_dir, &mut synced_ids);
-    }
+    
+    depot::sync_afl(executor, running.clone(), sync_dir, &mut synced_ids);
+    
     let mut sync_counter = 1;
     show_stats(&mut log_file, depot, global_branches, stats);
     while running.load(Ordering::SeqCst) {
         thread::sleep(time::Duration::from_secs(5));
         sync_counter -= 1;
-        if sync_afl && sync_counter <= 0 {
+        if sync_counter <= 0 {
             depot::sync_afl(executor, running.clone(), sync_dir, &mut synced_ids);
             sync_counter = 12;
         }
