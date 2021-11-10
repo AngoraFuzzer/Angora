@@ -28,10 +28,14 @@ public:
   }
 
   bool isIn(Instruction &Inst, StringRef Category) const {
-    if (isa<CallInst>(&Inst)) {
-      CallInst *Caller = dyn_cast<CallInst>(&Inst);
-      return SCL_INSECTION(SCL, "angora", "fun",
-                           Caller->getCalledFunction()->getName(), Category);
+    if (CallBase *Caller = dyn_cast<CallBase>(&Inst)) {
+      Function *callee = Caller->getCalledFunction();
+      // It's possible the caller is not a function(e.g. asm)
+      if (callee) {
+        return SCL_INSECTION(SCL, "angora", "fun", callee->getName(), Category);
+      } else {
+        return false;
+      }
     }
     return SCL_INSECTION(SCL, "angora", "ins", Inst.getOpcodeName(), Category);
   }

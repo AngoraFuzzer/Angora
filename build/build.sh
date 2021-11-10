@@ -28,6 +28,6 @@ rm -rf build
 mkdir -p build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=${PREFIX} -DCMAKE_BUILD_TYPE=Release ..
-make # VERBOSE=1 
+make -j # VERBOSE=1
 make install # VERBOSE=1
 

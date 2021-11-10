@@ -5,13 +5,15 @@ if (LLVM_FOUND)
     message(STATUS "LLVM_VERSION_MAJOR: ${LLVM_VERSION_MAJOR}")
     message(STATUS "LLVM_VERSION_MINOR: ${LLVM_VERSION_MINOR}")
     message(STATUS "LLVM_VERSION_PATCH: ${LLVM_VERSION_PATCH}")
-    if (${LLVM_VERSION_MAJOR} GREATER 7 OR ${LLVM_VERSION_MAJOR} LESS 4)
-        message(FATAL_ERROR "LLVM version should be 4.0.0 - 7.1.0 !")
+    # GREATER_EQUAL is not supported in older cmake versions...
+    # Say ubuntu 16.04
+    if (NOT (${LLVM_VERSION_MAJOR} GREATER 10))
+	message(STATUS ${CMAKE_VERSION})
+        message(FATAL_ERROR "LLVM version must be at least 10.0.x!")
     endif()
 else()
     message(FATAL_ERROR "You haven't install LLVM !")
 endif()
-
 
 EXECUTE_PROCESS(
     COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/../../common/src/config.rs          
@@ -34,7 +36,7 @@ if (NOT TARGET LLVMPassConfig)
     )
 endif()
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 14)
 # fix pass bug: https://github.com/sampsyo/llvm-pass-skeleton/issues/7#issuecomment-401834287
 set (CMAKE_MODULE_LINKER_FLAGS "${CMAKE_CXX_LINK_FLAGS} -Wl,-znodelete")
 if(APPLE)

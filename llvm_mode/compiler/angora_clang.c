@@ -22,8 +22,8 @@
 #define ANGORA_MAIN
 
 #include "alloc_inl.h"
-#include "defs.h"
 #include "debug.h"
+#include "defs.h"
 #include "version.h"
 
 #include <stdio.h>
@@ -120,11 +120,11 @@ static void add_angora_pass() {
   }
 
   cc_params[cc_par_cnt++] = "-mllvm";
-  cc_params[cc_par_cnt++] =
-      alloc_printf("-angora-dfsan-abilist=%s/rules/angora_abilist.txt", obj_path);
+  cc_params[cc_par_cnt++] = alloc_printf(
+      "-angora-dfsan-abilist=%s/rules/angora_abilist.txt", obj_path);
   cc_params[cc_par_cnt++] = "-mllvm";
-  cc_params[cc_par_cnt++] =
-      alloc_printf("-angora-dfsan-abilist=%s/rules/dfsan_abilist.txt", obj_path);
+  cc_params[cc_par_cnt++] = alloc_printf(
+      "-angora-dfsan-abilist=%s/rules/dfsan_abilist.txt", obj_path);
   cc_params[cc_par_cnt++] = "-mllvm";
   cc_params[cc_par_cnt++] = alloc_printf(
       "-angora-exploitation-list=%s/rules/exploitation_list.txt", obj_path);
@@ -141,13 +141,15 @@ static void add_angora_pass() {
 static void add_angora_runtime() {
   // cc_params[cc_par_cnt++] = "-I/${HOME}/clang+llvm/include/c++/v1";
   if (clang_type == CLANG_FAST_TYPE) {
-    cc_params[cc_par_cnt++] = alloc_printf("%s/lib/libruntime_fast.a", obj_path);
+    cc_params[cc_par_cnt++] =
+        alloc_printf("%s/lib/libruntime_fast.a", obj_path);
   } else if (clang_type == CLANG_TRACK_TYPE || clang_type == CLANG_DFSAN_TYPE) {
     cc_params[cc_par_cnt++] = "-Wl,--whole-archive";
-    cc_params[cc_par_cnt++] = alloc_printf("%s/lib/libdfsan_rt-x86_64.a", obj_path);
-    cc_params[cc_par_cnt++] = "-Wl,--no-whole-archive";
     cc_params[cc_par_cnt++] =
-        alloc_printf("-Wl,--dynamic-list=%s/lib/libdfsan_rt-x86_64.a.syms", obj_path);
+        alloc_printf("%s/lib/libdfsan_rt-x86_64.a", obj_path);
+    cc_params[cc_par_cnt++] = "-Wl,--no-whole-archive";
+    cc_params[cc_par_cnt++] = alloc_printf(
+        "-Wl,--dynamic-list=%s/lib/libdfsan_rt-x86_64.a.syms", obj_path);
 
     cc_params[cc_par_cnt++] = alloc_printf("%s/lib/libruntime.a", obj_path);
     cc_params[cc_par_cnt++] = alloc_printf("%s/lib/libDFSanIO.a", obj_path);
@@ -180,11 +182,11 @@ static void add_dfsan_pass() {
     cc_params[cc_par_cnt++] = "-Xclang";
     cc_params[cc_par_cnt++] = alloc_printf("%s/pass/libDFSanPass.so", obj_path);
     cc_params[cc_par_cnt++] = "-mllvm";
-    cc_params[cc_par_cnt++] =
-        alloc_printf("-angora-dfsan-abilist2=%s/rules/angora_abilist.txt", obj_path);
+    cc_params[cc_par_cnt++] = alloc_printf(
+        "-angora-dfsan-abilist2=%s/rules/angora_abilist.txt", obj_path);
     cc_params[cc_par_cnt++] = "-mllvm";
-    cc_params[cc_par_cnt++] =
-        alloc_printf("-angora-dfsan-abilist2=%s/rules/dfsan_abilist.txt", obj_path);
+    cc_params[cc_par_cnt++] = alloc_printf(
+        "-angora-dfsan-abilist2=%s/rules/dfsan_abilist.txt", obj_path);
     char *rule_list = getenv(TAINT_RULE_LIST_VAR);
     if (rule_list) {
       cc_params[cc_par_cnt++] = "-mllvm";
@@ -365,23 +367,25 @@ static void edit_params(u32 argc, char **argv) {
   */
 
   if (is_cxx) {
+    cc_params[cc_par_cnt++] = (const char *)"-stdlib=libc++";
     // FIXME: or use the same header
-    // cc_params[cc_par_cnt++] = "-I/path-to-llvm/include/c++/v1";
+    // cc_params[cc_par_cnt++] = (u8*)"-I/path-to-llvm/include/c++/v1";
     if (clang_type == CLANG_FAST_TYPE) {
       cc_params[cc_par_cnt++] = alloc_printf("-L%s/lib/libcxx_fast/", obj_path);
-      cc_params[cc_par_cnt++] = "-stdlib=libc++";
-      cc_params[cc_par_cnt++] = "-Wl,--start-group";
-      cc_params[cc_par_cnt++] = "-lc++abifast";
-      cc_params[cc_par_cnt++] = "-lc++abi";
-      cc_params[cc_par_cnt++] = "-Wl,--end-group";
-    }
-    else if (clang_type == CLANG_TRACK_TYPE) {
-      cc_params[cc_par_cnt++] = alloc_printf("-L%s/lib/libcxx_track/", obj_path);
-      cc_params[cc_par_cnt++] = "-stdlib=libc++";
-      cc_params[cc_par_cnt++] = "-Wl,--start-group";
-      cc_params[cc_par_cnt++] = "-lc++abitrack";
-      cc_params[cc_par_cnt++] = "-lc++abi";
-      cc_params[cc_par_cnt++] = "-Wl,--end-group";
+      cc_params[cc_par_cnt++] = (const char *)"-lc++fast";
+      cc_params[cc_par_cnt++] = (const char *)"-Wl,--start-group";
+      cc_params[cc_par_cnt++] = (const char *)"-lc++abifast";
+      cc_params[cc_par_cnt++] = (const char *)"-lc++abi";
+      cc_params[cc_par_cnt++] = (const char *)"-Wl,--end-group";
+    } else if (clang_type == CLANG_TRACK_TYPE) {
+      cc_params[cc_par_cnt++] =
+          alloc_printf("-L%s/lib/libcxx_track/", obj_path);
+      cc_params[cc_par_cnt++] = (const char *)"-lc++";
+      cc_params[cc_par_cnt++] = (const char *)"-lc++track";
+      cc_params[cc_par_cnt++] = (const char *)"-Wl,--start-group";
+      cc_params[cc_par_cnt++] = (const char *)"-lc++abitrack";
+      cc_params[cc_par_cnt++] = (const char *)"-lc++abi";
+      cc_params[cc_par_cnt++] = (const char *)"-Wl,--end-group";
     }
   }
 
@@ -452,7 +456,7 @@ int main(int argc, char **argv) {
   }
   printf("\n");
   */
- 
+
   execvp(cc_params[0], (char **)cc_params);
 
   FATAL("Oops, failed to execute '%s' - check your PATH", cc_params[0]);

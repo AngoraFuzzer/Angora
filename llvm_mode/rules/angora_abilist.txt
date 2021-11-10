@@ -220,3 +220,16 @@ fun:getrandom=discard
 
 fun:fcntl64=uninstrumented
 fun:fcntl64=discard
+fun:explicit_bzero=uninstrumented
+fun:explicit_bzero=discard
+
+fun:lseek64=discard
+fun:pread64=custom
+
+fun:atoi=custom
+fun:atol=custom
+fun:atoll=custom
+fun:atof=custom
+
+fun:pthread_rwlock_rdlock=discard
+fun:__pthread_rwlock_rdlock=discard
