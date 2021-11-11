@@ -9,7 +9,7 @@ if (LLVM_FOUND)
     # Say ubuntu 16.04
     if (NOT (${LLVM_VERSION_MAJOR} GREATER 10))
 	message(STATUS ${CMAKE_VERSION})
-        message(FATAL_ERROR "LLVM version must be at least 10.0.x!")
+        message(FATAL_ERROR "LLVM version must be at least 11!")
     endif()
 else()
     message(FATAL_ERROR "You haven't install LLVM !")

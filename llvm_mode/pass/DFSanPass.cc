@@ -499,6 +499,12 @@ public:
 } // end anonymous namespace
 
 char DataFlowSanitizer::ID;
+namespace llvm {
+void initializeDataFlowSanitizerPass(llvm::PassRegistry &);
+ModulePass *
+createDataFlowSanitizerPass(const std::vector<std::string> &ABIListFiles,
+                            void *(*getArgTLS)(), void *(*getRetValTLS)());
+} // namespace llvm
 
 INITIALIZE_PASS(DataFlowSanitizer, "dfsan",
                 "DataFlowSanitizer: dynamic data flow analysis.", false, false)
@@ -1426,7 +1432,11 @@ Value *DFSanFunction::loadShadow(Value *Addr, uint64_t Size, uint64_t Align,
 
   const llvm::Align ShadowAlign(Align * DFS.ShadowWidthBytes);
   SmallVector<const Value *, 2> Objs;
+#if LLVM_VERSION_MAJOR == 11
   GetUnderlyingObjects(Addr, Objs, Pos->getModule()->getDataLayout());
+#elif LLVM_VERSION_MAJOR == 12
+  getUnderlyingObjects(Addr, Objs);
+#endif
   bool AllConstants = true;
   for (const Value *Obj : Objs) {
     if (isa<Function>(Obj) || isa<BlockAddress>(Obj)) {
