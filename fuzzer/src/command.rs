@@ -1,9 +1,11 @@
 use crate::{check_dep, search, tmpfs};
 use angora_common::defs;
 use std::{
+    fs,
     env,
     path::{Path, PathBuf},
     process::Command,
+    os::unix::fs::MetadataExt,
 };
 
 static TMP_DIR: &str = "tmp";
@@ -130,6 +132,16 @@ impl CommandOpt {
             track_args = main_args.clone();
         }
 
+        for bin in [&main_bin, &track_bin].iter() {
+            match fs::metadata(bin) {
+                Ok(meta) => {
+                    assert!(meta.is_file(), "{:?} is not a file", bin);
+                    assert!(meta.mode() & 0o100 != 0, "{:?} is not executable", bin);
+                },
+                Err(_) => panic!("{:?} doesn't exist", bin),
+            };
+        }
+        
         Self {
             mode,
             id: 0,
