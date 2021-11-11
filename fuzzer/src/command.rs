@@ -1,11 +1,10 @@
 use crate::{check_dep, search, tmpfs};
 use angora_common::defs;
 use std::{
-    fs,
-    env,
+    env, fs,
+    os::unix::fs::MetadataExt,
     path::{Path, PathBuf},
     process::Command,
-    os::unix::fs::MetadataExt,
 };
 
 static TMP_DIR: &str = "tmp";
@@ -141,7 +140,7 @@ impl CommandOpt {
                 Err(_) => panic!("{:?} doesn't exist", bin),
             };
         }
-        
+
         Self {
             mode,
             id: 0,
