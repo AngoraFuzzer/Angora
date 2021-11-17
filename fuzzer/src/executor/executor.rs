@@ -422,14 +422,14 @@ impl Executor {
                 } else {
                     StatusType::Crash
                 }
-            }
+            },
             None => {
                 // Timeout
                 // child hasn't exited yet
                 child.kill().expect("Could not send kill signal to child.");
                 child.wait().expect("Error during waiting for child.");
                 StatusType::Timeout
-            }
+            },
         };
         ret
     }

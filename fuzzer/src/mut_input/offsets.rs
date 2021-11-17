@@ -204,5 +204,4 @@ mod tests {
         // assert_eq!(v1[0].end, v3[2].begin);
         // assert_eq!(v2[0].end, v3[2].end);
     }
-
 }

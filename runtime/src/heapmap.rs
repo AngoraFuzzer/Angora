@@ -1,15 +1,11 @@
-
 use lazy_static::lazy_static;
-use std::collections::HashMap;
-use std::sync::Mutex;
+use std::{collections::HashMap, sync::Mutex};
 
 type HeapPointer = usize;
 type HeapAreaBound = usize;
 
-lazy_static!{
-    static ref HEAPMAP: Mutex<HashMap<HeapPointer, HeapAreaBound>> = Mutex::new(
-        HashMap::new()
-    );
+lazy_static! {
+    static ref HEAPMAP: Mutex<HashMap<HeapPointer, HeapAreaBound>> = Mutex::new(HashMap::new());
 }
 
 fn heapmap_insert(base: HeapPointer, bound: HeapAreaBound) {

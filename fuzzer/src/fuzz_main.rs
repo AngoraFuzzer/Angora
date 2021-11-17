@@ -24,6 +24,7 @@ pub fn fuzz_main(
     out_dir: &str,
     track_target: &str,
     pargs: Vec<String>,
+    bind: Option<usize>,
     num_jobs: usize,
     mem_limit: u64,
     time_limit: u64,
@@ -79,6 +80,7 @@ pub fn fuzz_main(
     }
 
     let (handles, child_count) = init_cpus_and_run_fuzzing_threads(
+        bind,
         num_jobs,
         &running,
         &command_option,
@@ -92,7 +94,7 @@ pub fn fuzz_main(
         Err(e) => {
             error!("FATAL: Could not create log file: {:?}", e);
             panic!();
-        }
+        },
     };
     main_thread_sync_and_log(
         log_file,
@@ -169,13 +171,14 @@ fn create_stats_file_and_write_pid(angora_out_dir: &PathBuf) -> PathBuf {
         Err(e) => {
             error!("Could not create stats file: {:?}", e);
             panic!();
-        }
+        },
     };
     write!(buffer, "fuzzer_pid : {}", pid).expect("Could not write to stats file");
     fuzzer_stats
 }
 
 fn init_cpus_and_run_fuzzing_threads(
+    bind: Option<usize>,
     num_jobs: usize,
     running: &Arc<AtomicBool>,
     command_option: &command::CommandOpt,
@@ -185,7 +188,13 @@ fn init_cpus_and_run_fuzzing_threads(
 ) -> (Vec<thread::JoinHandle<()>>, Arc<AtomicUsize>) {
     let child_count = Arc::new(AtomicUsize::new(0));
     let mut handlers = vec![];
-    let free_cpus = bind_cpu::find_free_cpus(num_jobs);
+    let free_cpus = match bind {
+        None => bind_cpu::find_free_cpus(num_jobs),
+        Some(start_cid) => {
+            let max_num = num_cpus::get();
+            (start_cid..max_num).collect()
+        },
+    };
     let free_cpus_len = free_cpus.len();
     let bind_cpus = if free_cpus_len < num_jobs {
         warn!("The number of free cpus is less than the number of jobs. Will not bind any thread to any cpu.");

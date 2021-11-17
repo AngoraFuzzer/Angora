@@ -68,7 +68,7 @@ impl ChartStats {
             Err(poisoned) => {
                 warn!("Lock poisoned. Results can be incorrect! Continuing...");
                 poisoned.into_inner()
-            }
+            },
         };
         self.search = Default::default();
         self.state = Default::default();

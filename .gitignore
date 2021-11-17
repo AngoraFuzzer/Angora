@@ -20,3 +20,6 @@ auto/
 obj-intel64/
 .DS_Store
 llvm_mode/build/
+*.ll
+*.s
+*.asan

@@ -8,9 +8,6 @@
   }
  */
 
-#include "debug.h"
-#include "./version.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -26,6 +23,14 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
+
+// Angora
+#include "./abilist.h"
+#include "./debug.h"
+#include "./defs.h"
+#include "./util.h"
+#include "./version.h"
+
 using namespace llvm;
 
 namespace {
@@ -36,7 +41,7 @@ private:
   IntegerType *Int8Ty;
   IntegerType *Int32Ty;
 
-  Constant *UnfoldBranchFn;
+  FunctionCallee UnfoldBranchFn;
 
 public:
   static char ID;
@@ -53,7 +58,6 @@ public:
 char UnfoldBranch::ID = 0;
 
 bool UnfoldBranch::doInitialization(Module &M) {
-
   LLVMContext &C = M.getContext();
 
   Int8Ty = IntegerType::getInt8Ty(C);
@@ -62,20 +66,14 @@ bool UnfoldBranch::doInitialization(Module &M) {
 
   srandom(1851655);
 
-  Type *FnArgs[1] = {Int32Ty};
-  FunctionType *FnTy = FunctionType::get(VoidTy, FnArgs, /*isVarArg=*/false);
-  UnfoldBranchFn = M.getOrInsertFunction("__unfold_branch_fn", FnTy);
-
-  if (Function *F = dyn_cast<Function>(UnfoldBranchFn)) {
-    F->addAttribute(LLVM_ATTRIBUTE_LIST::FunctionIndex, Attribute::NoUnwind);
-  }
+  GET_OR_INSERT_FUNCTION(UnfoldBranchFn, VoidTy, "__unfold_branch_fn",
+                         {Int32Ty})
   return true;
 }
 
 bool UnfoldBranch::doFinalization(Module &M) { return true; }
 
 bool UnfoldBranch::runOnFunction(Function &F) {
-
   // if the function is declaration, ignore
   if (F.isDeclaration())
     return false;
@@ -87,10 +85,8 @@ bool UnfoldBranch::runOnFunction(Function &F) {
   SmallSet<BasicBlock *, 20> VisitedBB;
   LLVMContext &C = F.getContext();
   for (auto &BB : F) {
-
     Instruction *Inst = BB.getTerminator();
     if (isa<BranchInst>(Inst)) {
-
       BranchInst *BI = dyn_cast<BranchInst>(Inst);
 
       if (BI->isUnconditional() || BI->getNumSuccessors() < 2)
@@ -120,7 +116,6 @@ bool UnfoldBranch::runOnFunction(Function &F) {
 
 static void registerUnfoldBranchPass(const PassManagerBuilder &,
                                      legacy::PassManagerBase &PM) {
-
   PM.add(new UnfoldBranch());
 }
 

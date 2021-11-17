@@ -17,10 +17,10 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "./ffds.h"
-#include "./len_label.h"
 #include "./defs.h"
 #include "./dfsan_interface.h"
+#include "./ffds.h"
+#include "./len_label.h"
 
 static int granularity = 1; // byte level
 
@@ -67,11 +67,12 @@ static void assign_taint_labels_exf(void *buf, long offset, size_t ret,
 }
 
 #define IS_FUZZING_FILE(filename) strstr(filename, FUZZING_INPUT_FILE)
+#define DEFAULT_VISIBILITY __attribute__((visibility("default")))
 
-__attribute__((visibility("default"))) int
-__dfsw_open(const char *path, int oflags, dfsan_label path_label,
-            dfsan_label flag_label, dfsan_label *va_labels,
-            dfsan_label *ret_label, ...) {
+DEFAULT_VISIBILITY
+int __dfsw_open(const char *path, int oflags, dfsan_label path_label,
+                dfsan_label flag_label, dfsan_label *va_labels,
+                dfsan_label *ret_label, ...) {
   int mode = 0;
 
   if (__OPEN_NEEDS_MODE(oflags)) {
@@ -95,10 +96,9 @@ __dfsw_open(const char *path, int oflags, dfsan_label path_label,
   return fd;
 }
 
-__attribute__((visibility("default"))) FILE *
-__dfsw_fopen(const char *filename, const char *mode, dfsan_label fn_label,
-             dfsan_label mode_label, dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+FILE *__dfsw_fopen(const char *filename, const char *mode, dfsan_label fn_label,
+                   dfsan_label mode_label, dfsan_label *ret_label) {
   FILE *fd = fopen(filename, mode);
 
 #ifdef DEBUG_INFO
@@ -112,9 +112,10 @@ __dfsw_fopen(const char *filename, const char *mode, dfsan_label fn_label,
   *ret_label = 0;
   return fd;
 }
-__attribute__((visibility("default"))) FILE *
-__dfsw_fopen64(const char *filename, const char *mode, dfsan_label fn_label,
-               dfsan_label mode_label, dfsan_label *ret_label) {
+DEFAULT_VISIBILITY
+FILE *__dfsw_fopen64(const char *filename, const char *mode,
+                     dfsan_label fn_label, dfsan_label mode_label,
+                     dfsan_label *ret_label) {
   FILE *fd = fopen(filename, mode);
 
 #ifdef DEBUG_INFO
@@ -130,9 +131,8 @@ __dfsw_fopen64(const char *filename, const char *mode, dfsan_label fn_label,
   return fd;
 }
 
-__attribute__((visibility("default"))) int
-__dfsw_close(int fd, dfsan_label fd_label, dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+int __dfsw_close(int fd, dfsan_label fd_label, dfsan_label *ret_label) {
   int ret = close(fd);
 #ifdef DEBUG_INFO
   fprintf(stderr, "### close, fd is %d , ret is %d \n", fd, ret);
@@ -146,9 +146,8 @@ __dfsw_close(int fd, dfsan_label fd_label, dfsan_label *ret_label) {
   return ret;
 }
 
-__attribute__((visibility("default"))) int
-__dfsw_fclose(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+int __dfsw_fclose(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
   int ret = fclose(fd);
 #ifdef DEBUG_INFO
   fprintf(stderr, "### close, fd is %p, ret is %d \n", fd, ret);
@@ -160,15 +159,15 @@ __dfsw_fclose(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
   return ret;
 }
 
-__attribute__((visibility("default"))) void *
-__dfsw_mmap(void *start, size_t length, int prot, int flags, int fd,
-            off_t offset, dfsan_label start_label, dfsan_label len_label,
-            dfsan_label prot_label, dfsan_label flags_label,
-            dfsan_label fd_label, dfsan_label offset_label,
-            dfsan_label *ret_label) {
+DEFAULT_VISIBILITY
+void *__dfsw_mmap(void *start, size_t length, int prot, int flags, int fd,
+                  off_t offset, dfsan_label start_label, dfsan_label len_label,
+                  dfsan_label prot_label, dfsan_label flags_label,
+                  dfsan_label fd_label, dfsan_label offset_label,
+                  dfsan_label *ret_label) {
 #ifdef DEBUG_INFO
-  fprintf(stderr, "### mmap, fd is %d, addr %x, offset: %ld, length %d \n", fd,
-          offset, length);
+  fprintf(stderr, "### mmap, fd is %d, addr: %lx, offset: %ld, length: %ld\n",
+          fd, offset, length);
 #endif
   void *ret = mmap(start, length, prot, flags, fd, offset);
   if (ret > 0 && is_fuzzing_fd(fd)) {
@@ -181,12 +180,12 @@ __dfsw_mmap(void *start, size_t length, int prot, int flags, int fd,
 // void *mmap2(void *addr, size_t length, int prot, int flags, int fd, off_t
 // pgoffset); pgoffset: offset of page = *4096 bytes
 
-__attribute__((visibility("default"))) int
-__dfsw_munmap(void *addr, size_t length, dfsan_label addr_label,
-              dfsan_label length_label, dfsan_label *ret_label) {
+DEFAULT_VISIBILITY
+int __dfsw_munmap(void *addr, size_t length, dfsan_label addr_label,
+                  dfsan_label length_label, dfsan_label *ret_label) {
   // clear sth
 #ifdef DEBUG_INFO
-  fprintf(stderr, "### munmap, addr %x, length %d \n", addr, length);
+  fprintf(stderr, "### munmap, addr: %p, length: %ld \n", addr, length);
 #endif
   int ret = munmap(addr, length);
   dfsan_set_label(0, addr, length);
@@ -194,16 +193,17 @@ __dfsw_munmap(void *addr, size_t length, dfsan_label addr_label,
   return ret;
 }
 
-__attribute__((visibility("default"))) size_t
-__dfsw_fread(void *buf, size_t size, size_t count, FILE *fd,
-             dfsan_label buf_label, dfsan_label size_label,
-             dfsan_label count_label, dfsan_label fd_label,
-             dfsan_label *ret_label) {
+DEFAULT_VISIBILITY
+size_t __dfsw_fread(void *buf, size_t size, size_t count, FILE *fd,
+                    dfsan_label buf_label, dfsan_label size_label,
+                    dfsan_label count_label, dfsan_label fd_label,
+                    dfsan_label *ret_label) {
   long offset = ftell(fd);
   size_t ret = fread(buf, size, count, fd);
 #ifdef DEBUG_INFO
-  fprintf(stderr, "### fread %p,range is %ld, %ld  --  (size %d, count %d)\n",
-          fd, offset, ret, size, count);
+  fprintf(stderr,
+          "### fread %p,range is %ld, %ld  --  (size: %ld, count: %ld)\n", fd,
+          offset, ret, size, count);
 #endif
   if (is_fuzzing_ffd(fd)) {
     if (ret > 0)
@@ -215,11 +215,11 @@ __dfsw_fread(void *buf, size_t size, size_t count, FILE *fd,
   return ret;
 }
 
-__attribute__((visibility("default"))) size_t
-__dfsw_fread_unlocked(void *buf, size_t size, size_t count, FILE *fd,
-                      dfsan_label buf_label, dfsan_label size_label,
-                      dfsan_label count_label, dfsan_label fd_label,
-                      dfsan_label *ret_label) {
+DEFAULT_VISIBILITY
+size_t __dfsw_fread_unlocked(void *buf, size_t size, size_t count, FILE *fd,
+                             dfsan_label buf_label, dfsan_label size_label,
+                             dfsan_label count_label, dfsan_label fd_label,
+                             dfsan_label *ret_label) {
   long offset = ftell(fd);
   size_t ret = fread_unlocked(buf, size, count, fd);
 #ifdef DEBUG_INFO
@@ -236,11 +236,10 @@ __dfsw_fread_unlocked(void *buf, size_t size, size_t count, FILE *fd,
   return ret;
 }
 
-__attribute__((visibility("default"))) ssize_t
-__dfsw_read(int fd, void *buf, size_t count, dfsan_label fd_label,
-            dfsan_label buf_label, dfsan_label count_label,
-            dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+ssize_t __dfsw_read(int fd, void *buf, size_t count, dfsan_label fd_label,
+                    dfsan_label buf_label, dfsan_label count_label,
+                    dfsan_label *ret_label) {
   long offset = lseek(fd, 0, SEEK_CUR);
   ssize_t ret = read(fd, buf, count);
 #ifdef DEBUG_INFO
@@ -257,11 +256,11 @@ __dfsw_read(int fd, void *buf, size_t count, dfsan_label fd_label,
   return ret;
 }
 
-__attribute__((visibility("default"))) ssize_t
-__dfsw_pread(int fd, void *buf, size_t count, off_t offset,
-             dfsan_label fd_label, dfsan_label buf_label,
-             dfsan_label count_label, dfsan_label offset_label,
-             dfsan_label *ret_label) {
+DEFAULT_VISIBILITY
+ssize_t __dfsw_pread(int fd, void *buf, size_t count, off_t offset,
+                     dfsan_label fd_label, dfsan_label buf_label,
+                     dfsan_label count_label, dfsan_label offset_label,
+                     dfsan_label *ret_label) {
   ssize_t ret = pread(fd, buf, count, offset);
 #ifdef DEBUG_INFO
   fprintf(stderr, "### pread %d, range is %ld, %ld/%ld \n", fd, offset, ret,
@@ -276,10 +275,17 @@ __dfsw_pread(int fd, void *buf, size_t count, off_t offset,
   }
   return ret;
 }
+DEFAULT_VISIBILITY
+ssize_t __dfsw_pread64(int fd, void *buf, size_t count, off_t offset,
+                       dfsan_label fd_label, dfsan_label buf_label,
+                       dfsan_label count_label, dfsan_label offset_label,
+                       dfsan_label *ret_label) {
+  return __dfsw_pread(fd, buf, count, offset, fd_label, buf_label, count_label,
+                      offset_label, ret_label);
+}
 
-__attribute__((visibility("default"))) int
-__dfsw_fgetc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+int __dfsw_fgetc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
   long offset = ftell(fd);
   int c = fgetc(fd);
   *ret_label = 0;
@@ -292,9 +298,9 @@ __dfsw_fgetc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
   }
   return c;
 }
-__attribute__((visibility("default"))) int
-__dfsw_fgetc_unlocked(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+int __dfsw_fgetc_unlocked(FILE *fd, dfsan_label fd_label,
+                          dfsan_label *ret_label) {
   long offset = ftell(fd);
   int c = fgetc_unlocked(fd);
   *ret_label = 0;
@@ -308,8 +314,8 @@ __dfsw_fgetc_unlocked(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
   return c;
 }
 
-__attribute__((visibility("default"))) int
-__dfsw__IO_getc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
+DEFAULT_VISIBILITY
+int __dfsw__IO_getc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
   long offset = ftell(fd);
   int c = getc(fd);
   *ret_label = 0;
@@ -324,9 +330,8 @@ __dfsw__IO_getc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
   return c;
 }
 
-__attribute__((visibility("default"))) int
-__dfsw_getchar(dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+int __dfsw_getchar(dfsan_label *ret_label) {
   long offset = ftell(stdin);
   int c = getchar();
   *ret_label = 0;
@@ -340,11 +345,10 @@ __dfsw_getchar(dfsan_label *ret_label) {
   return c;
 }
 
-__attribute__((visibility("default"))) char *
-__dfsw_fgets(char *str, int count, FILE *fd, dfsan_label str_label,
-             dfsan_label count_label, dfsan_label fd_label,
-             dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+char *__dfsw_fgets(char *str, int count, FILE *fd, dfsan_label str_label,
+                   dfsan_label count_label, dfsan_label fd_label,
+                   dfsan_label *ret_label) {
   long offset = ftell(fd);
   char *ret = fgets(str, count, fd);
 #ifdef DEBUG_INFO
@@ -361,7 +365,8 @@ __dfsw_fgets(char *str, int count, FILE *fd, dfsan_label str_label,
 }
 
 /*
-__attribute__((visibility("default"))) char *
+DEFAULT_VISIBILITY
+char *
 __dfsw_fgets_unlocked(char *str, int count, FILE *fd, dfsan_label str_label,
                       dfsan_label count_label, dfsan_label fd_label,
                       dfsan_label *ret_label) {
@@ -382,8 +387,8 @@ __dfsw_fgets_unlocked(char *str, int count, FILE *fd, dfsan_label str_label,
 }
 */
 
-__attribute__((visibility("default"))) char *
-__dfsw_gets(char *str, dfsan_label str_label, dfsan_label *ret_label) {
+DEFAULT_VISIBILITY
+char *__dfsw_gets(char *str, dfsan_label str_label, dfsan_label *ret_label) {
   long offset = ftell(stdin);
   // gets discard until c11
   char *ret = fgets(str, sizeof str, stdin);
@@ -406,9 +411,8 @@ __dfsw_gets(char *str, dfsan_label str_label, dfsan_label *ret_label) {
 // FIXME: only work in binutils/who?
 // If current name == who?
 static size_t __rt_utmp_offset = 0;
-__attribute__((visibility("default"))) struct utmp *
-__dfsw_getutxent(dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+struct utmp *__dfsw_getutxent(dfsan_label *ret_label) {
   struct utmp *ret = getutent();
   size_t len = sizeof(struct utmp);
 #ifdef DEBUG_INFO
@@ -424,10 +428,10 @@ __dfsw_getutxent(dfsan_label *ret_label) {
 }
 
 // ssize_t getline(char **lineptr, size_t *n, FILE *stream);
-__attribute__((visibility("default"))) ssize_t
-__dfsw_getline(char **lineptr, size_t *n, FILE *fd, dfsan_label buf_label,
-               dfsan_label size_label, dfsan_label fd_label,
-               dfsan_label *ret_label) {
+DEFAULT_VISIBILITY
+ssize_t __dfsw_getline(char **lineptr, size_t *n, FILE *fd,
+                       dfsan_label buf_label, dfsan_label size_label,
+                       dfsan_label fd_label, dfsan_label *ret_label) {
   long offset = ftell(fd);
   ssize_t ret = getline(lineptr, n, fd);
 #ifdef DEBUG_INFO
@@ -444,11 +448,11 @@ __dfsw_getline(char **lineptr, size_t *n, FILE *fd, dfsan_label buf_label,
 }
 
 // ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream);
-__attribute__((visibility("default"))) ssize_t
-__dfsw_getdelim(char **lineptr, size_t *n, int delim, FILE *fd,
-                dfsan_label buf_label, dfsan_label size_label,
-                dfsan_label delim_label, dfsan_label fd_label,
-                dfsan_label *ret_label) {
+DEFAULT_VISIBILITY
+ssize_t __dfsw_getdelim(char **lineptr, size_t *n, int delim, FILE *fd,
+                        dfsan_label buf_label, dfsan_label size_label,
+                        dfsan_label delim_label, dfsan_label fd_label,
+                        dfsan_label *ret_label) {
   long offset = ftell(fd);
   ssize_t ret = getdelim(lineptr, n, delim, fd);
 #ifdef DEBUG_INFO
@@ -461,11 +465,11 @@ __dfsw_getdelim(char **lineptr, size_t *n, int delim, FILE *fd,
   return ret;
 }
 
-__attribute__((visibility("default"))) ssize_t
-__dfsw___getdelim(char **lineptr, size_t *n, int delim, FILE *fd,
-                  dfsan_label buf_label, dfsan_label size_label,
-                  dfsan_label delim_label, dfsan_label fd_label,
-                  dfsan_label *ret_label) {
+DEFAULT_VISIBILITY
+ssize_t __dfsw___getdelim(char **lineptr, size_t *n, int delim, FILE *fd,
+                          dfsan_label buf_label, dfsan_label size_label,
+                          dfsan_label delim_label, dfsan_label fd_label,
+                          dfsan_label *ret_label) {
   long offset = ftell(fd);
   ssize_t ret = __getdelim(lineptr, n, delim, fd);
 #ifdef DEBUG_INFO
@@ -478,15 +482,12 @@ __dfsw___getdelim(char **lineptr, size_t *n, int delim, FILE *fd,
   return ret;
 }
 
-// strcat
-
 // fscanf
 
 // int stat(const char *path, struct stat *buf);
-__attribute__((visibility("default"))) int
-__dfsw_stat(const char *path, struct stat *buf, dfsan_label path_label,
-            dfsan_label buf_label, dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+int __dfsw_stat(const char *path, struct stat *buf, dfsan_label path_label,
+                dfsan_label buf_label, dfsan_label *ret_label) {
   int ret = stat(path, buf);
 
   // fprintf(stderr, "run stat .. %d\n", ret);
@@ -499,11 +500,10 @@ __dfsw_stat(const char *path, struct stat *buf, dfsan_label path_label,
   return ret;
 }
 
-__attribute__((visibility("default"))) int
-__dfsw___xstat(int vers, const char *path, struct stat *buf,
-               dfsan_label vers_label, dfsan_label path_label,
-               dfsan_label buf_label, dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+int __dfsw___xstat(int vers, const char *path, struct stat *buf,
+                   dfsan_label vers_label, dfsan_label path_label,
+                   dfsan_label buf_label, dfsan_label *ret_label) {
   int ret = __xstat(vers, path, buf);
 
   // fprintf(stderr, "run stat .. %d\n", ret);
@@ -517,10 +517,9 @@ __dfsw___xstat(int vers, const char *path, struct stat *buf,
 }
 
 // int fstat(int fd, struct stat *buf);
-__attribute__((visibility("default"))) int
-__dfsw_fstat(int fd, struct stat *buf, dfsan_label fd_label,
-             dfsan_label buf_label, dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+int __dfsw_fstat(int fd, struct stat *buf, dfsan_label fd_label,
+                 dfsan_label buf_label, dfsan_label *ret_label) {
   int ret = fstat(fd, buf);
 
   if (ret >= 0) {
@@ -533,11 +532,10 @@ __dfsw_fstat(int fd, struct stat *buf, dfsan_label fd_label,
   return ret;
 }
 
-__attribute__((visibility("default"))) int
-__dfsw___fxstat(int vers, const int fd, struct stat *buf,
-                dfsan_label vers_label, dfsan_label fd_label,
-                dfsan_label buf_label, dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+int __dfsw___fxstat(int vers, const int fd, struct stat *buf,
+                    dfsan_label vers_label, dfsan_label fd_label,
+                    dfsan_label buf_label, dfsan_label *ret_label) {
   int ret = __fxstat(vers, fd, buf);
 
   // fprintf(stderr, "run stat .. %d\n", ret);
@@ -551,10 +549,9 @@ __dfsw___fxstat(int vers, const int fd, struct stat *buf,
 }
 
 // int lstat(const char *path, struct stat *buf);
-__attribute__((visibility("default"))) int
-__dfsw_lstat(const char *path, struct stat *buf, dfsan_label path_label,
-             dfsan_label buf_label, dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+int __dfsw_lstat(const char *path, struct stat *buf, dfsan_label path_label,
+                 dfsan_label buf_label, dfsan_label *ret_label) {
   int ret = lstat(path, buf);
 
   if (ret >= 0) {
@@ -567,11 +564,10 @@ __dfsw_lstat(const char *path, struct stat *buf, dfsan_label path_label,
   return ret;
 }
 
-__attribute__((visibility("default"))) int
-__dfsw___lxstat(int vers, const char *path, struct stat *buf,
-                dfsan_label vers_label, dfsan_label path_label,
-                dfsan_label buf_label, dfsan_label *ret_label) {
-
+DEFAULT_VISIBILITY
+int __dfsw___lxstat(int vers, const char *path, struct stat *buf,
+                    dfsan_label vers_label, dfsan_label path_label,
+                    dfsan_label buf_label, dfsan_label *ret_label) {
   int ret = __lxstat(vers, path, buf);
 
   //  fprintf(stderr, "run stat .. %d\n", ret);
@@ -582,4 +578,69 @@ __dfsw___lxstat(int vers, const char *path, struct stat *buf,
   }
   *ret_label = 0;
   return ret;
+}
+
+long int __dfsw_strtol(const char *nptr, char **endptr, int base,
+                       dfsan_label nptr_label, dfsan_label endptr_label,
+                       dfsan_label base_label, dfsan_label *ret_label);
+long long int __dfsw_strtoll(const char *nptr, char **endptr, int base,
+                             dfsan_label nptr_label, dfsan_label endptr_label,
+                             dfsan_label base_label, dfsan_label *ret_label);
+double __dfsw_strtod(const char *nptr, char **endptr, dfsan_label nptr_label,
+                     dfsan_label endptr_label, dfsan_label *ret_label);
+
+/// `ato*` family. They are all just wrappers to `strto*`, so we don't
+/// explicit model them.
+DEFAULT_VISIBILITY
+int __dfsw_atoi(const char *str, dfsan_label str_label,
+                dfsan_label *ret_label) {
+  return __dfsw_strtol(str, NULL, 10, str_label, 0, 0, ret_label);
+}
+DEFAULT_VISIBILITY
+int __dfsw_atol(const char *str, dfsan_label str_label,
+                dfsan_label *ret_label) {
+  return __dfsw_strtol(str, NULL, 10, str_label, 0, 0, ret_label);
+}
+DEFAULT_VISIBILITY
+int __dfsw_atoll(const char *str, dfsan_label str_label,
+                 dfsan_label *ret_label) {
+  return __dfsw_strtoll(str, NULL, 10, str_label, 0, 0, ret_label);
+}
+DEFAULT_VISIBILITY
+double __dfsw_atof(const char *str, dfsan_label str_label,
+                   dfsan_label *ret_label) {
+  return __dfsw_strtod(str, NULL, str_label, 0, ret_label);
+}
+
+DEFAULT_VISIBILITY
+int __dfsw_mbtowc(wchar_t *pwc, const char *s, size_t n, dfsan_label pwc_label,
+                  dfsan_label s_label, dfsan_label n_label,
+                  dfsan_label *ret_label) {
+  if (pwc_label != 0 || s_label != 0 || n_label != 0) {
+    // TODO: We do have taint at this point, warn.
+    fprintf(stderr, "WARNING: __dfsw_mbtowc has taint but is not modelled.");
+  }
+  *ret_label = 0;
+  return mbtowc(pwc, s, n);
+}
+DEFAULT_VISIBILITY
+char *__dfws_strtok(char *str, const char *delim, dfsan_label str_label,
+                    dfsan_label delim_label, dfsan_label *ret_label) {
+  if (str_label != 0 || delim_label != 0) {
+    // TODO: We do have taint at this point, warn.
+    fprintf(stderr, "WARNING: __dfws_strtok has taint but is not modelled.");
+  }
+  *ret_label = 0;
+  return strtok(str, delim);
+}
+DEFAULT_VISIBILITY
+char *__dfws_strtok_r(char *str, const char *delim, char **saveptr,
+                      dfsan_label str_label, dfsan_label delim_label,
+                      dfsan_label saveptr_label, dfsan_label *ret_label) {
+  if (str_label != 0 || delim_label != 0 || saveptr_label != 0) {
+    // TODO: We do have taint at this point, warn.
+    fprintf(stderr, "WARNING: __dfws_strtok_r has taint but is not modelled.");
+  }
+  *ret_label = 0;
+  return strtok_r(str, delim, saveptr);
 }

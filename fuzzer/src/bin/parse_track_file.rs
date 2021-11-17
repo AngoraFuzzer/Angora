@@ -1,6 +1,6 @@
 extern crate angora;
 extern crate angora_common;
-use angora::{track::*, cond_stmt::CondStmt};
+use angora::{cond_stmt::CondStmt, track::*};
 use angora_common::defs;
 use std::{env, path::PathBuf};
 
@@ -17,7 +17,7 @@ fn main() {
         output_format = match args[2].as_str() {
             "line" => "line",
             "json_real" => "json_real",
-            _ => "json"
+            _ => "json",
         };
     }
 
@@ -25,7 +25,7 @@ fn main() {
     if args.len() > 3 {
         pin_mode = match args[3].as_str() {
             "pin" => true,
-            _ => false
+            _ => false,
         };
     }
 
@@ -69,4 +69,3 @@ pub fn get_json(t: &Vec<CondStmt>) -> String {
         Result::Err(err) => panic!("Failed to serialize to json!! {:?}", err),
     };
 }
-

@@ -17,10 +17,10 @@ pub fn read_from_file(path: &Path) -> Vec<u8> {
             Ok(f) => {
                 file = f;
                 break;
-            }
+            },
             Err(e) => {
                 error!("fail to read from file : ({:?}) -- {:?}", path, e);
-            }
+            },
         };
         i += 1;
         if i == 10 {

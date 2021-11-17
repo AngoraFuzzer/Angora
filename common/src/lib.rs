@@ -5,10 +5,7 @@ pub mod log_data;
 pub mod shm;
 pub mod tag;
 
-
 // void __unfold_branch_fn(uint32_t) {}
 
 #[no_mangle]
-pub fn __unfold_branch_fn(_x: u32) {
-
-}
+pub fn __unfold_branch_fn(_x: u32) {}

@@ -37,14 +37,14 @@ impl LocalStats {
         match status {
             StatusType::Normal => {
                 self.num_inputs.count();
-            }
+            },
             StatusType::Timeout => {
                 self.num_hangs.count();
-            }
+            },
             StatusType::Crash => {
                 self.num_crashes.count();
-            }
-            _ => {}
+            },
+            _ => {},
         }
     }
 }

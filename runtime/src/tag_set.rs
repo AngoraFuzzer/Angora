@@ -682,7 +682,7 @@ mod tests {
         );
     }
 
-      #[test]
+    #[test]
     fn tag_set_tests_infer_shape() {
         let mut tag_set = TagSet::new();
         let mut lbs = vec![];
@@ -831,5 +831,4 @@ mod tests {
         let list = tag_set.find(lb);
         assert_eq!(list.len(), 8);
     }
-
 }

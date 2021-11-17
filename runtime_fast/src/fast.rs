@@ -1,4 +1,4 @@
-use super::{shm_conds, forkcli, shm_branches};
+use super::{forkcli, shm_branches, shm_conds};
 use std::ops::DerefMut;
 
 use std::sync::Once;
@@ -27,8 +27,8 @@ pub extern "C" fn __angora_trace_cmp(
             if c.check_match(cmpid, context) {
                 return c.update_cmp(condition, arg1, arg2);
             }
-        }
-        _ => {}
+        },
+        _ => {},
     }
     condition
 }
@@ -41,8 +41,8 @@ pub extern "C" fn __angora_trace_switch(cmpid: u32, context: u32, condition: u64
             if c.check_match(cmpid, context) {
                 return c.update_switch(condition);
             }
-        }
-        _ => {}
+        },
+        _ => {},
     }
     condition
 }

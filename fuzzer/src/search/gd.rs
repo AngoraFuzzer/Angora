@@ -230,7 +230,7 @@ impl<'a> GdSearch<'a> {
                 } else {
                     (true, false, f0 - f_plus)
                 }
-            }
+            },
         }
     }
 

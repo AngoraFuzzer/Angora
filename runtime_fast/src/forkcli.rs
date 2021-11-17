@@ -67,4 +67,3 @@ pub fn start_forkcli() {
         },
     }
 }
-

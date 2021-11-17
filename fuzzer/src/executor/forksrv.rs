@@ -43,7 +43,7 @@ impl Forksrv {
             Err(e) => {
                 error!("FATAL: Failed to bind to socket: {:?}", e);
                 panic!();
-            }
+            },
         };
 
         let mut envs_fk = envs.clone();
@@ -64,7 +64,7 @@ impl Forksrv {
             Err(e) => {
                 error!("FATAL: Failed to spawn child. Reason: {}", e);
                 panic!();
-            }
+            },
         };
 
         // FIXME: block here if client doesn't exist.
@@ -73,7 +73,7 @@ impl Forksrv {
             Err(e) => {
                 error!("FATAL: failed to accept from socket: {:?}", e);
                 panic!();
-            }
+            },
         };
 
         socket
@@ -108,7 +108,7 @@ impl Forksrv {
                     Err(e) => {
                         warn!("Unable to recover child pid: {:?}", e);
                         return StatusType::Error;
-                    }
+                    },
                 };
                 if child_pid <= 0 {
                     warn!(
@@ -117,11 +117,11 @@ impl Forksrv {
                     );
                     return StatusType::Error;
                 }
-            }
+            },
             Err(error) => {
                 warn!("Fail to read child_id -- {}", error);
                 return StatusType::Error;
-            }
+            },
         }
 
         buf = vec![0; 4];
@@ -135,7 +135,7 @@ impl Forksrv {
                     Err(e) => {
                         warn!("Unable to recover result from child: {}", e);
                         return StatusType::Error;
-                    }
+                    },
                 };
                 let exit_code = unsafe { libc::WEXITSTATUS(status) };
                 let signaled = unsafe { libc::WIFSIGNALED(status) };
@@ -145,7 +145,7 @@ impl Forksrv {
                 } else {
                     StatusType::Normal
                 }
-            }
+            },
 
             Err(_) => {
                 unsafe {
@@ -156,7 +156,7 @@ impl Forksrv {
                     warn!("Killing timed out process");
                 }
                 return StatusType::Timeout;
-            }
+            },
         }
     }
 }

@@ -6,7 +6,7 @@ angora_build_task:
         #    fingerprint_script: cat Cargo.lock
     build_script: 
         - apt-get update
-        - apt-get install -y cmake
+        - apt-get install -y cmake python
         - cmake --version
         - ./build/build.sh
     test_script: cargo test

@@ -1,7 +1,8 @@
 use crate::{check_dep, search, tmpfs};
 use angora_common::defs;
 use std::{
-    env,
+    env, fs,
+    os::unix::fs::MetadataExt,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -66,7 +67,7 @@ impl CommandOpt {
         enable_exploitation: bool,
     ) -> Self {
         let mode = InstrumentationMode::from(mode);
-        
+
         let tmp_dir = out_dir.join(TMP_DIR);
         tmpfs::create_tmpfs_dir(&tmp_dir);
 
@@ -106,8 +107,9 @@ impl CommandOpt {
         let track_bin;
         let mut track_args = Vec::<String>::new();
         if mode.is_pin_mode() {
-            let project_bin_dir = env::var(defs::ANGORA_BIN_DIR).expect("Please set ANGORA_PROJ_DIR");
-            
+            let project_bin_dir =
+                env::var(defs::ANGORA_BIN_DIR).expect("Please set ANGORA_PROJ_DIR");
+
             let pin_root =
                 env::var(PIN_ROOT_VAR).expect("You should set the environment of PIN_ROOT!");
             let pin_bin = format!("{}/{}", pin_root, "pin");
@@ -127,6 +129,16 @@ impl CommandOpt {
         } else {
             track_bin = track_target.to_string();
             track_args = main_args.clone();
+        }
+
+        for bin in [&main_bin, &track_bin].iter() {
+            match fs::metadata(bin) {
+                Ok(meta) => {
+                    assert!(meta.is_file(), "{:?} is not a file", bin);
+                    assert!(meta.mode() & 0o100 != 0, "{:?} is not executable", bin);
+                },
+                Err(_) => panic!("{:?} doesn't exist", bin),
+            };
         }
 
         Self {
