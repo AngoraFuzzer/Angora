@@ -183,34 +183,33 @@ namespace __sanitizer {
   extern unsigned struct_rlimit64_sz;
   extern unsigned struct_statvfs64_sz;
 
-  struct __sanitizer_ipc_perm {
-    int __key;
-    int uid;
-    int gid;
-    int cuid;
-    int cgid;
+struct __sanitizer_ipc_perm {
+  int __key;
+  int uid;
+  int gid;
+  int cuid;
+  int cgid;
 #ifdef __powerpc__
-    unsigned mode;
-    unsigned __seq;
-    u64 __unused1;
-    u64 __unused2;
-#elif defined(__mips__) || defined(__aarch64__) || defined(__s390x__)
-    unsigned int mode;
-    unsigned short __seq;
-    unsigned short __pad1;
-    unsigned long __unused1;
-    unsigned long __unused2;
+  unsigned mode;
+  unsigned __seq;
+  u64 __unused1;
+  u64 __unused2;
+#elif defined(__sparc__)
+  unsigned mode;
+  unsigned short __pad2;
+  unsigned short __seq;
+  unsigned long long __unused1;
+  unsigned long long __unused2;
 #else
-    unsigned short mode;
-    unsigned short __pad1;
-    unsigned short __seq;
-    unsigned short __pad2;
+  unsigned int mode;
+  unsigned short __seq;
+  unsigned short __pad2;
 #if defined(__x86_64__) && !defined(_LP64)
-    u64 __unused1;
-    u64 __unused2;
+  u64 __unused1;
+  u64 __unused2;
 #else
-    unsigned long __unused1;
-    unsigned long __unused2;
+  unsigned long __unused1;
+  unsigned long __unused2;
 #endif
 #endif
   };
