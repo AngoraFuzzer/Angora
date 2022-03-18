@@ -40,11 +40,7 @@ pub fn start_forkcli() {
                     return;
                 }
 
-                let mut pid_buf = vec![];
-                pid_buf
-                    .write_i32::<LittleEndian>(child_pid)
-                    .expect("Could not write to child.");
-                if socket.write(&pid_buf).is_err() {
+                if socket.write_i32::<LittleEndian>(child_pid).is_err() {
                     process::exit(1);
                 }
 
@@ -53,11 +49,7 @@ pub fn start_forkcli() {
                     process::exit(1);
                 }
 
-                let mut status_buf = vec![];
-                status_buf
-                    .write_i32::<LittleEndian>(status)
-                    .expect("Could not write to child.");
-                if socket.write(&status_buf).is_err() {
+                if socket.write_i32::<LittleEndian>(status).is_err() {
                     process::exit(1);
                 }
             }
