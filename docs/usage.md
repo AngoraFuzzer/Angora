@@ -1,7 +1,7 @@
 # Angora usage
 ```
 # /path-to-angora/angora_fuzzer --help
-angora-fuzzer 1.2.2
+angora-fuzzer 1.3.0
 fuzz some program
 
 USAGE:
