@@ -112,7 +112,7 @@ public:
   };
 
   void save_mb(u32 i, u32 arg1_len, u32 arg2_len, char *arg1, char *arg2) {
-    if (i > 0) {
+    if (i >= 0) {
       mb_buf.push_bytes((char *)&i, 4);
       mb_buf.push_bytes((char *)&arg1_len, 4);
       mb_buf.push_bytes((char *)&arg2_len, 4);
