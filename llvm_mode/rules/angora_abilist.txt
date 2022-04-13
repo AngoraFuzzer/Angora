@@ -97,8 +97,8 @@ fun:__fxstat=custom
 
 # getc may be implemented as a macro
 ## some getc may be optimizted to __uflow ..
-# fun:getc=uninstrumented
-# fun:getc=custom
+fun:getc=uninstrumented
+fun:getc=custom
 fun:_IO_getc=uninstrumented
 fun:_IO_getc=custom
 # fun:getchar=uninstrumented

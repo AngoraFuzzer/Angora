@@ -331,6 +331,22 @@ int __dfsw__IO_getc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
 }
 
 DEFAULT_VISIBILITY
+int __dfsw_getc(FILE *fd, dfsan_label fd_label, dfsan_label *ret_label) {
+  long offset = ftell(fd);
+  int c = getc(fd);
+  *ret_label = 0;
+#ifdef DEBUG_INFO
+  fprintf(stderr, "### getc %p, range is %ld, 1 , c is %d\n", fd, offset,
+          c);
+#endif
+  if (is_fuzzing_ffd(fd) && c != EOF) {
+    dfsan_label l = dfsan_create_label(offset);
+    *ret_label = l;
+  }
+  return c;
+}
+
+DEFAULT_VISIBILITY
 int __dfsw_getchar(dfsan_label *ret_label) {
   long offset = ftell(stdin);
   int c = getchar();
