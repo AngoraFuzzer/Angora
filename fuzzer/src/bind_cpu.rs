@@ -1,6 +1,3 @@
-use angora_common::defs;
-use libc;
-use num_cpus;
 use std::{env, fs::File, io::prelude::*, mem, path::Path};
 
 #[cfg(target_os = "linux")]
@@ -46,7 +43,7 @@ pub fn find_free_cpus(_ask_num: usize) -> Vec<usize> {
 #[cfg(target_os = "linux")]
 pub fn find_free_cpus(ask_num: usize) -> Vec<usize> {
     let mut free_cpus = vec![];
-    if env::var(defs::DISABLE_CPU_BINDING_VAR).is_ok() {
+    if env::var(angora_common::defs::DISABLE_CPU_BINDING_VAR).is_ok() {
         return free_cpus;
     }
 
