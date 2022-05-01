@@ -86,7 +86,7 @@ impl Branches {
         self.trace.get_id()
     }
 
-    fn get_path(&self) -> Vec<(usize, u8)> {
+    pub fn get_path(&self) -> Vec<(usize, u8)> {
         let mut path = Vec::<(usize, u8)>::new();
         let buf_plus: &BranchBufPlus = cast!(&*self.trace);
         let buf: &BranchBuf = &*self.trace;
