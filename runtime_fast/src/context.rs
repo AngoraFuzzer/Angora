@@ -1,6 +1,6 @@
+#[link(name = "context", kind = "static")]
 extern "C" {
     #[cfg(not(any(feature = "unstable", test)))]
-    #[link(name = "context", kind = "static")]
     pub fn __angora_reset_context();
 }
 

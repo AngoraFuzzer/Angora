@@ -35,12 +35,12 @@
 
 #define alloc_printf(_str...)                                                  \
   ({                                                                           \
-    u8 *_tmp;                                                                  \
+    str *_tmp;                                                                 \
     s32 _len = snprintf(NULL, 0, _str);                                        \
     if (_len < 0)                                                              \
       FATAL("Whoa, snprintf() fails?!");                                       \
     _tmp = ck_alloc(_len + 1);                                                 \
-    snprintf((char *)_tmp, _len + 1, _str);                                    \
+    snprintf((str *)_tmp, _len + 1, _str);                                     \
     _tmp;                                                                      \
   })
 
@@ -253,7 +253,7 @@ static inline void *DFL_ck_realloc_block(void *orig, u32 size) {
 
 /* Create a buffer with a copy of a string. Returns NULL for NULL inputs. */
 
-static inline u8 *DFL_ck_strdup(u8 *str) {
+static inline str *DFL_ck_strdup(const str *str) {
 
   void *ret;
   u32 size;
@@ -261,7 +261,7 @@ static inline u8 *DFL_ck_strdup(u8 *str) {
   if (!str)
     return NULL;
 
-  size = strlen((char *)str) + 1;
+  size = strlen(str) + 1;
 
   ALLOC_CHECK_SIZE(size);
   ret = malloc(size + ALLOC_OFF_TOTAL);
