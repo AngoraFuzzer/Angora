@@ -31,20 +31,20 @@
 #include <string.h>
 #include <unistd.h>
 
-static u8 *obj_path;       /* Path to runtime libraries         */
-static u8 **cc_params;     /* Parameters passed to the real CC  */
+static str *obj_path;       /* Path to runtime libraries         */
+static const str **cc_params;     /* Parameters passed to the real CC  */
 static u32 cc_par_cnt = 1; /* Param count, including argv0      */
 static u8 clang_type = CLANG_FAST_TYPE;
 static u8 is_cxx = 0;
 
 /* Try to find the runtime libraries. If that fails, abort. */
-static void find_obj(u8 *argv0) {
+static void find_obj(const str *argv0) {
 
-  u8 *slash, *tmp;
+  str *slash, *tmp;
   slash = strrchr(argv0, '/');
 
   if (slash) {
-    u8 *dir;
+    str *dir;
     *slash = 0;
     dir = ck_strdup(argv0);
     *slash = '/';
@@ -63,11 +63,11 @@ static void find_obj(u8 *argv0) {
   FATAL("Unable to find 'libAngoraPass.so'");
 }
 
-static void check_type(char *name) {
-  u8 *use_fast = getenv("USE_FAST");
-  u8 *use_dfsan = getenv("USE_DFSAN");
-  u8 *use_track = getenv("USE_TRACK");
-  u8 *use_pin = getenv("USE_PIN");
+static void check_type(const str *name) {
+  str *use_fast = getenv("USE_FAST");
+  str *use_dfsan = getenv("USE_DFSAN");
+  str *use_track = getenv("USE_TRACK");
+  str *use_pin = getenv("USE_PIN");
   if (use_fast) {
     clang_type = CLANG_FAST_TYPE;
   } else if (use_dfsan) {
@@ -86,9 +86,8 @@ static u8 check_if_assembler(u32 argc, const char **argv) {
   /* Check if a file with an assembler extension ("s" or "S") appears in argv */
 
   while (--argc) {
-    u8 *cur = *(++argv);
-
-    const u8 *ext = strrchr(cur, '.');
+    const str *cur = *(++argv);
+    const str *ext = strrchr(cur, '.');
     if (ext && (!strcmp(ext + 1, "s") || !strcmp(ext + 1, "S"))) {
       return 1;
     }
@@ -196,11 +195,11 @@ static void add_dfsan_pass() {
   }
 }
 
-static void edit_params(u32 argc, char **argv) {
+static void edit_params(u32 argc, const str **argv) {
 
   u8 fortify_set = 0, asan_set = 0, x_set = 0, maybe_linking = 1, bit_mode = 0;
   u8 maybe_assembler = 0;
-  u8 *name;
+  const str *name;
 
   cc_params = ck_alloc((argc + 128) * sizeof(u8 *));
 
@@ -212,11 +211,11 @@ static void edit_params(u32 argc, char **argv) {
   check_type(name);
 
   if (is_cxx) {
-    u8 *alt_cxx = getenv("ANGORA_CXX");
-    cc_params[0] = alt_cxx ? alt_cxx : (u8 *)"clang++";
+    const str *alt_cxx = getenv("ANGORA_CXX");
+    cc_params[0] = alt_cxx ? alt_cxx : "clang++";
   } else {
-    u8 *alt_cc = getenv("ANGORA_CC");
-    cc_params[0] = alt_cc ? alt_cc : (u8 *)"clang";
+    const str *alt_cc = getenv("ANGORA_CC");
+    cc_params[0] = alt_cc ? alt_cc : "clang";
   }
 
   maybe_assembler = check_if_assembler(argc, argv);
@@ -226,7 +225,7 @@ static void edit_params(u32 argc, char **argv) {
     maybe_linking = 0;
 
   while (--argc) {
-    u8 *cur = *(++argv);
+    const str *cur = *(++argv);
     // FIXME
     if (!strcmp(cur, "-O1") || !strcmp(cur, "-O2") || !strcmp(cur, "-O3")) {
       continue;
@@ -418,7 +417,7 @@ static void edit_params(u32 argc, char **argv) {
 
 /* Main entry point */
 
-int main(int argc, char **argv) {
+int main(int argc, const char **argv) {
 
   if (argc < 2) {
 

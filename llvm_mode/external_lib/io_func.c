@@ -516,6 +516,9 @@ int __dfsw_stat(const char *path, struct stat *buf, dfsan_label path_label,
   return ret;
 }
 
+int __xstat(int vers, const char* path, struct stat* buf);
+
+// int xstat(int vers, const char* path, struct stat* buf);
 DEFAULT_VISIBILITY
 int __dfsw___xstat(int vers, const char *path, struct stat *buf,
                    dfsan_label vers_label, dfsan_label path_label,
@@ -531,6 +534,8 @@ int __dfsw___xstat(int vers, const char *path, struct stat *buf,
   *ret_label = 0;
   return ret;
 }
+
+int __fstat(int fd, struct stat* buf);
 
 // int fstat(int fd, struct stat *buf);
 DEFAULT_VISIBILITY
@@ -548,6 +553,9 @@ int __dfsw_fstat(int fd, struct stat *buf, dfsan_label fd_label,
   return ret;
 }
 
+int __fxstat(int vers, int fd, struct stat *buf);
+
+// int fxstat(int vers, int fd, struct stat *buf);
 DEFAULT_VISIBILITY
 int __dfsw___fxstat(int vers, const int fd, struct stat *buf,
                     dfsan_label vers_label, dfsan_label fd_label,
@@ -580,6 +588,9 @@ int __dfsw_lstat(const char *path, struct stat *buf, dfsan_label path_label,
   return ret;
 }
 
+int __lxstat(int vers, const char* path, struct stat *buf);
+
+// int lxstat(int vers, const char* path, struct stat *buf);
 DEFAULT_VISIBILITY
 int __dfsw___lxstat(int vers, const char *path, struct stat *buf,
                     dfsan_label vers_label, dfsan_label path_label,
